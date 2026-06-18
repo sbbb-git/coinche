@@ -15,7 +15,14 @@ export function LessonsScreen() {
 
   const lesson = LESSONS.find((l) => l.id === openId);
   if (lesson) {
-    return <LessonView lesson={lesson} onDone={() => markDone(lesson.id)} onBack={() => setOpenId(null)} />;
+    return (
+      <LessonView
+        key={lesson.id}
+        lesson={lesson}
+        onDone={() => markDone(lesson.id)}
+        onBack={() => setOpenId(null)}
+      />
+    );
   }
 
   return (
@@ -80,7 +87,10 @@ function LessonView({
         ))}
       </div>
 
-      <div className="animate-pop rounded-2xl bg-white/8 p-4 text-[15px] leading-relaxed ring-1 ring-white/10">
+      <div
+        key={i}
+        className="animate-pop rounded-2xl bg-white/8 p-4 text-[15px] leading-relaxed ring-1 ring-white/10"
+      >
         <div className="mb-2 text-3xl" aria-hidden>
           {lesson.emoji}
         </div>

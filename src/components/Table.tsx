@@ -1,6 +1,6 @@
 import { useGame, HUMAN } from "../state/store";
 import { CardBack, PlayingCard } from "./Card";
-import { SUIT_SYMBOL, SUIT_IS_RED, TrumpMode } from "../engine/cards";
+import { Suit, SUIT_SYMBOL, TrumpMode } from "../engine/cards";
 import { GameState } from "../engine/game";
 import { PlayedCard } from "../engine/rules";
 
@@ -20,10 +20,10 @@ const TRICK_POS: Record<number, string> = {
   3: "right-0 top-1/2 -translate-y-1/2",
 };
 
-export function modeLabel(mode: TrumpMode): { text: string; red?: boolean } {
-  if (mode === "NT") return { text: "Sans Atout" };
-  if (mode === "AT") return { text: "Tout Atout" };
-  return { text: SUIT_SYMBOL[mode], red: SUIT_IS_RED[mode] };
+export function modeLabel(mode: TrumpMode): { text: string; suit: Suit | null } {
+  if (mode === "NT") return { text: "Sans Atout", suit: null };
+  if (mode === "AT") return { text: "Tout Atout", suit: null };
+  return { text: SUIT_SYMBOL[mode], suit: mode };
 }
 
 function lastBidText(game: GameState, player: number): string | null {

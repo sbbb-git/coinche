@@ -9,6 +9,19 @@ const FOUR_COLOR: Record<Suit, string> = {
   C: "text-green-700",
 };
 
+/** Classe de couleur d'une enseigne sur fond clair (carte/symbole). */
+export function suitColorClass(suit: Suit, fourColors: boolean): string {
+  if (fourColors) return FOUR_COLOR[suit];
+  return SUIT_IS_RED[suit] ? "text-red-600" : "text-zinc-900";
+}
+
+/** Variante pour fond sombre (bandeau) : rouge clair / blanc, ou 4 couleurs. */
+export function suitColorClassDark(suit: Suit, fourColors: boolean): string {
+  if (fourColors)
+    return { S: "text-white", H: "text-red-400", D: "text-blue-400", C: "text-green-400" }[suit];
+  return SUIT_IS_RED[suit] ? "text-red-400" : "text-white";
+}
+
 interface Props {
   card: TCard;
   size?: "sm" | "md" | "lg";
@@ -32,11 +45,7 @@ export function PlayingCard({ card, size = "md", playable, highlight = true, dim
   const fourColors = useGame((s) => s.game.settings.fourColors);
   const sym = SUIT_SYMBOL[card.suit];
   const rank = RANK_LABEL[card.rank];
-  const colorClass = fourColors
-    ? FOUR_COLOR[card.suit]
-    : SUIT_IS_RED[card.suit]
-      ? "text-red-600"
-      : "text-zinc-900";
+  const colorClass = suitColorClass(card.suit, fourColors);
   const emphasize = playable && highlight;
   return (
     <button

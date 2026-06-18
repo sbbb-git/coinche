@@ -8,6 +8,7 @@ function audio(): AudioContext | null {
     const Ctor =
       window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return null;
+    if (ctx && ctx.state === "closed") ctx = null; // contexte mort : on le recrée
     if (!ctx) ctx = new Ctor();
     if (ctx.state === "suspended") void ctx.resume();
     return ctx;

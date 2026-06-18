@@ -1,5 +1,6 @@
 import { useGame } from "../state/store";
 import { modeLabel } from "./Table";
+import { suitColorClassDark } from "./Card";
 
 export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () => void }) {
   const game = useGame((s) => s.game);
@@ -31,7 +32,13 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
               <span className="text-white/70">Contrat</span>
               <span className="font-bold">
                 {c.capot ? "Capot" : c.value}{" "}
-                <span className={modeLabel(c.mode).red ? "text-red-400" : ""}>
+                <span
+                  className={
+                    modeLabel(c.mode).suit
+                      ? suitColorClassDark(modeLabel(c.mode).suit!, game.settings.fourColors)
+                      : ""
+                  }
+                >
                   {modeLabel(c.mode).text}
                 </span>
               </span>

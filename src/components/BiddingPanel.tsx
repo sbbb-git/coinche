@@ -9,6 +9,7 @@ import {
 } from "../engine/game";
 import { TrumpMode } from "../engine/cards";
 import { modeLabel } from "./Table";
+import { suitColorClass } from "./Card";
 
 export function BiddingPanel() {
   const game = useGame((s) => s.game);
@@ -65,7 +66,7 @@ export function BiddingPanel() {
                   className={[
                     "h-11 min-w-11 px-2 rounded-md text-base font-bold shadow",
                     mode === m ? "bg-yellow-400 text-emerald-950" : "bg-white/90 text-zinc-800",
-                    lbl.red && mode !== m ? "text-red-600" : "",
+                    lbl.suit && mode !== m ? suitColorClass(lbl.suit, game.settings.fourColors) : "",
                   ].join(" ")}
                 >
                   {lbl.text}

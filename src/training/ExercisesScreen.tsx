@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { useGame } from "../state/store";
 import { useStats } from "../state/stats";
-import { PlayingCard } from "../components/Card";
+import { PlayingCard, suitColorClassDark } from "../components/Card";
 import { modeLabel } from "../components/Table";
 import { Card } from "../engine/cards";
 import {
@@ -130,7 +130,15 @@ function PlayTrainer() {
       <div className="mb-2 flex items-center justify-center gap-2 text-sm">
         <span className="rounded-full bg-black/40 px-3 py-1">
           Contrat <b>{c.capot ? "Capot" : c.value}</b>{" "}
-          <span className={modeLabel(c.mode).red ? "text-red-400" : ""}>{modeLabel(c.mode).text}</span>{" "}
+          <span
+            className={
+              modeLabel(c.mode).suit
+                ? suitColorClassDark(modeLabel(c.mode).suit!, g.settings.fourColors)
+                : ""
+            }
+          >
+            {modeLabel(c.mode).text}
+          </span>{" "}
           · preneur {names[c.taker]}
         </span>
       </div>

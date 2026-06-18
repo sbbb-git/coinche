@@ -6,10 +6,12 @@ function Overlay({
   children,
   wide,
   onClose,
+  label,
 }: {
   children: React.ReactNode;
   wide?: boolean;
   onClose?: () => void;
+  label?: string;
 }) {
   useEffect(() => {
     if (!onClose) return;
@@ -25,6 +27,7 @@ function Overlay({
       <div
         role="dialog"
         aria-modal="true"
+        aria-label={label}
         onClick={(e) => e.stopPropagation()}
         className={[
           "animate-pop w-full rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700",
@@ -46,7 +49,7 @@ export function DealResultModal() {
   const takerName = game.settings.playerNames[game.contract.taker];
 
   return (
-    <Overlay>
+    <Overlay label="Résultat de la donne">
       <h2 className="text-center text-xl font-bold">
         {r.made ? "✅ Contrat réussi" : "❌ Chute"}
       </h2>
@@ -81,7 +84,7 @@ export function GameOverModal() {
   const youWon = w === 0;
 
   return (
-    <Overlay>
+    <Overlay label="Fin de partie">
       <h2 className="text-center text-2xl font-bold">{youWon ? "🏆 Victoire !" : "Défaite"}</h2>
       <p className="mt-2 text-center text-sm text-white/70">
         {game.scores[0]} — {game.scores[1]}
@@ -109,13 +112,13 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
   const startNewGame = useGame((s) => s.startNewGame);
   const updateSettings = useGame((s) => s.updateSettings);
   const [draft, setDraft] = useState<Settings>(game.settings);
-  const [tab, setTab] = useState<Tab>("jeu");
+  const [tab, setTab] = useState<Tab>("interface");
 
   const upd = (p: Partial<Settings>) => setDraft({ ...draft, ...p });
   const updP = (p: Partial<PlayProfile>) => setDraft({ ...draft, profile: { ...draft.profile, ...p } });
 
   return (
-    <Overlay wide onClose={onClose}>
+    <Overlay wide onClose={onClose} label="Réglages">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Réglages</h2>
         <button
@@ -426,7 +429,7 @@ function Toggle({
       onClick={onClick}
       role="switch"
       aria-checked={on}
-      className="flex w-full items-center justify-between gap-3 rounded-lg bg-white/5 px-3 py-2.5 text-left text-sm hover:bg-white/10"
+      className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg bg-white/5 px-3 py-2.5 text-left text-sm hover:bg-white/10"
     >
       <span>{children}</span>
       <span
