@@ -1,11 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "../state/store";
 import { AiLevel, PlayProfile, Settings, winnerTeam } from "../engine/game";
 
-function Overlay({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
+function Overlay({
+  children,
+  wide,
+  onClose,
+}: {
+  children: React.ReactNode;
+  wide?: boolean;
+  onClose?: () => void;
+}) {
+  useEffect(() => {
+    if (!onClose) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+      onClick={onClose ? () => onClose() : undefined}
+    >
       <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
         className={[
           "animate-pop w-full rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700",
           wide ? "max-w-md" : "max-w-sm",
@@ -95,7 +115,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
   const updP = (p: Partial<PlayProfile>) => setDraft({ ...draft, profile: { ...draft.profile, ...p } });
 
   return (
-    <Overlay wide>
+    <Overlay wide onClose={onClose}>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Réglages</h2>
         <button
