@@ -1,32 +1,26 @@
-import { useEffect, useState } from "react";
-import { useGame } from "./state/store";
-import { ScorePanel } from "./components/ScorePanel";
-import { Table } from "./components/Table";
-import { HandFan } from "./components/HandFan";
-import { BiddingPanel } from "./components/BiddingPanel";
-import { DealResultModal, GameOverModal, MenuSheet } from "./components/Modals";
+import { useNav } from "./app/nav";
+import { Home } from "./app/Home";
+import { PlayScreen } from "./app/PlayScreen";
+import { ExercisesScreen } from "./training/ExercisesScreen";
+import { ReviewGlobalScreen } from "./training/ReviewGlobalScreen";
+import { GuidesScreen } from "./training/GuidesScreen";
+import { StatsScreen } from "./training/StatsScreen";
 
 export default function App() {
-  const [menu, setMenu] = useState(false);
-  const init = useGame((s) => s.init);
-  const stop = useGame((s) => s.stop);
+  const view = useNav((s) => s.view);
 
-  // Lance l'orchestration des IA pour la partie déjà initialisée (sans la réinitialiser).
-  useEffect(() => {
-    init();
-    return () => stop();
-  }, [init, stop]);
-
-  return (
-    <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
-      <ScorePanel onMenu={() => setMenu(true)} />
-      <Table />
-      <BiddingPanel />
-      <HandFan />
-
-      <DealResultModal />
-      <GameOverModal />
-      {menu && <MenuSheet onClose={() => setMenu(false)} />}
-    </div>
-  );
+  switch (view) {
+    case "play":
+      return <PlayScreen />;
+    case "exercises":
+      return <ExercisesScreen />;
+    case "review":
+      return <ReviewGlobalScreen />;
+    case "guides":
+      return <GuidesScreen />;
+    case "stats":
+      return <StatsScreen />;
+    default:
+      return <Home />;
+  }
 }

@@ -132,7 +132,12 @@ export interface GameState {
   contract: Contract | null;
   trick: PlayedCard[];
   trickLeader: number;
-  completedTricks: { cards: Card[]; winner: number; winnerTeam: Team }[];
+  completedTricks: {
+    cards: Card[];
+    played: PlayedCard[]; // cartes + joueurs, dans l'ordre (pour appels & review)
+    winner: number;
+    winnerTeam: Team;
+  }[];
 
   // Scores
   scores: [number, number];
@@ -393,6 +398,7 @@ export function applyPlay(state: GameState, card: Card): GameState {
     ...state.completedTricks,
     {
       cards: trick.map((p) => p.card),
+      played: trick,
       winner,
       winnerTeam: teamOf(winner),
     },

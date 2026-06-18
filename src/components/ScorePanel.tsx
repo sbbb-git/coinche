@@ -1,7 +1,7 @@
 import { useGame } from "../state/store";
 import { modeLabel } from "./Table";
 
-export function ScorePanel({ onMenu }: { onMenu: () => void }) {
+export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () => void }) {
   const game = useGame((s) => s.game);
   const names = game.settings.playerNames;
   const c = game.contract;
@@ -10,7 +10,14 @@ export function ScorePanel({ onMenu }: { onMenu: () => void }) {
 
   return (
     <div className="safe-top px-3 pt-2">
-      <div className="flex items-center justify-between gap-2 text-sm">
+      <div className="flex items-center justify-between gap-1 text-sm">
+        <button
+          onClick={onHome}
+          aria-label="Accueil"
+          className="grid h-11 w-9 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+        >
+          ←
+        </button>
         <TeamScore
           label={`${names[0]} & ${names[2]}`}
           score={game.scores[0]}

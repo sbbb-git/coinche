@@ -118,8 +118,15 @@ export function aiBid(state: GameState, player: number): BidDecision {
   const modes = availableModes(state.settings);
   const { mode, est: rawEst } = bestContract(hand, modes);
 
-  // Bruit selon le niveau + biais d'agressivité du profil.
-  const noise = level === "easy" ? (rnd() - 0.5) * 40 : level === "medium" ? (rnd() - 0.5) * 12 : 0;
+  // Bruit selon le niveau. Biaisé vers le BAS pour les niveaux faibles : ils
+  // évaluent mal et surtout sous-estiment / hésitent (ils ne doivent pas
+  // surenchérir à l'aveugle, ce qui les ferait chuter).
+  const noise =
+    level === "easy"
+      ? (rnd() - 0.75) * 36
+      : level === "medium"
+        ? (rnd() - 0.55) * 16
+        : 0;
   const aggro = (profile.aggressiveness - 0.5) * 24; // prudent baisse, offensif relève
   const est = rawEst + noise + aggro;
 
@@ -245,19 +252,22 @@ function heuristicPlay(state: GameState, legal: Card[], hard: boolean): Card {
       // On "charge" : on donne le maximum de points au partenaire.
       return [...legal].sort((a, b) => points(b, mode) - points(a, mode))[0];
     }
-    // Sinon on se défausse petit (sans gaspiller une maîtresse).
-    return discardLow(legal, mode);
+    // Sinon on se défausse en signalant à son partenaire (appel).
+    return discardWithSignal(state, legal, mode);
   }
 
   // L'adversaire tient le pli : peut-on (et doit-on) prendre ?
   const winner = cheapestWinner(legal, trick, mode);
   if (winner) {
-    // On prend si le pli vaut le coup, ou si on est dernier, ou avec une petite carte.
-    const worthIt = isLastToPlay || trickPoints >= 8 || points(winner, mode) <= 4;
+    // Seuil de prise selon l'agressivité : « petit jeu » prudent attend des plis
+    // riches, un profil offensif prend plus volontiers.
+    const aggro = state.settings.profile.aggressiveness;
+    const threshold = Math.round(10 - aggro * 8); // ~10 (prudent) → ~2 (offensif)
+    const worthIt = isLastToPlay || trickPoints >= threshold || points(winner, mode) <= 4;
     if (worthIt) return winner;
   }
-  // On ne peut/veut pas prendre : on se défausse au plus économique.
-  return discardLow(legal, mode);
+  // On ne peut/veut pas prendre : on se défausse en signalant (appel).
+  return discardWithSignal(state, legal, mode);
 }
 
 /** Le partenaire est-il certain de remporter le pli (aucune carte adverse ne peut surpasser) ? */
@@ -297,6 +307,13 @@ function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
     if (!hard || isMasterCard(state, topTrump)) return topTrump;
   }
 
+  // Lecture de l'appel du partenaire : il a réclamé une couleur, on la lui rejoue (petit).
+  const called = partnerCalledSuit(state);
+  if (called) {
+    const inCalled = legal.filter((c) => c.suit === called && !isTrump(c, mode));
+    if (inCalled.length > 0) return lowest(inCalled, mode);
+  }
+
   // Jouer une couleur maîtresse (As) hors atout, si le profil le veut.
   if (profile.jeuAuxAs) {
     const aces = legal.filter((c) => c.rank === "A" && !isTrump(c, mode));
@@ -309,6 +326,60 @@ function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
   const sideLow = legal.filter((c) => !isTrump(c, mode));
   if (sideLow.length > 0) return lowest(sideLow, mode);
   return lowest(legal, mode);
+}
+
+/**
+ * Défausse en signalant à son partenaire (appel), sans donner de points.
+ * - directs   : jeter une carte « haute » (9) d'une couleur où l'on est fort (As)
+ *   => « rejoue cette couleur ».
+ * - indirects : jeter une petite carte (7) d'une couleur faible
+ *   => « ne joue pas celle-ci » (donc l'autre).
+ */
+function discardWithSignal(state: GameState, legal: Card[], mode: TrumpMode): Card {
+  const appels = state.settings.profile.appels;
+  if (appels === "aucun") return discardLow(legal, mode);
+
+  // On ne signale qu'avec des cartes sans valeur (7/8/9 hors atout).
+  const cheap = legal.filter((c) => !isTrump(c, mode) && points(c, mode) === 0);
+  if (cheap.length === 0) return discardLow(legal, mode);
+
+  const myHand = state.hands[state.current];
+  const aceSuits = new Set(
+    myHand.filter((c) => !isTrump(c, mode) && c.rank === "A").map((c) => c.suit),
+  );
+
+  if (appels === "directs") {
+    const inStrong = cheap.filter((c) => aceSuits.has(c.suit));
+    const pool = inStrong.length > 0 ? inStrong : cheap;
+    return [...pool].sort((a, b) => strength(b, mode) - strength(a, mode))[0]; // la plus haute
+  }
+  // indirects
+  const inWeak = cheap.filter((c) => !aceSuits.has(c.suit));
+  const pool = inWeak.length > 0 ? inWeak : cheap;
+  return [...pool].sort((a, b) => strength(a, mode) - strength(b, mode))[0]; // la plus basse
+}
+
+/** Couleur appelée par le partenaire (appel direct), lue dans les plis passés. */
+function partnerCalledSuit(state: GameState): Suit | null {
+  if (state.settings.profile.appels !== "directs") return null;
+  const mode = state.contract!.mode;
+  const partner = (state.current + 2) % 4;
+  for (let i = state.completedTricks.length - 1; i >= 0; i--) {
+    const t = state.completedTricks[i];
+    const led = t.played[0].card.suit;
+    const p = t.played.find((x) => x.player === partner);
+    if (!p) continue;
+    // Défausse off-suit, hors atout, sans valeur, et plutôt haute (9/8) = appel.
+    if (
+      p.card.suit !== led &&
+      !isTrump(p.card, mode) &&
+      points(p.card, mode) === 0 &&
+      (p.card.rank === "9" || p.card.rank === "8")
+    ) {
+      return p.card.suit;
+    }
+  }
+  return null;
 }
 
 function isMasterCard(state: GameState, card: Card): boolean {
