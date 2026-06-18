@@ -18,6 +18,7 @@ import {
 import { aiBid, aiPlay } from "../engine/ai";
 import { PlayedCard } from "../engine/rules";
 import { loadInitialSettings, storage } from "../storage";
+import { feedback } from "./feedback";
 
 export const HUMAN = 0; // le joueur humain est toujours le siège 0 (en bas)
 
@@ -118,6 +119,8 @@ export const useGame = create<Store>((set, get) => {
   /** Joue une carte (humain ou IA) avec pause d'affichage si le pli se termine. */
   function doPlay(card: Card) {
     const game = get().game;
+    const prefs = { sound: game.settings.sound, haptics: game.settings.haptics };
+    feedback.cardPlay(prefs);
     const completing = game.trick.length === 3;
     if (completing) {
       const overlay: PlayedCard[] = [...game.trick, { card, player: game.current }];
@@ -126,7 +129,13 @@ export const useGame = create<Store>((set, get) => {
       aiTimer = setTimeout(() => {
         const next = applyPlay(get().game, card);
         set({ game: next, overlayTrick: null });
-        if (next.phase === "dealScored" || next.phase === "gameOver") recordDeal(next);
+        if (next.phase === "dealScored" || next.phase === "gameOver") {
+          recordDeal(next);
+          const r = next.lastResult;
+          if (r) (r.scores[0] >= r.scores[1] ? feedback.dealWon : feedback.dealLost)(prefs);
+        } else {
+          feedback.trickWon(prefs);
+        }
         if (next.phase === "playing") scheduleAI();
       }, speedMs(game.settings).trick);
     } else {

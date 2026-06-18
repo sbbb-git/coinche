@@ -45,6 +45,8 @@ export interface Settings {
   sensHoraire: boolean; // sens de jeu (false = anti-horaire, défaut app)
   cardSort: "asc" | "desc"; // ordre d'affichage de la main
   fourColors: boolean; // jeu 4 couleurs (accessibilité daltoniens)
+  sound: boolean; // effets sonores
+  haptics: boolean; // vibrations (iPhone)
   autoPlaySingle: boolean; // jouer automatiquement quand une seule carte est jouable
   preselectPlayable: boolean; // mettre en évidence les cartes jouables
   showLiveScores: boolean; // afficher les scores en cours de donne
@@ -83,6 +85,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sensHoraire: false,
   cardSort: "asc",
   fourColors: false,
+  sound: true,
+  haptics: true,
   autoPlaySingle: false,
   preselectPlayable: true,
   showLiveScores: true,

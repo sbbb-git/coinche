@@ -157,6 +157,12 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
             <Toggle on={draft.fourColors} onClick={() => upd({ fourColors: !draft.fourColors })}>
               Jeu 4 couleurs (daltoniens)
             </Toggle>
+            <Toggle on={draft.sound} onClick={() => upd({ sound: !draft.sound })}>
+              Effets sonores
+            </Toggle>
+            <Toggle on={draft.haptics} onClick={() => upd({ haptics: !draft.haptics })}>
+              Vibrations (iPhone)
+            </Toggle>
             <Toggle on={draft.autoPlaySingle} onClick={() => upd({ autoPlaySingle: !draft.autoPlaySingle })}>
               Jeu automatique (1 seule carte jouable)
             </Toggle>
