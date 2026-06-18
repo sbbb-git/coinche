@@ -63,7 +63,9 @@ export function reviewDeal(rec: DealRecord): DealReview {
 
   // --- Enchères ---
   for (const b of rec.bids) {
-    if (g.phase === "bidding" && g.current === 0 && b.player === 0) {
+    // Le coach n'évalue que « annoncer » ou « passer » : on n'analyse pas
+    // les coinches/surcoinches du joueur (sinon elles seraient comptées à tort).
+    if (g.phase === "bidding" && g.current === 0 && b.player === 0 && (b.kind === "bid" || b.kind === "pass")) {
       const adv = coachBid(g, 0);
       const best =
         adv.action.action === "pass" ? "Passer" : `${adv.action.value} ${modeText(adv.action.mode)}`;
@@ -95,7 +97,9 @@ export function reviewDeal(rec: DealRecord): DealReview {
     }
     const card = g.hands[g.current].find((c) => c.id === pl.cardId);
     if (!card) break; // sécurité (donnée corrompue)
+    const prev = g;
     g = applyPlay(g, card);
+    if (g === prev) break; // coup rejeté (illégal/corrompu) : on s'arrête proprement
   }
 
   const c = rec.contract;

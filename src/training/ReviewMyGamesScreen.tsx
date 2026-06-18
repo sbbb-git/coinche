@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
+import { useNav } from "../app/nav";
 import { PlayingCard } from "../components/Card";
 import { storage, DealRecord } from "../storage";
 import { ReviewPoint, reviewDeal } from "./replay";
@@ -7,15 +8,24 @@ import { ReviewPoint, reviewDeal } from "./replay";
 export function ReviewMyGamesScreen() {
   const history = useMemo(() => storage.loadHistory(), []);
   const [selected, setSelected] = useState<number | null>(null);
+  const go = useNav((s) => s.go);
 
   if (selected === null) {
     return (
       <ScreenShell title="Mes parties">
         {history.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-white/60">
-            Aucune donne enregistrée pour l'instant. Joue une partie, puis reviens analyser tes
-            décisions ici.
-          </p>
+          <div className="mt-8 text-center">
+            <p className="text-sm text-white/60">
+              Aucune donne enregistrée pour l'instant. Joue une partie, puis reviens analyser tes
+              décisions ici.
+            </p>
+            <button
+              onClick={() => go("play")}
+              className="mt-4 rounded-xl bg-yellow-400 px-5 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
+            >
+              🃏 Jouer une partie
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             <p className="mb-1 text-sm text-white/70">Tes dernières donnes — touche pour analyser.</p>
@@ -56,7 +66,7 @@ function DealReviewView({ rec, onBack }: { rec: DealRecord; onBack: () => void }
 
   if (review.points.length === 0) {
     return (
-      <ScreenShell title="Analyse de la donne">
+      <ScreenShell title="Analyse de la donne" onBack={onBack}>
         <p className="text-sm text-white/70">
           Cette donne n'avait aucun choix à analyser pour toi (que des coups forcés).
         </p>
@@ -69,11 +79,8 @@ function DealReviewView({ rec, onBack }: { rec: DealRecord; onBack: () => void }
 
   const p = review.points[i];
   return (
-    <ScreenShell title="Analyse de la donne">
-      <div className="mb-3 flex items-center justify-between text-sm">
-        <button onClick={onBack} className="rounded-lg bg-white/10 px-3 py-1.5">
-          ← Liste
-        </button>
+    <ScreenShell title="Analyse de la donne" onBack={onBack}>
+      <div className="mb-2 flex items-center justify-end text-sm">
         <span className="text-white/70">
           {review.contractLabel} · {review.resultLabel}
         </span>

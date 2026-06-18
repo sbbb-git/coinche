@@ -14,7 +14,7 @@ import {
   newGame,
 } from "../engine/game";
 import { aiBid, aiPlay } from "../engine/ai";
-import { coachBid, coachPlay, handEstimates, isPlayDecision } from "../engine/coach";
+import { coachBid, coachPlay, handEstimates } from "../engine/coach";
 
 function modeLabel(mode: TrumpMode): string {
   if (mode === "NT") return "Sans Atout";
@@ -98,29 +98,47 @@ function runBidding(g: GameState): GameState {
 }
 
 export function genPlayExercise(settings: Settings): PlayExercise {
-  for (let attempt = 0; attempt < 60; attempt++) {
+  // À défaut d'un vrai choix, on garde le premier coup (même forcé) rencontré,
+  // pour toujours renvoyer une situation valide (jamais de contrat nul).
+  let fallback: PlayExercise | null = null;
+
+  for (let attempt = 0; attempt < 80; attempt++) {
     let g = runBidding(newGame(settings));
     if (g.phase !== "playing") continue;
 
     let s = 0;
     while (g.phase === "playing" && s++ < 60) {
       if (g.current === 0) {
-        if (isPlayDecision(g)) {
-          const legal = legalForCurrent(g);
-          const { best, reason } = coachPlay(g);
-          return { kind: "play", state: g, legal, correctId: best.id, reason };
-        }
-        g = applyPlay(g, legalForCurrent(g)[0]); // coup forcé : on enchaîne
+        const legal = legalForCurrent(g);
+        if (legal.length === 0) break;
+        const { best, reason } = coachPlay(g);
+        const exo: PlayExercise = { kind: "play", state: g, legal, correctId: best.id, reason };
+        if (legal.length > 1) return exo; // vrai choix : on le renvoie
+        if (!fallback) fallback = exo; // coup forcé : repli éventuel
+        g = applyPlay(g, legal[0]);
       } else {
         g = applyPlay(g, aiPlay(g));
       }
     }
+    if (fallback) return fallback; // on a au moins une situation jouable valide
   }
-  // Repli extrême (quasi impossible) : on relance une situation simple.
-  const g = runBidding(newGame(settings));
-  const legal = legalForCurrent(g);
-  const { best, reason } = coachPlay(g);
-  return { kind: "play", state: g, legal, correctId: best.id, reason };
+  if (fallback) return fallback;
+  // Garantie absolue : on force une donne qui atteint la phase de jeu.
+  for (let attempt = 0; attempt < 200; attempt++) {
+    let g = runBidding(newGame(settings));
+    if (g.phase !== "playing") continue;
+    let s = 0;
+    while (g.phase === "playing" && s++ < 60) {
+      if (g.current === 0) {
+        const legal = legalForCurrent(g);
+        if (legal.length === 0) break;
+        const { best, reason } = coachPlay(g);
+        return { kind: "play", state: g, legal, correctId: best.id, reason };
+      }
+      g = applyPlay(g, aiPlay(g));
+    }
+  }
+  throw new Error("Impossible de générer un exercice de jeu avec ces réglages.");
 }
 
 function shuffle<T>(arr: T[]): T[] {

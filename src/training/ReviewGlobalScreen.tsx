@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { useGame } from "../state/store";
 import { AiLevel } from "../engine/game";
-import { SimReport, simulate } from "./simulation";
+import { SimReport, simulateAsync } from "./simulation";
 
 const LEVELS: { id: AiLevel; label: string }[] = [
   { id: "easy", label: "Facile" },
@@ -18,17 +18,18 @@ export function ReviewGlobalScreen() {
   const [levelB, setLevelB] = useState<AiLevel>("medium");
   const [games, setGames] = useState(200);
   const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [report, setReport] = useState<SimReport | null>(null);
 
-  const run = () => {
+  const run = async () => {
     setRunning(true);
     setReport(null);
-    // Laisse l'UI peindre l'état "calcul" avant le travail synchrone.
-    setTimeout(() => {
-      const r = simulate(settings, { games, levelA, levelB });
-      setReport(r);
-      setRunning(false);
-    }, 30);
+    setProgress(0);
+    const r = await simulateAsync(settings, { games, levelA, levelB }, (done, total) =>
+      setProgress(Math.round((100 * done) / total)),
+    );
+    setReport(r);
+    setRunning(false);
   };
 
   return (
@@ -63,8 +64,13 @@ export function ReviewGlobalScreen() {
         disabled={running}
         className="mt-4 w-full rounded-xl bg-yellow-400 py-3 font-bold text-emerald-950 hover:bg-yellow-300 disabled:opacity-60"
       >
-        {running ? "Calcul en cours…" : "Lancer la simulation"}
+        {running ? `Calcul… ${progress}%` : "Lancer la simulation"}
       </button>
+      {running && (
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full bg-yellow-400 transition-all" style={{ width: `${progress}%` }} />
+        </div>
+      )}
 
       {report && <Report r={report} />}
     </ScreenShell>
@@ -90,7 +96,7 @@ function Picker({
             onClick={() => onChange(l.id)}
             aria-pressed={value === l.id}
             className={[
-              "flex-1 rounded-lg py-2 text-xs font-semibold",
+              "flex-1 rounded-lg py-2.5 text-xs font-semibold",
               value === l.id ? "bg-yellow-400 text-emerald-950" : "bg-white/10 hover:bg-white/20",
             ].join(" ")}
           >

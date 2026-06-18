@@ -56,7 +56,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 function Stat({ label, value, big }: { label: string; value: string; big?: boolean }) {
   return (
-    <div className={`flex-1 rounded-lg bg-white/5 p-3 text-center ${big ? "" : ""}`}>
+    <div className="flex-1 rounded-lg bg-white/5 p-3 text-center">
       <div className={`font-bold tabular-nums ${big ? "text-2xl" : "text-xl"}`}>{value}</div>
       <div className="text-xs text-white/60">{label}</div>
     </div>

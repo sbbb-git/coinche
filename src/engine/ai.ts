@@ -370,12 +370,8 @@ function partnerCalledSuit(state: GameState): Suit | null {
     const p = t.played.find((x) => x.player === partner);
     if (!p) continue;
     // Défausse off-suit, hors atout, sans valeur, et plutôt haute (9/8) = appel.
-    if (
-      p.card.suit !== led &&
-      !isTrump(p.card, mode) &&
-      points(p.card, mode) === 0 &&
-      (p.card.rank === "9" || p.card.rank === "8")
-    ) {
+    // Défausse off-suit, hors atout, sans valeur (7/8/9) = appel direct.
+    if (p.card.suit !== led && !isTrump(p.card, mode) && points(p.card, mode) === 0) {
       return p.card.suit;
     }
   }
@@ -400,8 +396,9 @@ function discardLow(legal: Card[], mode: TrumpMode): Card {
 
 // --- Mémoire des cartes (niveau difficile) ----------------------------------
 
+const ALL_CARDS: Card[] = freshDeck();
 function allCards(): Card[] {
-  return freshDeck();
+  return ALL_CARDS;
 }
 
 /** Toutes les cartes déjà vues (plis terminés + pli courant + ma main). */

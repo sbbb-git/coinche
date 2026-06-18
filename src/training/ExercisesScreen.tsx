@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { useGame } from "../state/store";
 import { useStats } from "../state/stats";
@@ -219,8 +219,18 @@ function OptionBtn({ label, state, onClick }: { label: string; state: OptState; 
 }
 
 function Feedback({ ok, reason, onNext }: { ok: boolean; reason: string; onNext: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, []);
   return (
-    <div className="animate-pop mt-4 rounded-xl bg-emerald-900/70 p-3 ring-1 ring-emerald-700">
+    <div
+      ref={ref}
+      className={[
+        "animate-pop mt-4 rounded-xl p-3 ring-1",
+        ok ? "bg-emerald-900/70 ring-emerald-600" : "bg-red-900/60 ring-red-600",
+      ].join(" ")}
+    >
       <p className="font-bold">{ok ? "✅ Bien vu !" : "❌ Pas le meilleur choix"}</p>
       <p className="mt-1 text-sm text-white/80">{reason}</p>
       <button

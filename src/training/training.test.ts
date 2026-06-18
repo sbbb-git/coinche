@@ -1,9 +1,49 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SETTINGS } from "../engine/game";
+import {
+  DEFAULT_SETTINGS,
+  GameState,
+  applyBid,
+  applyCoinche,
+  applyPass,
+  applyPlay,
+  applySurcoinche,
+  legalForCurrent,
+  newGame,
+} from "../engine/game";
+import { aiBid, aiPlay } from "../engine/ai";
+import { DealRecord } from "../storage";
 import { genBidExercise, genPlayExercise } from "./exercises";
 import { simulate } from "./simulation";
+import { reviewDeal } from "./replay";
 
 const S = DEFAULT_SETTINGS;
+
+/** Joue une donne complète (IA) et en construit l'enregistrement rejouable. */
+function playOneDeal(): DealRecord {
+  let g: GameState = newGame(S);
+  let s = 0;
+  while (g.phase !== "dealScored" && g.phase !== "gameOver" && s++ < 3000) {
+    if (g.phase === "bidding") {
+      const d = aiBid(g, g.current);
+      if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot);
+      else if (d.action === "coinche") g = applyCoinche(g);
+      else if (d.action === "surcoinche") g = applySurcoinche(g);
+      else g = applyPass(g);
+    } else {
+      g = applyPlay(g, aiPlay(g));
+    }
+  }
+  return {
+    ts: 0,
+    dealtHands: g.dealtHands,
+    dealer: g.dealer,
+    settings: g.settings,
+    bids: g.bidHistory,
+    plays: g.completedTricks.flatMap((t) => t.played.map((p) => ({ player: p.player, cardId: p.card.id }))),
+    contract: g.contract,
+    result: g.lastResult,
+  };
+}
 
 describe("générateur d'exercices", () => {
   it("enchères : options valides + index correct cohérent", () => {
@@ -43,5 +83,26 @@ describe("simulation massive IA vs IA", () => {
   it("un meilleur niveau gagne nettement plus souvent (Difficile vs Facile)", () => {
     const r = simulate(S, { games: 40, levelA: "hard", levelB: "easy" });
     expect(r.winsA).toBeGreaterThan(r.winsB);
+  });
+});
+
+describe("review d'une donne (reconstruction)", () => {
+  it("rejoue fidèlement et conseille des coups légaux", () => {
+    for (let i = 0; i < 10; i++) {
+      const rec = playOneDeal();
+      const review = reviewDeal(rec);
+      for (const p of review.points) {
+        expect(typeof p.good).toBe("boolean");
+        if (p.phase === "play") {
+          // le coup conseillé doit être jouable dans l'état reconstruit
+          const legalIds = legalForCurrent(p.snapshot).map((c) => c.id);
+          expect(legalIds).toContain(p.bestCardId);
+          // c'était bien au siège 0 de jouer, avec un vrai choix
+          expect(p.snapshot.current).toBe(0);
+          expect(legalIds.length).toBeGreaterThan(1);
+        }
+      }
+      expect(review.goodCount).toBeLessThanOrEqual(review.points.length);
+    }
   });
 });

@@ -102,7 +102,22 @@ class LocalStorage implements Storage {
   loadHistory(): DealRecord[] {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
-      return raw ? (JSON.parse(raw) as DealRecord[]) : [];
+      if (!raw) return [];
+      const arr = JSON.parse(raw) as DealRecord[];
+      if (!Array.isArray(arr)) return [];
+      // On filtre les enregistrements manifestement corrompus (robustesse review).
+      return arr.filter(
+        (r) =>
+          r &&
+          typeof r.dealer === "number" &&
+          r.dealer >= 0 &&
+          r.dealer <= 3 &&
+          Array.isArray(r.dealtHands) &&
+          r.dealtHands.length === 4 &&
+          r.dealtHands.every((h) => Array.isArray(h)) &&
+          Array.isArray(r.bids) &&
+          Array.isArray(r.plays),
+      );
     } catch {
       return [];
     }

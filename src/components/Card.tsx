@@ -16,6 +16,8 @@ const SIZES = {
   lg: "w-14 h-21 text-lg rounded-lg",
 } as const;
 
+const SYM_SIZE = { sm: "text-lg", md: "text-2xl", lg: "text-3xl" } as const;
+
 /** Une carte à jouer (face visible). */
 export function PlayingCard({ card, size = "md", playable, highlight = true, dimmed, onClick }: Props) {
   const red = SUIT_IS_RED[card.suit];
@@ -40,7 +42,7 @@ export function PlayingCard({ card, size = "md", playable, highlight = true, dim
       ].join(" ")}
     >
       <span className="font-bold self-start">{rank}</span>
-      <span className="absolute inset-0 grid place-items-center text-2xl">{sym}</span>
+      <span className={`absolute inset-0 grid place-items-center ${SYM_SIZE[size]}`}>{sym}</span>
       <span className="font-bold self-end rotate-180">{rank}</span>
     </button>
   );

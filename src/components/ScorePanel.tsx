@@ -14,7 +14,7 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
         <button
           onClick={onHome}
           aria-label="Accueil"
-          className="grid h-11 w-9 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+          className="grid h-11 w-11 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
         >
           ←
         </button>

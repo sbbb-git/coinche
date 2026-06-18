@@ -83,27 +83,38 @@ const MODE_KEYS: Record<TrumpMode, string> = {
   AT: "Tout Atout",
 };
 
-export function simulate(settings: Settings, cfg: SimConfig): SimReport {
-  const report: SimReport = {
-    config: cfg,
-    games: 0,
-    deals: 0,
-    winsA: 0,
-    winsB: 0,
-    takerStat: [
-      { taken: 0, made: 0 },
-      { taken: 0, made: 0 },
-    ],
-    byMode: {},
-    coinches: 0,
-    surcoinches: 0,
-    capots: 0,
-    avgContractValue: 0,
-    avgWinnerDealScore: 0,
-  };
-  let contractValueSum = 0;
-  let winnerScoreSum = 0;
+interface Acc {
+  report: SimReport;
+  contractValueSum: number;
+  winnerScoreSum: number;
+}
 
+function newAcc(cfg: SimConfig): Acc {
+  return {
+    report: {
+      config: cfg,
+      games: 0,
+      deals: 0,
+      winsA: 0,
+      winsB: 0,
+      takerStat: [
+        { taken: 0, made: 0 },
+        { taken: 0, made: 0 },
+      ],
+      byMode: {},
+      coinches: 0,
+      surcoinches: 0,
+      capots: 0,
+      avgContractValue: 0,
+      avgWinnerDealScore: 0,
+    },
+    contractValueSum: 0,
+    winnerScoreSum: 0,
+  };
+}
+
+function runOneGame(settings: Settings, cfg: SimConfig, acc: Acc) {
+  const report = acc.report;
   const onDeal = (g: GameState) => {
     const c = g.contract;
     const r = g.lastResult;
@@ -119,18 +130,44 @@ export function simulate(settings: Settings, cfg: SimConfig): SimReport {
     if (c.coinche === 2) report.coinches++;
     if (c.coinche === 4) report.surcoinches++;
     if (c.capot) report.capots++;
-    contractValueSum += c.value;
-    winnerScoreSum += Math.max(r.scores[0], r.scores[1]);
+    acc.contractValueSum += c.value;
+    acc.winnerScoreSum += Math.max(r.scores[0], r.scores[1]);
   };
+  const w = playGame(settings, cfg, onDeal);
+  report.games++;
+  if (w === 0) report.winsA++;
+  else if (w === 1) report.winsB++;
+}
 
+function finalize(acc: Acc): SimReport {
+  const r = acc.report;
+  r.avgContractValue = r.deals ? Math.round(acc.contractValueSum / r.deals) : 0;
+  r.avgWinnerDealScore = r.deals ? Math.round(acc.winnerScoreSum / r.deals) : 0;
+  return r;
+}
+
+/** Version synchrone (petits volumes / tests). */
+export function simulate(settings: Settings, cfg: SimConfig): SimReport {
+  const acc = newAcc(cfg);
+  for (let i = 0; i < cfg.games; i++) runOneGame(settings, cfg, acc);
+  return finalize(acc);
+}
+
+/** Version asynchrone par lots : ne gèle pas l'UI, rapporte la progression. */
+export async function simulateAsync(
+  settings: Settings,
+  cfg: SimConfig,
+  onProgress?: (done: number, total: number) => void,
+): Promise<SimReport> {
+  const acc = newAcc(cfg);
+  const BATCH = 20;
   for (let i = 0; i < cfg.games; i++) {
-    const w = playGame(settings, cfg, onDeal);
-    report.games++;
-    if (w === 0) report.winsA++;
-    else if (w === 1) report.winsB++;
+    runOneGame(settings, cfg, acc);
+    if ((i + 1) % BATCH === 0) {
+      onProgress?.(i + 1, cfg.games);
+      await new Promise((r) => setTimeout(r, 0)); // rend la main au navigateur
+    }
   }
-
-  report.avgContractValue = report.deals ? Math.round(contractValueSum / report.deals) : 0;
-  report.avgWinnerDealScore = report.deals ? Math.round(winnerScoreSum / report.deals) : 0;
-  return report;
+  onProgress?.(cfg.games, cfg.games);
+  return finalize(acc);
 }
