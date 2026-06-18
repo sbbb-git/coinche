@@ -225,6 +225,32 @@ export function startDeal(state: GameState): GameState {
   };
 }
 
+/** Reconstruit l'état initial d'une donne (phase enchères) à partir de mains
+ *  connues, sans mélanger — pour rejouer/analyser une partie enregistrée. */
+export function dealStateFrom(settings: Settings, dealer: number, hands: Card[][]): GameState {
+  const base: GameState = {
+    settings,
+    phase: "bidding",
+    dealer,
+    current: 0,
+    hands: hands.map((h) => [...h]),
+    dealtHands: hands.map((h) => [...h]),
+    bidHistory: [],
+    standing: null,
+    coinche: 1,
+    passStreak: 0,
+    contract: null,
+    trick: [],
+    trickLeader: 0,
+    completedTricks: [],
+    scores: [0, 0],
+    lastResult: null,
+    message: "",
+  };
+  const opener = next(base, dealer);
+  return { ...base, current: opener, trickLeader: opener };
+}
+
 const SUIT_SORT = { S: 0, H: 1, C: 2, D: 3 } as const;
 const RANK_SORT: Record<Card["rank"], number> = {
   A: 0,

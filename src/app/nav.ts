@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type View = "home" | "play" | "exercises" | "review" | "guides" | "stats";
+export type View = "home" | "play" | "exercises" | "mygames" | "review" | "guides" | "stats";
 
 interface Nav {
   view: View;

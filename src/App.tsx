@@ -2,6 +2,7 @@ import { useNav } from "./app/nav";
 import { Home } from "./app/Home";
 import { PlayScreen } from "./app/PlayScreen";
 import { ExercisesScreen } from "./training/ExercisesScreen";
+import { ReviewMyGamesScreen } from "./training/ReviewMyGamesScreen";
 import { ReviewGlobalScreen } from "./training/ReviewGlobalScreen";
 import { GuidesScreen } from "./training/GuidesScreen";
 import { StatsScreen } from "./training/StatsScreen";
@@ -14,6 +15,8 @@ export default function App() {
       return <PlayScreen />;
     case "exercises":
       return <ExercisesScreen />;
+    case "mygames":
+      return <ReviewMyGamesScreen />;
     case "review":
       return <ReviewGlobalScreen />;
     case "guides":

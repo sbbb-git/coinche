@@ -1,7 +1,21 @@
 // Persistance abstraite. Implémentation locale (localStorage) pour l'instant ;
 // une implémentation cloud pourra la remplacer sans toucher au reste.
 
-import { DEFAULT_PROFILE, DEFAULT_SETTINGS, Settings } from "../engine/game";
+import { BidEntry, DEFAULT_PROFILE, DEFAULT_SETTINGS, Settings } from "../engine/game";
+import { Card } from "../engine/cards";
+import { Contract, ScoreBreakdown } from "../engine/scoring";
+
+/** Donne enregistrée, rejouable pour la review. */
+export interface DealRecord {
+  ts: number;
+  dealtHands: Card[][];
+  dealer: number;
+  settings: Settings;
+  bids: BidEntry[];
+  plays: { player: number; cardId: string }[];
+  contract: Contract | null;
+  result: ScoreBreakdown | null;
+}
 
 export interface ExoStat {
   done: number;
@@ -26,10 +40,14 @@ export interface Storage {
   saveSettings(s: Settings): void;
   loadStats(): TrainingStats;
   saveStats(s: TrainingStats): void;
+  loadHistory(): DealRecord[];
+  saveDeal(rec: DealRecord): void;
 }
 
 const SETTINGS_KEY = "coincheur.settings.v1";
 const STATS_KEY = "coincheur.stats.v1";
+const HISTORY_KEY = "coincheur.history.v1";
+const HISTORY_MAX = 25;
 
 class LocalStorage implements Storage {
   loadSettings(): Settings | null {
@@ -76,6 +94,24 @@ class LocalStorage implements Storage {
   saveStats(s: TrainingStats): void {
     try {
       localStorage.setItem(STATS_KEY, JSON.stringify(s));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  loadHistory(): DealRecord[] {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? (JSON.parse(raw) as DealRecord[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveDeal(rec: DealRecord): void {
+    try {
+      const hist = [rec, ...this.loadHistory()].slice(0, HISTORY_MAX);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
     } catch {
       /* ignore */
     }

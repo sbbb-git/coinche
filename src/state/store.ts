@@ -52,6 +52,21 @@ function clearAiTimer() {
   }
 }
 
+/** Enregistre la donne qui vient d'être décomptée (pour la review). */
+function recordDeal(g: GameState) {
+  if (!g.contract) return;
+  storage.saveDeal({
+    ts: Date.now(),
+    dealtHands: g.dealtHands,
+    dealer: g.dealer,
+    settings: g.settings,
+    bids: g.bidHistory,
+    plays: g.completedTricks.flatMap((t) => t.played.map((p) => ({ player: p.player, cardId: p.card.id }))),
+    contract: g.contract,
+    result: g.lastResult,
+  });
+}
+
 export const useGame = create<Store>((set, get) => {
   /** Programme le prochain coup d'IA si c'est à une IA de jouer. */
   function scheduleAI() {
@@ -111,6 +126,7 @@ export const useGame = create<Store>((set, get) => {
       aiTimer = setTimeout(() => {
         const next = applyPlay(get().game, card);
         set({ game: next, overlayTrick: null });
+        if (next.phase === "dealScored" || next.phase === "gameOver") recordDeal(next);
         if (next.phase === "playing") scheduleAI();
       }, speedMs(game.settings).trick);
     } else {
