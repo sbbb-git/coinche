@@ -12,9 +12,10 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg"],
       manifest: {
-        name: "Coinche — Belote Contrée",
-        short_name: "Coinche",
-        description: "Jouez à la Coinche contre des IA, hors-ligne.",
+        name: "Coincheur — Coinche & entraînement",
+        short_name: "Coincheur",
+        description:
+          "Jouez à la Coinche contre des IA paramétrables et entraînez-vous, hors-ligne.",
         theme_color: "#0f5132",
         background_color: "#0b3d28",
         display: "standalone",

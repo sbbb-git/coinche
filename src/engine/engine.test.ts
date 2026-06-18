@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeCard, points, strength, totalPoints, freshDeck } from "./cards";
+import { Card, makeCard, points, strength, totalPoints, freshDeck } from "./cards";
 import { beats, legalMoves, winningIndex } from "./rules";
 import { scoreDeal, Contract } from "./scoring";
 
@@ -103,36 +103,66 @@ describe("décompte d'une donne", () => {
     ...over,
   });
 
-  it("contrat réussi : le preneur marque contrat + points réalisés", () => {
-    const res = scoreDeal(baseContract({}), {
-      trickWinners: [0, 0, 0, 0, 0, 0, 0, 0],
-      tricks: dealIntoTricks(),
+  const c = (...ids: [Card["suit"], Card["rank"]][]) => ids.map(([s, r]) => makeCard(s, r));
+
+  it("contrat réussi : l'attaque marque ses points + le contrat", () => {
+    // team0 gagne 3 plis (dont la der), team1 le reste. Pas de capot.
+    const res = scoreDeal(baseContract({ value: 80 }), {
+      trickWinners: [0, 0, 1, 1, 1, 1, 1, 0],
+      tricks: [c(["S", "J"], ["S", "9"], ["S", "A"], ["S", "10"]), c(["H", "A"], ["H", "10"]), [], [], [], [], [], []],
       hands: [[], [], [], []],
     });
-    // équipe 0 fait tous les plis : 152 cartes + 10 de der = 162
+    expect(res.cardPoints[0]).toBe(55 + 21 + 10); // 86 (avec 10 de der)
     expect(res.made).toBe(true);
-    expect(res.cardPoints[0]).toBe(162);
-    expect(res.scores[0]).toBe(80 + 162);
+    expect(res.scores[0]).toBe(86 + 80);
+    expect(res.scores[1]).toBe(0);
   });
 
-  it("contrat chuté : la défense marque 160 + contrat", () => {
+  it("réussite refusée si l'attaque ne fait pas plus que la défense", () => {
+    // 21 partout (contrat de test à 20) : égalité -> pas réussi.
+    const res = scoreDeal(baseContract({ value: 20 }), {
+      trickWinners: [1, 0, 0, 0, 0, 0, 0, 0], // team0 gagne la der
+      tricks: [c(["S", "10"], ["H", "A"]), c(["S", "K"], ["S", "Q"], ["D", "K"]), [], [], [], [], [], []],
+      hands: [[], [], [], []],
+    });
+    expect(res.realized[0]).toBe(res.realized[1]); // 21 == 21
+    expect(res.made).toBe(false);
+  });
+
+  it("contrat chuté : la défense marque 162 + contrat", () => {
     const res = scoreDeal(baseContract({ value: 120 }), {
-      trickWinners: [1, 1, 1, 1, 1, 1, 1, 1],
-      tricks: dealIntoTricks(),
+      trickWinners: [0, 1, 1, 1, 1, 1, 1, 1], // team0 gagne 1 pli vide (pas capot défense)
+      tricks: [[], [], [], [], [], [], [], []],
       hands: [[], [], [], []],
     });
     expect(res.made).toBe(false);
-    expect(res.scores[1]).toBe(160 + 120);
+    expect(res.scores[1]).toBe(162 + 120);
     expect(res.scores[0]).toBe(0);
   });
 
-  it("coinche réussie double l'enjeu (contrat + 160) × 2", () => {
+  it("coinche réussie : 162 + contrat × 2", () => {
     const res = scoreDeal(baseContract({ value: 100, coinche: 2 }), {
-      trickWinners: [0, 0, 0, 0, 0, 0, 0, 0],
+      trickWinners: [0, 0, 0, 0, 0, 0, 1, 0], // team0 gagne 7 plis (pas capot)
+      tricks: [
+        c(["S", "J"], ["S", "9"], ["S", "A"], ["S", "10"]), // 55
+        c(["C", "A"], ["C", "10"]), // 21
+        c(["H", "A"], ["H", "10"], ["H", "K"]), // 25
+        [], [], [], [], [],
+      ],
+      hands: [[], [], [], []],
+    });
+    expect(res.realized[0]).toBeGreaterThanOrEqual(100);
+    expect(res.made).toBe(true);
+    expect(res.scores[0]).toBe(162 + 100 * 2);
+  });
+
+  it("capot non annoncé : bonus +90", () => {
+    const res = scoreDeal(baseContract({ value: 80 }), {
+      trickWinners: [0, 0, 0, 0, 0, 0, 0, 0], // team0 rafle tout
       tricks: dealIntoTricks(),
       hands: [[], [], [], []],
     });
-    expect(res.made).toBe(true);
-    expect(res.scores[0]).toBe((100 + 160) * 2);
+    expect(res.cardPoints[0]).toBe(162 + 90); // 252
+    expect(res.scores[0]).toBe(252 + 80);
   });
 });

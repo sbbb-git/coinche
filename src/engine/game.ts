@@ -190,6 +190,14 @@ function nextPlayer(p: number): number {
 /** Le joueur courant passe. */
 export function applyPass(state: GameState): GameState {
   const history = [...state.bidHistory, { player: state.current, kind: "pass" as const }];
+  // Cas particulier : on vient de coincher, le preneur décline la surcoinche -> on joue.
+  if (
+    state.coinche === 2 &&
+    state.standing &&
+    teamOf(state.current) === teamOf(state.standing.player)
+  ) {
+    return openPlay({ ...state, bidHistory: history });
+  }
   const passStreak = state.passStreak + 1;
   // 4 passes sans annonce -> redonne (donneur suivant).
   if (!state.standing && passStreak >= 4) {

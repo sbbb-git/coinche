@@ -141,3 +141,35 @@ interface PlayProfile {
 - **Capot beloté** (270) / **générale** (200) dans les enchères ?
 - **Sens de jeu** configurable (horaire/anti-horaire) ?
 - Monétisation à terme (gratuit sans pub ? premium training ?).
+
+## 11. Options de référence à reproduire (app « la Coinche », d'après captures)
+
+Liste complète des réglages de l'app de référence, à implémenter (Phase 2). Les
+**valeurs par défaut observées** chez Sacha correspondent à notre barème actuel.
+
+**Interface** : vitesse de jeu · sens de jeu (anti-horaire/horaire) · rangement
+des cartes (droitier/gaucher) · réorganiser les cartes après chaque carte jouée ·
+animer la distribution · jeu automatique · ramasser les plis automatiquement ·
+ramasser les annonces automatiquement · présélectionner les cartes jouables ·
+afficher les scores en cours de donne.
+
+**Jeu** : nombre de points/partie (slider, jusqu'à 2000) · jouer avec annonces ·
+autoriser Sans Atout · autoriser Tout Atout · belote/rebelote à Tout Atout ·
+**obligation de pisser à l'atout** · forcer le jeu Atout · autoriser la Générale (500) ·
+autoriser la Surcoinche.
+
+**IA** : niveau (Débutant/Intermédiaire/Avancé/Expert) · appels du partenaire
+(directs/indirects, expert) · appel à la belote/rebelote (expert) · style de jeu du
+partenaire (auto/…) · « annoncer 100 après un 80 si on a Valet+9 » · « le partenaire IA
+entame toujours atout avec le valet s'il l'a ».
+
+**Comptage des points** : arrondir les scores à la dizaine · « un contrat peut être
+réussi même si la défense fait plus » (défaut OFF = il faut faire **plus** que la défense) ·
+les annonces comptent pour réussir/chuter · la belote compte pour réussir · la belote
+compte pour chuter · annonces perdues si chute/capot · marquer uniquement le contrat ·
+marquer uniquement le contrat (160 si chute) · marquer uniquement les points ·
+doubler tous les points en cas de coinche.
+
+> Notre **barème implémenté** = ces options à leurs **valeurs par défaut** :
+> belote imprenable & comptée, pas d'annonces, > défense requis, chute 162 + contrat,
+> coinche 162 (+252 capot) + contrat×mult, capot +90. ✅

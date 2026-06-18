@@ -1,0 +1,108 @@
+import { useGame, HUMAN } from "../state/store";
+import { CardBack, PlayingCard } from "./Card";
+import { SUIT_SYMBOL, SUIT_IS_RED, TrumpMode } from "../engine/cards";
+import { GameState } from "../engine/game";
+import { PlayedCard } from "../engine/rules";
+
+// Position écran de chaque siège (0 = humain en bas).
+const SEAT_POS: Record<number, string> = {
+  0: "bottom-2 left-1/2 -translate-x-1/2",
+  1: "left-2 top-1/2 -translate-y-1/2",
+  2: "top-2 left-1/2 -translate-x-1/2",
+  3: "right-2 top-1/2 -translate-y-1/2",
+};
+
+// Position de la carte jouée par chaque siège dans la zone centrale.
+const TRICK_POS: Record<number, string> = {
+  0: "bottom-0 left-1/2 -translate-x-1/2",
+  1: "left-0 top-1/2 -translate-y-1/2",
+  2: "top-0 left-1/2 -translate-x-1/2",
+  3: "right-0 top-1/2 -translate-y-1/2",
+};
+
+export function modeLabel(mode: TrumpMode): { text: string; red?: boolean } {
+  if (mode === "NT") return { text: "Sans Atout" };
+  if (mode === "AT") return { text: "Tout Atout" };
+  return { text: SUIT_SYMBOL[mode], red: SUIT_IS_RED[mode] };
+}
+
+function lastBidText(game: GameState, player: number): string | null {
+  for (let i = game.bidHistory.length - 1; i >= 0; i--) {
+    const b = game.bidHistory[i];
+    if (b.player !== player) continue;
+    if (b.kind === "pass") return "Passe";
+    if (b.kind === "coinche") return "Coinche !";
+    if (b.kind === "surcoinche") return "Surcoinche !";
+    if (b.kind === "bid") {
+      const m = modeLabel(b.mode!);
+      return b.capot ? `Capot ${m.text}` : `${b.value} ${m.text}`;
+    }
+  }
+  return null;
+}
+
+function Seat({ game, seat, thinking }: { game: GameState; seat: number; thinking: boolean }) {
+  const name = game.settings.playerNames[seat];
+  const isTaker = game.contract?.taker === seat;
+  const isCurrent = game.current === seat && (game.phase === "bidding" || game.phase === "playing");
+  const count = game.hands[seat].length;
+  const bid = game.phase === "bidding" ? lastBidText(game, seat) : null;
+  const isPartner = seat % 2 === HUMAN % 2;
+
+  return (
+    <div className={`absolute ${SEAT_POS[seat]} flex flex-col items-center gap-1 z-10`}>
+      {(seat === 1 || seat === 3 || seat === 2) && count > 0 && (
+        <div className="flex -space-x-5">
+          {Array.from({ length: Math.min(count, 8) }).map((_, i) => (
+            <CardBack key={i} size="sm" />
+          ))}
+        </div>
+      )}
+      <div
+        className={[
+          "px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 shadow",
+          isCurrent ? "bg-yellow-400 text-emerald-950" : "bg-black/40 text-white",
+        ].join(" ")}
+      >
+        <span className={isPartner ? "text-sky-300" : ""}>{name}</span>
+        {isTaker && <span title="Preneur">👑</span>}
+        {isCurrent && thinking && <span className="animate-pulse">…</span>}
+      </div>
+      {bid && (
+        <div className="animate-pop px-2 py-0.5 rounded-md bg-white text-emerald-950 text-xs font-semibold shadow">
+          {bid}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrickArea({ trick }: { trick: PlayedCard[] }) {
+  return (
+    <div className="absolute inset-0 m-auto w-44 h-44 sm:w-56 sm:h-56">
+      <div className="relative w-full h-full">
+        {trick.map((p) => (
+          <div key={p.player} className={`absolute ${TRICK_POS[p.player]} animate-pop`}>
+            <PlayingCard card={p.card} size="md" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function Table() {
+  const game = useGame((s) => s.game);
+  const overlay = useGame((s) => s.overlayTrick);
+  const thinking = useGame((s) => s.thinking);
+  const trick = overlay ?? game.trick;
+
+  return (
+    <div className="relative flex-1 min-h-0 rounded-3xl m-2 bg-felt-dark/60 shadow-inner ring-1 ring-emerald-900/50 overflow-hidden">
+      {[2, 1, 3, 0].map((seat) => (
+        <Seat key={seat} game={game} seat={seat} thinking={thinking} />
+      ))}
+      <TrickArea trick={trick} />
+    </div>
+  );
+}

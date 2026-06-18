@@ -66,37 +66,52 @@ export function scoreDeal(contract: Contract, result: DealResult): ScoreBreakdow
   const lastWinner = result.trickWinners[result.trickWinners.length - 1];
   cardPoints[lastWinner] += 10; // 10 de der
 
-  const belote = computeBelote(result.hands, mode);
+  // Capot : remporter tous les plis. Bonus de +90 (même non annoncé).
+  const trickCount: [number, number] = [0, 0];
+  result.trickWinners.forEach((t) => trickCount[t]++);
+  const attackWonAll = trickCount[takerTeam] === 8;
+  const defenseWonAll = trickCount[defenseTeam] === 8;
+  if (attackWonAll) cardPoints[takerTeam] += 90;
+  if (defenseWonAll) cardPoints[defenseTeam] += 90;
+
+  const belote = computeBelote(result.hands, mode); // imprenable
   const realized: [number, number] = [
     cardPoints[0] + belote[0],
     cardPoints[1] + belote[1],
   ];
 
-  // Capot = remporter les 8 plis.
-  const takerTrickCount = result.trickWinners.filter((t) => t === takerTeam).length;
+  // Réussite : capot annoncé => tous les plis ; sinon => au moins le contrat
+  // ET strictement plus de points que la défense.
   const made = contract.capot
-    ? takerTrickCount === 8
-    : realized[takerTeam] >= contract.value;
+    ? attackWonAll
+    : realized[takerTeam] >= contract.value && realized[takerTeam] > realized[defenseTeam];
 
   const scores: [number, number] = [0, 0];
   const mult = contract.coinche;
 
   if (mult === 1) {
     if (made) {
-      const base = contract.capot ? 250 : contract.value + cardPoints[takerTeam];
-      scores[takerTeam] = base + belote[takerTeam];
-      scores[defenseTeam] = contract.capot ? belote[defenseTeam] : realized[defenseTeam];
+      if (contract.capot) {
+        scores[takerTeam] = 250 + belote[takerTeam];
+        scores[defenseTeam] = belote[defenseTeam];
+      } else {
+        // L'attaque marque ses points (cartes + belote) + la valeur du contrat.
+        scores[takerTeam] = cardPoints[takerTeam] + contract.value + belote[takerTeam];
+        scores[defenseTeam] = realized[defenseTeam];
+      }
     } else {
-      const base = contract.capot ? 250 : 160 + contract.value;
-      scores[defenseTeam] = base + belote[defenseTeam];
+      // Chute : la défense marque 162 (252 si elle capote) + le contrat ; belote imprenable.
+      const base = defenseWonAll ? 252 : 162;
+      scores[defenseTeam] = base + contract.value + belote[defenseTeam];
       scores[takerTeam] = belote[takerTeam];
     }
   } else {
-    // Coinché / surcoinché : enjeu forfaitaire (contrat + 160) × multiplicateur.
-    const stake = (contract.capot ? 250 : contract.value + 160) * mult;
+    // Coinche/Surcoinche : le gagnant marque 162 (252 si capot) + contrat × mult.
     const winner = made ? takerTeam : defenseTeam;
     const loser = (1 - winner) as Team;
-    scores[winner] = stake + belote[winner];
+    const winnerWonAll = winner === takerTeam ? attackWonAll : defenseWonAll;
+    const base = winnerWonAll || contract.capot ? 252 : 162;
+    scores[winner] = base + contract.value * mult + belote[winner];
     scores[loser] = belote[loser];
   }
 
