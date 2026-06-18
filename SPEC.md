@@ -121,12 +121,22 @@ interface PlayProfile {
 - **Phase 2 ✅ (fait)** — Réglages complets (Interface/Jeu/IA/Comptage, mirroir de l'app),
   IA paramétrable par `PlayProfile` (niveau Expert, agressivité, appels, conventions Graux),
   options de comptage, sens de jeu, persistance locale des réglages. *(commité)*
-- **Phase 3 — Training** :
-  1. **Review** : rejeu coup par coup d'une partie, le coach pointe les erreurs (Δ vs meilleur coup).
-  2. **Exercices** générés (« que jouer ? » / « quelle enchère ? ») avec correction.
-  3. **Stats & progression** (taux de contrats réussis, points faibles, niveau).
-  4. **Leçons guidées** (parcours Graux/Brévart).
+- **Phase 3 ✅ (fait)** — Training complet :
+  1. **Review de tes parties** : rejeu coup par coup centré sur tes décisions (coups forcés sautés),
+     enchères vs jeu séparés, coach qui explique (carte jouée vs conseil).
+  2. **Review IA globale** : simulateur massif IA vs IA (niveaux opposables), stats agrégées.
+  3. **Exercices** générés à l'infini (enchères / jeu), correction + streak.
+  4. **Stats & progression** ; **Leçons guidées** (parcours Graux) ; **Guides** situationnels.
+  - Appels (directs/indirects) câblés ; agressivité (petit jeu ↔ offensif) effective.
 - **Phase 4 — iPhone** : finition PWA (icônes, offline) → option App Store (Capacitor).
+
+### Chantiers / dette identifiés (backlog)
+- **Tuning IA défense** : la simulation montre des contrats réussis ~99 % (défense trop passive,
+  bidding prudent-mais-juste). Améliorer la coopération défensive (cash des As, jeu dans la
+  couleur du partenaire, refus de nourrir le preneur) pour des taux de chute réalistes.
+- Coinche « à la volée » (hors tour) ; Générale (500) ; belote en défense (option).
+- Précision du comptage de cartes IA (distinguer cartes adverses vs partenaire).
+- Sons & haptique (réglage prévu), animations gamifiées avancées.
 
 ## 9. Modèle de données (local-first)
 

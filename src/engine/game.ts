@@ -44,6 +44,7 @@ export interface Settings {
   gameSpeed: "lent" | "normal" | "rapide";
   sensHoraire: boolean; // sens de jeu (false = anti-horaire, défaut app)
   cardSort: "asc" | "desc"; // ordre d'affichage de la main
+  fourColors: boolean; // jeu 4 couleurs (accessibilité daltoniens)
   autoPlaySingle: boolean; // jouer automatiquement quand une seule carte est jouable
   preselectPlayable: boolean; // mettre en évidence les cartes jouables
   showLiveScores: boolean; // afficher les scores en cours de donne
@@ -81,6 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
   gameSpeed: "normal",
   sensHoraire: false,
   cardSort: "asc",
+  fourColors: false,
   autoPlaySingle: false,
   preselectPlayable: true,
   showLiveScores: true,

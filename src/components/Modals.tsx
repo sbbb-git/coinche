@@ -154,6 +154,9 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
               ]}
               onChange={(v) => upd({ cardSort: v as Settings["cardSort"] })}
             />
+            <Toggle on={draft.fourColors} onClick={() => upd({ fourColors: !draft.fourColors })}>
+              Jeu 4 couleurs (daltoniens)
+            </Toggle>
             <Toggle on={draft.autoPlaySingle} onClick={() => upd({ autoPlaySingle: !draft.autoPlaySingle })}>
               Jeu automatique (1 seule carte jouable)
             </Toggle>

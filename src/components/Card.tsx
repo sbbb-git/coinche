@@ -1,4 +1,13 @@
-import { Card as TCard, RANK_LABEL, SUIT_IS_RED, SUIT_LABEL, SUIT_SYMBOL } from "../engine/cards";
+import { Card as TCard, RANK_LABEL, SUIT_IS_RED, SUIT_LABEL, SUIT_SYMBOL, Suit } from "../engine/cards";
+import { useGame } from "../state/store";
+
+// Couleurs des enseignes en mode "4 couleurs" (accessibilité daltoniens).
+const FOUR_COLOR: Record<Suit, string> = {
+  S: "text-zinc-900",
+  H: "text-red-600",
+  D: "text-blue-600",
+  C: "text-green-700",
+};
 
 interface Props {
   card: TCard;
@@ -20,9 +29,14 @@ const SYM_SIZE = { sm: "text-lg", md: "text-2xl", lg: "text-3xl" } as const;
 
 /** Une carte à jouer (face visible). */
 export function PlayingCard({ card, size = "md", playable, highlight = true, dimmed, onClick }: Props) {
-  const red = SUIT_IS_RED[card.suit];
+  const fourColors = useGame((s) => s.game.settings.fourColors);
   const sym = SUIT_SYMBOL[card.suit];
   const rank = RANK_LABEL[card.rank];
+  const colorClass = fourColors
+    ? FOUR_COLOR[card.suit]
+    : SUIT_IS_RED[card.suit]
+      ? "text-red-600"
+      : "text-zinc-900";
   const emphasize = playable && highlight;
   return (
     <button
@@ -34,7 +48,7 @@ export function PlayingCard({ card, size = "md", playable, highlight = true, dim
         SIZES[size],
         "relative flex flex-col justify-between bg-white shadow-md border border-black/10 leading-none p-1",
         "transition-transform duration-150",
-        red ? "text-red-600" : "text-zinc-900",
+        colorClass,
         playable ? "cursor-pointer hover:-translate-y-3" : "",
         emphasize ? "ring-2 ring-yellow-400/90" : "",
         dimmed ? "opacity-50 saturate-50" : "",
