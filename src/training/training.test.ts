@@ -84,6 +84,15 @@ describe("simulation massive IA vs IA", () => {
     const r = simulate(S, { games: 40, levelA: "hard", levelB: "easy" });
     expect(r.winsA).toBeGreaterThan(r.winsB);
   });
+
+  it("taux de contrats réussis réaliste (pas ~100% : calibration des enchères)", () => {
+    const r = simulate(S, { games: 80, levelA: "hard", levelB: "hard" });
+    const taken = r.takerStat[0].taken + r.takerStat[1].taken;
+    const made = r.takerStat[0].made + r.takerStat[1].made;
+    const rate = made / taken;
+    expect(rate).toBeLessThan(0.96); // la défense / les enchères créent des chutes
+    expect(rate).toBeGreaterThan(0.5); // mais le preneur reste favori
+  });
 });
 
 describe("review d'une donne (reconstruction)", () => {

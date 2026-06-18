@@ -68,6 +68,10 @@ function estimateSuit(hand: Card[], trump: Suit): number {
     // Une couleur courte aide à couper.
     if (suit.length === 0 && n >= 3) est += 6;
   }
+  // Contribution attendue du partenaire : à la coinche on joue en équipe, le
+  // partenaire apporte en moyenne ~20 points. Sans cette allocation, l'IA
+  // sous-évalue et n'annonce que des 80 qu'elle réussit quasi toujours.
+  est += 18;
   return est;
 }
 
