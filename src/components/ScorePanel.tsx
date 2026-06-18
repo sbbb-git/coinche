@@ -5,6 +5,8 @@ export function ScorePanel({ onMenu }: { onMenu: () => void }) {
   const game = useGame((s) => s.game);
   const names = game.settings.playerNames;
   const c = game.contract;
+  const hideScores =
+    !game.settings.showLiveScores && (game.phase === "playing" || game.phase === "bidding");
 
   return (
     <div className="safe-top px-3 pt-2">
@@ -12,6 +14,7 @@ export function ScorePanel({ onMenu }: { onMenu: () => void }) {
         <TeamScore
           label={`${names[0]} & ${names[2]}`}
           score={game.scores[0]}
+          hidden={hideScores}
           highlight={c ? c.taker % 2 === 0 : false}
         />
 
@@ -42,6 +45,7 @@ export function ScorePanel({ onMenu }: { onMenu: () => void }) {
         <TeamScore
           label={`${names[1]} & ${names[3]}`}
           score={game.scores[1]}
+          hidden={hideScores}
           highlight={c ? c.taker % 2 === 1 : false}
         />
 
@@ -61,10 +65,12 @@ function TeamScore({
   label,
   score,
   highlight,
+  hidden,
 }: {
   label: string;
   score: number;
   highlight: boolean;
+  hidden?: boolean;
 }) {
   return (
     <div
@@ -74,7 +80,7 @@ function TeamScore({
       ].join(" ")}
     >
       <span className="truncate text-[11px] text-white/70 max-w-24">{label}</span>
-      <span className="text-lg font-bold tabular-nums">{score}</span>
+      <span className="text-lg font-bold tabular-nums">{hidden ? "—" : score}</span>
     </div>
   );
 }

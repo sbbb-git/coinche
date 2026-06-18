@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useGame } from "../state/store";
-import { Settings, winnerTeam } from "../engine/game";
-import { AiLevel } from "../engine/game";
+import { AiLevel, PlayProfile, Settings, winnerTeam } from "../engine/game";
 
-function Overlay({ children }: { children: React.ReactNode }) {
+function Overlay({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
-      <div className="animate-pop w-full max-w-sm rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700">
+      <div
+        className={[
+          "animate-pop w-full rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700",
+          wide ? "max-w-md" : "max-w-sm",
+        ].join(" ")}
+      >
         {children}
       </div>
     </div>
@@ -72,22 +76,26 @@ export function GameOverModal() {
   );
 }
 
-const LEVELS: { id: AiLevel; label: string }[] = [
-  { id: "easy", label: "Facile" },
-  { id: "medium", label: "Moyen" },
-  { id: "hard", label: "Difficile" },
+type Tab = "interface" | "jeu" | "ia" | "comptage";
+const TABS: { id: Tab; label: string }[] = [
+  { id: "interface", label: "Interface" },
+  { id: "jeu", label: "Jeu" },
+  { id: "ia", label: "IA" },
+  { id: "comptage", label: "Comptage" },
 ];
-const TARGETS = [1000, 1500, 2000];
 
 export function MenuSheet({ onClose }: { onClose: () => void }) {
   const game = useGame((s) => s.game);
   const startNewGame = useGame((s) => s.startNewGame);
+  const updateSettings = useGame((s) => s.updateSettings);
   const [draft, setDraft] = useState<Settings>(game.settings);
+  const [tab, setTab] = useState<Tab>("jeu");
 
   const upd = (p: Partial<Settings>) => setDraft({ ...draft, ...p });
+  const updP = (p: Partial<PlayProfile>) => setDraft({ ...draft, profile: { ...draft.profile, ...p } });
 
   return (
-    <Overlay>
+    <Overlay wide>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Réglages</h2>
         <button onClick={onClose} aria-label="Fermer" className="text-white/60 hover:text-white">
@@ -95,55 +103,193 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      <Field label="Niveau de l'IA">
-        <div className="flex gap-1">
-          {LEVELS.map((l) => (
-            <Chip key={l.id} active={draft.aiLevel === l.id} onClick={() => upd({ aiLevel: l.id })}>
-              {l.label}
-            </Chip>
-          ))}
-        </div>
-      </Field>
-
-      <Field label="Partie jusqu'à">
-        <div className="flex gap-1">
-          {TARGETS.map((t) => (
-            <Chip key={t} active={draft.targetScore === t} onClick={() => upd({ targetScore: t })}>
-              {t}
-            </Chip>
-          ))}
-        </div>
-      </Field>
-
-      <Field label="Variantes">
-        <div className="flex flex-col gap-1.5">
-          <Toggle on={draft.allowNT} onClick={() => upd({ allowNT: !draft.allowNT })}>
-            Sans Atout
-          </Toggle>
-          <Toggle on={draft.allowAT} onClick={() => upd({ allowAT: !draft.allowAT })}>
-            Tout Atout
-          </Toggle>
-          <Toggle on={draft.allowCoinche} onClick={() => upd({ allowCoinche: !draft.allowCoinche })}>
-            Coinche / Surcoinche
-          </Toggle>
-          <Toggle
-            on={draft.coincheEndsGame}
-            onClick={() => upd({ coincheEndsGame: !draft.coincheEndsGame })}
+      <div className="mt-3 flex gap-1 rounded-lg bg-black/30 p-1">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            aria-pressed={tab === t.id}
+            className={[
+              "flex-1 rounded-md py-1.5 text-sm font-semibold transition",
+              tab === t.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
+            ].join(" ")}
           >
-            La coinche fait gagner la partie
-          </Toggle>
-        </div>
-      </Field>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      <button
-        onClick={() => {
-          startNewGame(draft);
-          onClose();
-        }}
-        className="mt-5 w-full rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
-      >
-        Nouvelle partie
-      </button>
+      <div className="mt-3 max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+        {tab === "interface" && (
+          <>
+            <Seg
+              label="Vitesse de jeu"
+              value={draft.gameSpeed}
+              options={[
+                ["lent", "Lent"],
+                ["normal", "Normal"],
+                ["rapide", "Rapide"],
+              ]}
+              onChange={(v) => upd({ gameSpeed: v as Settings["gameSpeed"] })}
+            />
+            <Seg
+              label="Sens de jeu"
+              value={draft.sensHoraire ? "h" : "a"}
+              options={[
+                ["a", "Anti-horaire"],
+                ["h", "Horaire"],
+              ]}
+              onChange={(v) => upd({ sensHoraire: v === "h" })}
+            />
+            <Seg
+              label="Rangement des cartes"
+              value={draft.cardSort}
+              options={[
+                ["asc", "Croissant"],
+                ["desc", "Décroissant"],
+              ]}
+              onChange={(v) => upd({ cardSort: v as Settings["cardSort"] })}
+            />
+            <Toggle on={draft.autoPlaySingle} onClick={() => upd({ autoPlaySingle: !draft.autoPlaySingle })}>
+              Jeu automatique (1 seule carte jouable)
+            </Toggle>
+            <Toggle on={draft.preselectPlayable} onClick={() => upd({ preselectPlayable: !draft.preselectPlayable })}>
+              Présélectionner les cartes jouables
+            </Toggle>
+            <Toggle on={draft.showLiveScores} onClick={() => upd({ showLiveScores: !draft.showLiveScores })}>
+              Afficher les scores en cours de donne
+            </Toggle>
+          </>
+        )}
+
+        {tab === "jeu" && (
+          <>
+            <Seg
+              label="Points par partie"
+              value={String(draft.targetScore)}
+              options={[
+                ["1000", "1000"],
+                ["1500", "1500"],
+                ["2000", "2000"],
+              ]}
+              onChange={(v) => upd({ targetScore: Number(v) })}
+            />
+            <Toggle on={draft.allowNT} onClick={() => upd({ allowNT: !draft.allowNT })}>
+              Autoriser le Sans Atout
+            </Toggle>
+            <Toggle on={draft.allowAT} onClick={() => upd({ allowAT: !draft.allowAT })}>
+              Autoriser le Tout Atout
+            </Toggle>
+            <Toggle on={draft.beloteAtToutAtout} onClick={() => upd({ beloteAtToutAtout: !draft.beloteAtToutAtout })}>
+              Belote/Rebelote à Tout Atout
+            </Toggle>
+            <Toggle on={draft.pisserObligatoire} onClick={() => upd({ pisserObligatoire: !draft.pisserObligatoire })}>
+              Obligation de pisser à l'atout
+            </Toggle>
+            <Toggle on={draft.allowCoinche} onClick={() => upd({ allowCoinche: !draft.allowCoinche })}>
+              Autoriser la Coinche
+            </Toggle>
+            <Toggle on={draft.allowSurcoinche} onClick={() => upd({ allowSurcoinche: !draft.allowSurcoinche })}>
+              Autoriser la Surcoinche
+            </Toggle>
+            <Toggle on={draft.coincheEndsGame} onClick={() => upd({ coincheEndsGame: !draft.coincheEndsGame })}>
+              La coinche fait gagner la partie
+            </Toggle>
+          </>
+        )}
+
+        {tab === "ia" && (
+          <>
+            <Seg
+              label="Niveau de l'IA"
+              value={draft.aiLevel}
+              options={[
+                ["easy", "Facile"],
+                ["medium", "Moyen"],
+                ["hard", "Difficile"],
+                ["expert", "Expert"],
+              ]}
+              onChange={(v) => upd({ aiLevel: v as AiLevel })}
+            />
+            <Slider
+              label="Style"
+              left="Prudent"
+              right="Offensif"
+              value={draft.profile.aggressiveness}
+              onChange={(v) => updP({ aggressiveness: v })}
+            />
+            <Seg
+              label="Appels du partenaire"
+              value={draft.profile.appels}
+              options={[
+                ["directs", "Directs"],
+                ["indirects", "Indirects"],
+                ["aucun", "Aucun"],
+              ]}
+              onChange={(v) => updP({ appels: v as PlayProfile["appels"] })}
+            />
+            <Seg
+              label="Système d'enchères"
+              value={draft.profile.systemeEncheres}
+              options={[
+                ["simple", "Simple"],
+                ["graux", "Graux"],
+              ]}
+              onChange={(v) => updP({ systemeEncheres: v as PlayProfile["systemeEncheres"] })}
+            />
+            <Toggle on={draft.profile.jeuAuxAs} onClick={() => updP({ jeuAuxAs: !draft.profile.jeuAuxAs })}>
+              Jeu aux as (sortir les as)
+            </Toggle>
+            <Toggle on={draft.profile.entameAtoutValet} onClick={() => updP({ entameAtoutValet: !draft.profile.entameAtoutValet })}>
+              Entamer atout avec le valet s'il l'a
+            </Toggle>
+            <Toggle on={draft.profile.conventionAnnonce100} onClick={() => updP({ conventionAnnonce100: !draft.profile.conventionAnnonce100 })}>
+              Annoncer 100 après un 80 (si Valet + 9)
+            </Toggle>
+            <Toggle on={draft.profile.appelBelote} onClick={() => updP({ appelBelote: !draft.profile.appelBelote })}>
+              Annonce de la belote/rebelote
+            </Toggle>
+          </>
+        )}
+
+        {tab === "comptage" && (
+          <>
+            <Toggle on={draft.roundToTen} onClick={() => upd({ roundToTen: !draft.roundToTen })}>
+              Arrondir les scores à la dizaine
+            </Toggle>
+            <Toggle on={draft.contractCanSucceedIfDefenseMore} onClick={() => upd({ contractCanSucceedIfDefenseMore: !draft.contractCanSucceedIfDefenseMore })}>
+              Réussir même si la défense fait plus
+            </Toggle>
+            <Toggle on={draft.beloteCountsToSucceed} onClick={() => upd({ beloteCountsToSucceed: !draft.beloteCountsToSucceed })}>
+              La belote compte pour réussir un contrat
+            </Toggle>
+            <Toggle on={draft.beloteCountsToFail} onClick={() => upd({ beloteCountsToFail: !draft.beloteCountsToFail })}>
+              La belote compte pour faire chuter un contrat
+            </Toggle>
+          </>
+        )}
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <button
+          onClick={() => {
+            updateSettings(draft);
+            onClose();
+          }}
+          className="flex-1 rounded-xl bg-white/15 py-2.5 font-semibold text-white hover:bg-white/25"
+        >
+          Appliquer
+        </button>
+        <button
+          onClick={() => {
+            startNewGame(draft);
+            onClose();
+          }}
+          className="flex-1 rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
+        >
+          Nouvelle partie
+        </button>
+      </div>
     </Overlay>
   );
 }
@@ -156,35 +302,73 @@ function Row({ label, value, bold }: { label: string; value: string | number; bo
     </div>
   );
 }
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+
+function Seg<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: [T, string][];
+  onChange: (v: T) => void;
+}) {
   return (
-    <div className="mt-4">
-      <p className="mb-1.5 text-xs uppercase tracking-wide text-white/50">{label}</p>
-      {children}
+    <div>
+      <p className="mb-1 text-xs uppercase tracking-wide text-white/60">{label}</p>
+      <div className="flex gap-1">
+        {options.map(([id, lbl]) => (
+          <button
+            key={id}
+            onClick={() => onChange(id)}
+            aria-pressed={value === id}
+            className={[
+              "flex-1 rounded-lg px-2 py-2 text-sm font-semibold transition",
+              value === id ? "bg-yellow-400 text-emerald-950" : "bg-white/10 text-white hover:bg-white/20",
+            ].join(" ")}
+          >
+            {lbl}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
-function Chip({
-  active,
-  onClick,
-  children,
+
+function Slider({
+  label,
+  left,
+  right,
+  value,
+  onChange,
 }: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
+  label: string;
+  left: string;
+  right: string;
+  value: number;
+  onChange: (v: number) => void;
 }) {
   return (
-    <button
-      onClick={onClick}
-      className={[
-        "flex-1 rounded-lg px-2 py-1.5 text-sm font-semibold",
-        active ? "bg-yellow-400 text-emerald-950" : "bg-white/10 text-white hover:bg-white/20",
-      ].join(" ")}
-    >
-      {children}
-    </button>
+    <div>
+      <p className="mb-1 text-xs uppercase tracking-wide text-white/60">{label}</p>
+      <input
+        type="range"
+        min={0}
+        max={1}
+        step={0.1}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-yellow-400"
+      />
+      <div className="flex justify-between text-[11px] text-white/60">
+        <span>{left}</span>
+        <span>{right}</span>
+      </div>
+    </div>
   );
 }
+
 function Toggle({
   on,
   onClick,
@@ -197,20 +381,19 @@ function Toggle({
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
+      role="switch"
+      aria-checked={on}
+      className="flex w-full items-center justify-between gap-3 rounded-lg bg-white/5 px-3 py-2.5 text-left text-sm hover:bg-white/10"
     >
       <span>{children}</span>
       <span
         className={[
-          "h-5 w-9 rounded-full p-0.5 transition",
+          "h-6 w-10 shrink-0 rounded-full p-0.5 transition",
           on ? "bg-yellow-400" : "bg-white/20",
         ].join(" ")}
       >
         <span
-          className={[
-            "block h-4 w-4 rounded-full bg-white transition",
-            on ? "translate-x-4" : "",
-          ].join(" ")}
+          className={["block h-5 w-5 rounded-full bg-white transition", on ? "translate-x-4" : ""].join(" ")}
         />
       </span>
     </button>

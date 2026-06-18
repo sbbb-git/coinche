@@ -4,6 +4,8 @@ interface Props {
   card: TCard;
   size?: "sm" | "md" | "lg";
   playable?: boolean;
+  /** met en évidence la carte jouable (anneau) ; séparé de la cliquabilité */
+  highlight?: boolean;
   dimmed?: boolean;
   onClick?: () => void;
 }
@@ -15,10 +17,11 @@ const SIZES = {
 } as const;
 
 /** Une carte à jouer (face visible). */
-export function PlayingCard({ card, size = "md", playable, dimmed, onClick }: Props) {
+export function PlayingCard({ card, size = "md", playable, highlight = true, dimmed, onClick }: Props) {
   const red = SUIT_IS_RED[card.suit];
   const sym = SUIT_SYMBOL[card.suit];
   const rank = RANK_LABEL[card.rank];
+  const emphasize = playable && highlight;
   return (
     <button
       type="button"
@@ -30,8 +33,9 @@ export function PlayingCard({ card, size = "md", playable, dimmed, onClick }: Pr
         "relative flex flex-col justify-between bg-white shadow-md border border-black/10 leading-none p-1",
         "transition-transform duration-150",
         red ? "text-red-600" : "text-zinc-900",
-        playable ? "cursor-pointer hover:-translate-y-3 ring-2 ring-yellow-400/90" : "",
-        dimmed ? "opacity-40 saturate-50" : "",
+        playable ? "cursor-pointer hover:-translate-y-3" : "",
+        emphasize ? "ring-2 ring-yellow-400/90" : "",
+        dimmed ? "opacity-50 saturate-50" : "",
         onClick && !playable ? "cursor-not-allowed" : "",
       ].join(" ")}
     >

@@ -57,11 +57,17 @@ export function partnerIsWinning(trick: PlayedCard[], current: number, mode: Tru
  * Implémente : obligation de fournir, obligation de couper, obligation de
  * monter à l'atout, et l'exception du partenaire maître.
  */
+export interface MoveOptions {
+  /** true (défaut) : on doit mettre de l'atout même sans pouvoir surcouper. */
+  pisserObligatoire?: boolean;
+}
+
 export function legalMoves(
   hand: Card[],
   trick: PlayedCard[],
   current: number,
   mode: TrumpMode,
+  opts: MoveOptions = {},
 ): Card[] {
   if (trick.length === 0) return [...hand]; // entame libre
   const led = trick[0].card.suit;
@@ -108,7 +114,9 @@ export function legalMoves(
 
   // Adversaire maître : je dois couper, et monter si un adversaire a déjà coupé.
   if (highestTrumpStrength >= 0) {
-    return myHigherTrumps.length > 0 ? myHigherTrumps : myTrumps;
+    if (myHigherTrumps.length > 0) return myHigherTrumps;
+    // Je ne peux pas surcouper : si « pisser » n'est pas obligatoire, défausse libre.
+    return opts.pisserObligatoire === false ? [...hand] : myTrumps;
   }
   return myTrumps;
 }

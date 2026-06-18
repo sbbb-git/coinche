@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Card, makeCard, points, strength, totalPoints, freshDeck } from "./cards";
 import { beats, legalMoves, winningIndex } from "./rules";
-import { scoreDeal, Contract } from "./scoring";
+import { scoreDeal, Contract, DEFAULT_SCORE_OPTIONS } from "./scoring";
 import { DEFAULT_SETTINGS, applyPass, newGame } from "./game";
 
 /** Découpe le jeu en 8 plis de 4 cartes (pour des décomptes réalistes). */
@@ -91,6 +91,19 @@ describe("cartes jouables", () => {
     ];
     const legal = legalMoves(hand, trick, 1, "S");
     expect(legal.map((c) => c.id)).toEqual(["SA"]); // doit monter (As > 10)
+  });
+
+  it("option pisser : sans surcoupe possible, défausse libre si non obligatoire", () => {
+    // Pique atout. Joueur 3 entame Cœur, joueur 1 (adversaire) coupe du Roi de pique.
+    const hand = [makeCard("S", "7"), makeCard("D", "K")]; // S7 ne bat pas SK
+    const trick = [
+      { card: makeCard("H", "10"), player: 3 },
+      { card: makeCard("S", "K"), player: 1 },
+    ];
+    // Par défaut : obligation de mettre de l'atout.
+    expect(legalMoves(hand, trick, 0, "S").map((c) => c.id)).toEqual(["S7"]);
+    // Option « pisser » désactivée : défausse libre.
+    expect(legalMoves(hand, trick, 0, "S", { pisserObligatoire: false }).length).toBe(2);
   });
 });
 
@@ -191,6 +204,37 @@ describe("décompte d'une donne", () => {
     expect(res.belote[0]).toBe(20);
     expect(res.scores[0]).toBe(20); // imprenable même en chute
   });
+
+  it("option arrondi à la dizaine", () => {
+    const res = scoreDeal(baseContract({ value: 90 }), {
+      trickWinners: [0, 1, 1, 1, 1, 1, 1, 1], // chute -> défense 162 + 90 = 252
+      tricks: [[], [], [], [], [], [], [], []],
+      hands: [[], [], [], []],
+    });
+    const rounded = scoreDeal(
+      baseContract({ value: 90 }),
+      { trickWinners: [0, 1, 1, 1, 1, 1, 1, 1], tricks: Array(8).fill([]), hands: [[], [], [], []] },
+      { ...DEFAULT_SCORE_OPTIONS, roundToTen: true },
+    );
+    expect(res.scores[1]).toBe(252);
+    expect(rounded.scores[1]).toBe(250); // 252 -> 250
+  });
+
+  it("option : contrat réussi même si la défense fait autant", () => {
+    const args = {
+      trickWinners: [1, 0, 0, 0, 0, 0, 0, 0] as const,
+      tricks: [c(["S", "10"], ["H", "A"]), c(["S", "K"], ["S", "Q"], ["D", "K"]), [], [], [], [], [], []],
+      hands: [[], [], [], []],
+    };
+    const strict = scoreDeal(baseContract({ value: 20 }), { ...args, trickWinners: [...args.trickWinners] });
+    const lax = scoreDeal(
+      baseContract({ value: 20 }),
+      { ...args, trickWinners: [...args.trickWinners] },
+      { ...DEFAULT_SCORE_OPTIONS, contractCanSucceedIfDefenseMore: true },
+    );
+    expect(strict.made).toBe(false); // 21 == 21 -> raté par défaut
+    expect(lax.made).toBe(true); // accepté avec l'option
+  });
 });
 
 describe("légalité en Sans Atout / Tout Atout", () => {
@@ -219,6 +263,7 @@ describe("enchères", () => {
     g = applyPass(g);
     expect(g.phase).toBe("bidding");
     expect(g.standing).toBeNull();
-    expect(g.dealer).toBe((firstDealer + 1) % 4);
+    // sens anti-horaire par défaut : le donneur passe à (dealer + 3) % 4
+    expect(g.dealer).toBe((firstDealer + 3) % 4);
   });
 });

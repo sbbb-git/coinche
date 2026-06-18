@@ -33,17 +33,34 @@ export interface ScoreBreakdown {
   takerTeam: Team;
 }
 
+/** Options de comptage (réglables, défauts = barème de l'app la Coinche). */
+export interface ScoreOptions {
+  roundToTen: boolean;
+  contractCanSucceedIfDefenseMore: boolean;
+  beloteCountsToSucceed: boolean;
+  beloteCountsToFail: boolean;
+  beloteAtToutAtout: boolean;
+}
+
+export const DEFAULT_SCORE_OPTIONS: ScoreOptions = {
+  roundToTen: false,
+  contractCanSucceedIfDefenseMore: false,
+  beloteCountsToSucceed: true,
+  beloteCountsToFail: true,
+  beloteAtToutAtout: false,
+};
+
 /** Couleurs concernées par la belote (R+D) selon le mode. */
-function beloteSuits(mode: TrumpMode): Suit[] {
+function beloteSuits(mode: TrumpMode, beloteAtAT: boolean): Suit[] {
   if (mode === "NT") return [];
-  if (mode === "AT") return ["S", "H", "D", "C"];
+  if (mode === "AT") return beloteAtAT ? ["S", "H", "D", "C"] : [];
   return [mode];
 }
 
 /** Détecte la belote/rebelote : 20 pts à l'équipe dont un joueur a R+D d'atout. */
-function computeBelote(hands: Card[][], mode: TrumpMode): [number, number] {
+function computeBelote(hands: Card[][], mode: TrumpMode, beloteAtAT: boolean): [number, number] {
   const out: [number, number] = [0, 0];
-  for (const suit of beloteSuits(mode)) {
+  for (const suit of beloteSuits(mode, beloteAtAT)) {
     for (let p = 0; p < 4; p++) {
       const hasKing = hands[p].some((c) => c.suit === suit && c.rank === "K");
       const hasQueen = hands[p].some((c) => c.suit === suit && c.rank === "Q");
@@ -53,7 +70,11 @@ function computeBelote(hands: Card[][], mode: TrumpMode): [number, number] {
   return out;
 }
 
-export function scoreDeal(contract: Contract, result: DealResult): ScoreBreakdown {
+export function scoreDeal(
+  contract: Contract,
+  result: DealResult,
+  opts: ScoreOptions = DEFAULT_SCORE_OPTIONS,
+): ScoreBreakdown {
   const { mode } = contract;
   const takerTeam = teamOf(contract.taker);
   const defenseTeam = (1 - takerTeam) as Team;
@@ -74,17 +95,21 @@ export function scoreDeal(contract: Contract, result: DealResult): ScoreBreakdow
   if (attackWonAll) cardPoints[takerTeam] += 90;
   if (defenseWonAll) cardPoints[defenseTeam] += 90;
 
-  const belote = computeBelote(result.hands, mode); // imprenable
+  const belote = computeBelote(result.hands, mode, opts.beloteAtToutAtout); // imprenable
   const realized: [number, number] = [
     cardPoints[0] + belote[0],
     cardPoints[1] + belote[1],
   ];
 
   // Réussite : capot annoncé => tous les plis ; sinon => au moins le contrat
-  // ET strictement plus de points que la défense.
+  // ET (sauf option) strictement plus de points que la défense.
+  // La belote ne compte dans ce test que si les options correspondantes sont actives.
+  const attackForTest = cardPoints[takerTeam] + (opts.beloteCountsToSucceed ? belote[takerTeam] : 0);
+  const defenseForTest = cardPoints[defenseTeam] + (opts.beloteCountsToFail ? belote[defenseTeam] : 0);
   const made = contract.capot
     ? attackWonAll
-    : realized[takerTeam] >= contract.value && realized[takerTeam] > realized[defenseTeam];
+    : attackForTest >= contract.value &&
+      (opts.contractCanSucceedIfDefenseMore || attackForTest > defenseForTest);
 
   const scores: [number, number] = [0, 0];
   const mult = contract.coinche;
@@ -113,6 +138,11 @@ export function scoreDeal(contract: Contract, result: DealResult): ScoreBreakdow
     const base = winnerWonAll || contract.capot ? 252 : 162;
     scores[winner] = base + contract.value * mult + belote[winner];
     scores[loser] = belote[loser];
+  }
+
+  if (opts.roundToTen) {
+    scores[0] = Math.round(scores[0] / 10) * 10;
+    scores[1] = Math.round(scores[1] / 10) * 10;
   }
 
   return { cardPoints, belote, realized, made, scores, takerTeam };

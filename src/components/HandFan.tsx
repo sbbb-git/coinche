@@ -10,6 +10,7 @@ export function HandFan() {
   const hand = game.hands[HUMAN];
   const myTurn = game.current === HUMAN && game.phase === "playing" && !overlay;
   const legalIds = new Set(myTurn ? legalForCurrent(game).map((c) => c.id) : []);
+  const preselect = game.settings.preselectPlayable;
 
   return (
     <div className="safe-bottom px-1 pb-2 pt-1">
@@ -30,7 +31,8 @@ export function HandFan() {
                   card={card}
                   size="lg"
                   playable={playable}
-                  dimmed={myTurn && !playable}
+                  highlight={preselect}
+                  dimmed={myTurn && !playable && preselect}
                   onClick={() => play(card)}
                 />
               </div>

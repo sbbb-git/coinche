@@ -3,7 +3,6 @@
 import { create } from "zustand";
 import { Card, TrumpMode } from "../engine/cards";
 import {
-  DEFAULT_SETTINGS,
   GameState,
   Settings,
   applyBid,
@@ -13,9 +12,12 @@ import {
   applySurcoinche,
   newGame,
   nextDeal as engineNextDeal,
+  legalForCurrent,
+  speedMs,
 } from "../engine/game";
 import { aiBid, aiPlay } from "../engine/ai";
 import { PlayedCard } from "../engine/rules";
+import { loadInitialSettings, storage } from "../storage";
 
 export const HUMAN = 0; // le joueur humain est toujours le siège 0 (en bas)
 
@@ -28,6 +30,8 @@ interface Store {
 
   /** démarre l'orchestration des IA pour la partie déjà en cours (à appeler au montage) */
   init: () => void;
+  /** applique des réglages à la partie en cours sans la réinitialiser */
+  updateSettings: (settings: Settings) => void;
   startNewGame: (settings?: Settings) => void;
   bid: (value: number, mode: TrumpMode, capot: boolean) => void;
   pass: () => void;
@@ -46,8 +50,6 @@ function clearAiTimer() {
   }
 }
 
-const TRICK_PAUSE_MS = 1300; // temps d'affichage d'un pli complet
-
 export const useGame = create<Store>((set, get) => {
   /** Programme le prochain coup d'IA si c'est à une IA de jouer. */
   function scheduleAI() {
@@ -59,10 +61,22 @@ export const useGame = create<Store>((set, get) => {
     }
     if (g.current === HUMAN) {
       set({ thinking: false });
+      // Jeu automatique : une seule carte jouable -> on la joue après un court délai.
+      if (g.phase === "playing" && g.settings.autoPlaySingle) {
+        const legal = legalForCurrent(g);
+        if (legal.length === 1) {
+          aiTimer = setTimeout(() => {
+            const cur = get().game;
+            if (cur.current === HUMAN && cur.phase === "playing" && !get().overlayTrick) {
+              doPlay(legal[0]);
+            }
+          }, speedMs(g.settings).ai);
+        }
+      }
       return;
     }
     set({ thinking: true });
-    const delay = 550 + Math.random() * 500;
+    const delay = speedMs(g.settings).ai + Math.random() * 300;
     aiTimer = setTimeout(() => {
       const game = get().game;
       if (game.current === HUMAN) {
@@ -96,7 +110,7 @@ export const useGame = create<Store>((set, get) => {
         const next = applyPlay(get().game, card);
         set({ game: next, overlayTrick: null });
         if (next.phase === "playing") scheduleAI();
-      }, TRICK_PAUSE_MS);
+      }, speedMs(game.settings).trick);
     } else {
       set({ game: applyPlay(game, card) });
       scheduleAI();
@@ -104,13 +118,15 @@ export const useGame = create<Store>((set, get) => {
   }
 
   return {
-    game: newGame(DEFAULT_SETTINGS),
+    game: newGame(loadInitialSettings()),
     thinking: false,
     overlayTrick: null,
 
     startNewGame: (settings) => {
       clearAiTimer();
-      set({ game: newGame(settings ?? get().game.settings), overlayTrick: null });
+      const s = settings ?? get().game.settings;
+      storage.saveSettings(s); // persiste les réglages choisis
+      set({ game: newGame(s), overlayTrick: null });
       scheduleAI();
     },
 
@@ -125,6 +141,11 @@ export const useGame = create<Store>((set, get) => {
       scheduleAI();
     },
     init: () => {
+      scheduleAI();
+    },
+    updateSettings: (settings) => {
+      storage.saveSettings(settings);
+      set({ game: { ...get().game, settings } });
       scheduleAI();
     },
     coinche: () => {

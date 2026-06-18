@@ -4,6 +4,7 @@ import { Card, Suit, SUITS, TrumpMode, isTrump, points, strength } from "./cards
 import {
   GameState,
   availableModes,
+  canBid,
   canCoinche,
   canSurcoinche,
   legalForCurrent,
@@ -111,27 +112,50 @@ export function bestContract(hand: Card[], modes: TrumpMode[]): { mode: TrumpMod
 
 export function aiBid(state: GameState, player: number): BidDecision {
   const level = state.settings.aiLevel;
+  const profile = state.settings.profile;
+  const strong = level === "hard" || level === "expert";
   const hand = state.hands[player];
   const modes = availableModes(state.settings);
   const { mode, est: rawEst } = bestContract(hand, modes);
 
-  // Le niveau facile estime moins bien (bruit).
+  // Bruit selon le niveau + biais d'agressivité du profil.
   const noise = level === "easy" ? (rnd() - 0.5) * 40 : level === "medium" ? (rnd() - 0.5) * 12 : 0;
-  const est = rawEst + noise;
+  const aggro = (profile.aggressiveness - 0.5) * 24; // prudent baisse, offensif relève
+  const est = rawEst + noise + aggro;
 
-  // Coinche défensive (niveau difficile surtout).
+  // Coinche défensive.
   if (state.standing && teamOf(state.standing.player) !== teamOf(player)) {
-    if (canCoinche(state, player) && shouldCoinche(state, player, level)) {
+    if (canCoinche(state, player) && shouldCoinche(state, player, strong, profile.aggressiveness)) {
       return { action: "coinche" };
     }
   }
   // Surcoinche si on est le preneur coinché et très confiant.
   if (canSurcoinche(state, player)) {
     const myEst = estimateForMode(hand, state.standing!.mode);
-    if (level === "hard" && myEst >= state.standing!.value + 25) {
-      return { action: "surcoinche" };
-    }
+    if (strong && myEst >= state.standing!.value + 25) return { action: "surcoinche" };
     return { action: "pass" };
+  }
+
+  // Convention « 100 fort » : après un 80 du partenaire à la couleur, relancer à 100
+  // dans cette couleur si on a le Valet ET le 9 d'atout.
+  if (
+    profile.systemeEncheres === "graux" &&
+    profile.conventionAnnonce100 &&
+    state.standing &&
+    !state.standing.capot &&
+    state.standing.value === 80 &&
+    teamOf(state.standing.player) === teamOf(player) &&
+    (state.standing.mode === "S" ||
+      state.standing.mode === "H" ||
+      state.standing.mode === "D" ||
+      state.standing.mode === "C")
+  ) {
+    const tr = state.standing.mode;
+    const hasJ = hand.some((c) => c.suit === tr && c.rank === "J");
+    const has9 = hand.some((c) => c.suit === tr && c.rank === "9");
+    if (hasJ && has9 && canBid(state, 100, false)) {
+      return { action: "bid", value: 100, mode: tr, capot: false };
+    }
   }
 
   // Valeur d'annonce visée (arrondie à la dizaine inférieure).
@@ -156,14 +180,21 @@ export function aiBid(state: GameState, player: number): BidDecision {
   return { action: "pass" };
 }
 
-function shouldCoinche(state: GameState, player: number, level: string): boolean {
+function shouldCoinche(
+  state: GameState,
+  player: number,
+  strong: boolean,
+  aggressiveness: number,
+): boolean {
+  const level = state.settings.aiLevel;
   if (level === "easy") return false;
   const v = state.standing!.value;
-  if (state.standing!.capot) return level === "hard" && rnd() < 0.3;
+  if (state.standing!.capot) return strong && rnd() < 0.3;
   // On coinche un contrat ambitieux qu'on pense pouvoir faire chuter.
   const defenseEst = estimateForMode(state.hands[player], state.standing!.mode);
-  const margin = level === "hard" ? 0 : 15;
-  return v >= 120 && defenseEst >= 162 - v + margin && rnd() < (level === "hard" ? 0.6 : 0.3);
+  const margin = strong ? 0 : 15;
+  const proba = (strong ? 0.6 : 0.3) + (aggressiveness - 0.5) * 0.3;
+  return v >= 120 && defenseEst >= 162 - v + margin && rnd() < proba;
 }
 
 // --- Choix d'une carte ------------------------------------------------------
@@ -173,7 +204,8 @@ export function aiPlay(state: GameState): Card {
   if (legal.length === 1) return legal[0];
   const level = state.settings.aiLevel;
   if (level === "easy") return legal[Math.floor(rnd() * legal.length)];
-  return heuristicPlay(state, legal, level === "hard");
+  const hard = level === "hard" || level === "expert";
+  return heuristicPlay(state, legal, hard);
 }
 
 function lowest(cards: Card[], mode: TrumpMode): Card {
@@ -249,20 +281,28 @@ function partnerSurelyWins(state: GameState, hard: boolean): boolean {
 function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
   const mode = state.contract!.mode;
   const me = state.current;
+  const profile = state.settings.profile;
   const iAmTaker = teamOf(state.contract!.taker) === teamOf(me);
-
-  // Si je suis dans l'équipe preneuse : je tire mes atouts maîtres pour faire tomber ceux des adversaires.
   const trumps = legal.filter((c) => isTrump(c, mode));
+
+  // Convention : entamer atout avec le Valet si on l'a (équipe preneuse).
+  if (iAmTaker && profile.entameAtoutValet) {
+    const jack = trumps.find((c) => c.rank === "J");
+    if (jack) return jack;
+  }
+
+  // Équipe preneuse : tirer ses atouts maîtres pour faire tomber ceux des adversaires.
   if (iAmTaker && trumps.length > 0) {
     const topTrump = highest(trumps, mode);
-    // Tirer l'atout maître si c'est le plus fort encore en jeu.
     if (!hard || isMasterCard(state, topTrump)) return topTrump;
   }
 
-  // Sinon, jouer une couleur maîtresse (As) hors atout.
-  const aces = legal.filter((c) => c.rank === "A" && !isTrump(c, mode));
-  for (const ace of aces) {
-    if (!hard || isMasterCard(state, ace)) return ace;
+  // Jouer une couleur maîtresse (As) hors atout, si le profil le veut.
+  if (profile.jeuAuxAs) {
+    const aces = legal.filter((c) => c.rank === "A" && !isTrump(c, mode));
+    for (const ace of aces) {
+      if (!hard || isMasterCard(state, ace)) return ace;
+    }
   }
 
   // À défaut, entamer petit dans une couleur non-atout.
