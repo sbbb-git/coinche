@@ -36,7 +36,7 @@ export function ScorePanel({ onMenu }: { onMenu: () => void }) {
               {game.phase === "bidding" ? "Enchères" : "Coincheur"}
             </div>
           )}
-          <span className="text-[11px] text-white/50">jusqu'à {game.settings.targetScore}</span>
+          <span className="text-xs text-white/70">jusqu'à {game.settings.targetScore}</span>
         </div>
 
         <TeamScore
@@ -48,7 +48,7 @@ export function ScorePanel({ onMenu }: { onMenu: () => void }) {
         <button
           onClick={onMenu}
           aria-label="Menu"
-          className="ml-1 grid h-9 w-9 place-items-center rounded-full bg-white/15 hover:bg-white/25"
+          className="ml-1 grid h-11 w-11 place-items-center rounded-full bg-white/15 hover:bg-white/25"
         >
           ⚙️
         </button>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Card, makeCard, points, strength, totalPoints, freshDeck } from "./cards";
 import { beats, legalMoves, winningIndex } from "./rules";
 import { scoreDeal, Contract } from "./scoring";
+import { DEFAULT_SETTINGS, applyPass, newGame } from "./game";
 
 /** Découpe le jeu en 8 plis de 4 cartes (pour des décomptes réalistes). */
 function dealIntoTricks() {
@@ -164,5 +165,60 @@ describe("décompte d'une donne", () => {
     });
     expect(res.cardPoints[0]).toBe(162 + 90); // 252
     expect(res.scores[0]).toBe(252 + 80);
+  });
+
+  it("surcoinche réussie : 162 + contrat × 4", () => {
+    const res = scoreDeal(baseContract({ value: 90, coinche: 4 }), {
+      trickWinners: [0, 0, 0, 0, 0, 0, 1, 0],
+      tricks: [
+        c(["S", "J"], ["S", "9"], ["S", "A"], ["S", "10"]), // 55
+        c(["H", "A"], ["H", "10"], ["H", "K"]), // 25
+        c(["C", "A"], ["C", "10"]), // 21
+        [], [], [], [], [],
+      ],
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(true);
+    expect(res.scores[0]).toBe(162 + 90 * 4);
+  });
+
+  it("belote : +20 imprenable à l'équipe qui a R+D d'atout", () => {
+    const res = scoreDeal(baseContract({ value: 80 }), {
+      trickWinners: [1, 1, 1, 1, 1, 1, 1, 1], // chute du preneur
+      tricks: [[], [], [], [], [], [], [], []],
+      hands: [c(["S", "K"], ["S", "Q"]), [], [], []], // preneur (siège 0) a R+D de pique
+    });
+    expect(res.belote[0]).toBe(20);
+    expect(res.scores[0]).toBe(20); // imprenable même en chute
+  });
+});
+
+describe("légalité en Sans Atout / Tout Atout", () => {
+  it("Sans Atout : on fournit la couleur, sinon défausse libre", () => {
+    const trick = [{ card: makeCard("H", "7"), player: 0 }];
+    const withHeart = [makeCard("H", "A"), makeCard("S", "A")];
+    expect(legalMoves(withHeart, trick, 1, "NT").map((c) => c.id)).toEqual(["HA"]);
+    const noHeart = [makeCard("S", "A"), makeCard("D", "K")];
+    expect(legalMoves(noHeart, trick, 1, "NT").length).toBe(2); // libre
+  });
+
+  it("Tout Atout : obligation de monter dans la couleur entamée", () => {
+    const trick = [{ card: makeCard("H", "10"), player: 0 }];
+    const hand = [makeCard("H", "8"), makeCard("H", "J")]; // J > 10 en atout
+    expect(legalMoves(hand, trick, 1, "AT").map((c) => c.id)).toEqual(["HJ"]);
+  });
+});
+
+describe("enchères", () => {
+  it("4 passes consécutives -> redonne, donneur suivant", () => {
+    let g = newGame(DEFAULT_SETTINGS);
+    const firstDealer = g.dealer;
+    g = applyPass(g);
+    g = applyPass(g);
+    g = applyPass(g);
+    g = applyPass(g);
+    expect(g.phase).toBe("bidding");
+    expect(g.standing).toBeNull();
+    expect(g.dealer).toBe((firstDealer + 1) % 4);
   });
 });

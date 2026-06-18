@@ -57,8 +57,9 @@ export function BiddingPanel() {
               <button
                 key={m}
                 onClick={() => setMode(m)}
+                aria-pressed={mode === m}
                 className={[
-                  "min-w-9 h-9 px-2 rounded-md text-base font-bold shadow",
+                  "h-11 min-w-11 px-2 rounded-md text-base font-bold shadow",
                   mode === m ? "bg-yellow-400 text-emerald-950" : "bg-white/90 text-zinc-800",
                   lbl.red && mode !== m ? "text-red-600" : "",
                 ].join(" ")}
@@ -71,7 +72,7 @@ export function BiddingPanel() {
         <select
           value={effValue}
           onChange={(e) => setValue(Number(e.target.value))}
-          className="h-9 px-2 rounded-md bg-white/90 text-zinc-800 font-semibold"
+          className="h-11 px-2 rounded-md bg-white/90 text-zinc-800 font-semibold"
         >
           {values.map((v) => (
             <option key={v} value={v}>
@@ -121,7 +122,7 @@ function Btn({
       onClick={onClick}
       disabled={disabled}
       className={[
-        "px-3 py-1.5 rounded-lg text-sm font-semibold shadow transition",
+        "px-4 py-2.5 rounded-lg text-sm font-semibold shadow transition",
         disabled
           ? "bg-white/20 text-white/40 cursor-not-allowed"
           : warn

@@ -12,26 +12,36 @@ export function HandFan() {
   const legalIds = new Set(myTurn ? legalForCurrent(game).map((c) => c.id) : []);
 
   return (
-    <div className="safe-bottom px-2 pb-2">
-      <div className="flex justify-center items-end gap-1 flex-wrap">
-        {hand.map((card) => {
-          const playable = myTurn && legalIds.has(card.id);
-          return (
-            <PlayingCard
-              key={card.id}
-              card={card}
-              size="lg"
-              playable={playable}
-              dimmed={myTurn && !playable}
-              onClick={() => play(card)}
-            />
-          );
-        })}
-        {hand.length === 0 && (
-          <div className="h-21 grid place-items-center text-white/50 text-sm">
-            En attente de la donne…
-          </div>
-        )}
+    <div className="safe-bottom px-1 pb-2 pt-1">
+      {/* chevauchement pour tenir sur un petit iPhone, scroll de secours si besoin */}
+      <div className="flex justify-center overflow-x-auto">
+        <div className="flex items-end pt-4 pl-3">
+          {hand.map((card) => {
+            const playable = myTurn && legalIds.has(card.id);
+            return (
+              <div
+                key={card.id}
+                className={[
+                  "-ml-3 sm:-ml-1 transition-transform",
+                  playable ? "z-10 hover:z-20" : "",
+                ].join(" ")}
+              >
+                <PlayingCard
+                  card={card}
+                  size="lg"
+                  playable={playable}
+                  dimmed={myTurn && !playable}
+                  onClick={() => play(card)}
+                />
+              </div>
+            );
+          })}
+          {hand.length === 0 && (
+            <div className="grid h-21 place-items-center text-sm text-white/60">
+              En attente de la donne…
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -168,6 +168,8 @@ export function sortHand(hand: Card[]): Card[] {
 export function canBid(state: GameState, value: number, capot: boolean): boolean {
   if (capot) return !state.standing?.capot;
   if (state.standing?.capot) return false;
+  // Annonce valide : 80..160 par pas de 10.
+  if (value < 80 || value > 160 || value % 10 !== 0) return false;
   return !state.standing || value > state.standing.value;
 }
 
@@ -345,8 +347,10 @@ function finishDeal(state: GameState): GameState {
 
   // Fin de partie : score cible atteint, ou coinche gagnante si l'option est active.
   const coinched = contract.coinche > 1;
+  // Cible atteinte ET pas d'égalité : sinon on joue une donne de départage.
   const reachedTarget =
-    scores[0] >= state.settings.targetScore || scores[1] >= state.settings.targetScore;
+    (scores[0] >= state.settings.targetScore || scores[1] >= state.settings.targetScore) &&
+    scores[0] !== scores[1];
   const gameOver =
     reachedTarget ||
     (state.settings.coincheEndsGame && coinched && scores[0] !== scores[1]);

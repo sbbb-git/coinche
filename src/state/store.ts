@@ -26,6 +26,8 @@ interface Store {
   /** pli complet figé à l'écran le temps qu'on le voie, avant résolution */
   overlayTrick: PlayedCard[] | null;
 
+  /** démarre l'orchestration des IA pour la partie déjà en cours (à appeler au montage) */
+  init: () => void;
   startNewGame: (settings?: Settings) => void;
   bid: (value: number, mode: TrumpMode, capot: boolean) => void;
   pass: () => void;
@@ -122,11 +124,16 @@ export const useGame = create<Store>((set, get) => {
       set({ game: applyPass(get().game) });
       scheduleAI();
     },
+    init: () => {
+      scheduleAI();
+    },
     coinche: () => {
+      if (get().game.current !== HUMAN) return;
       set({ game: applyCoinche(get().game) });
       scheduleAI();
     },
     surcoinche: () => {
+      if (get().game.current !== HUMAN) return;
       set({ game: applySurcoinche(get().game) });
       scheduleAI();
     },
@@ -145,8 +152,3 @@ export const useGame = create<Store>((set, get) => {
   };
 });
 
-// Démarre l'orchestration dès le chargement (si une IA ouvre les enchères).
-setTimeout(() => {
-  const g = useGame.getState().game;
-  if (g.current !== HUMAN) useGame.getState().startNewGame(g.settings);
-}, 300);

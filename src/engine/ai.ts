@@ -183,6 +183,7 @@ function highest(cards: Card[], mode: TrumpMode): Card {
   return [...cards].sort((a, b) => strength(b, mode) - strength(a, mode))[0];
 }
 function cheapestWinner(legal: Card[], trick: PlayedCard[], mode: TrumpMode): Card | null {
+  if (trick.length === 0) return null;
   const led = trick[0].card.suit;
   const wIdx = winningIndex(trick, mode);
   const toBeat = trick[wIdx].card;

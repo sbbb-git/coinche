@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useGame } from "./state/store";
 import { ScorePanel } from "./components/ScorePanel";
 import { Table } from "./components/Table";
 import { HandFan } from "./components/HandFan";
@@ -7,9 +8,15 @@ import { DealResultModal, GameOverModal, MenuSheet } from "./components/Modals";
 
 export default function App() {
   const [menu, setMenu] = useState(false);
+  const init = useGame((s) => s.init);
+
+  // Lance l'orchestration des IA pour la partie déjà initialisée (sans la réinitialiser).
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
       <ScorePanel onMenu={() => setMenu(true)} />
       <Table />
       <BiddingPanel />
