@@ -118,7 +118,9 @@ interface PlayProfile {
 - **Phase 0 ✅** Moteur (règles, scoring, machine d'état) + IA 3 niveaux + 14 tests. *(commité)*
 - **Phase 1 — Table jouable** : store/orchestration, UI table responsive (cartes, pli, mains),
   phase d'enchères (Coinche), tour des IA animés, fin de donne + scores, PWA. **← en cours**
-- **Phase 2 — Réglages & variantes** : Coinche/Contrée, TA/SA, niveau & profil IA, score cible.
+- **Phase 2 ✅ (fait)** — Réglages complets (Interface/Jeu/IA/Comptage, mirroir de l'app),
+  IA paramétrable par `PlayProfile` (niveau Expert, agressivité, appels, conventions Graux),
+  options de comptage, sens de jeu, persistance locale des réglages. *(commité)*
 - **Phase 3 — Training** :
   1. **Review** : rejeu coup par coup d'une partie, le coach pointe les erreurs (Δ vs meilleur coup).
   2. **Exercices** générés (« que jouer ? » / « quelle enchère ? ») avec correction.
