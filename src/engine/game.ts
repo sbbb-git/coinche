@@ -21,8 +21,8 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   targetScore: 1000,
   coincheEndsGame: false,
-  allowNT: true,
-  allowAT: true,
+  allowNT: false, // Sans Atout désactivé par défaut (Sacha joue sans)
+  allowAT: false, // Tout Atout désactivé par défaut
   allowCoinche: true,
   aiLevel: "medium",
   playerNames: ["Vous", "Ouest", "Nord", "Est"],
