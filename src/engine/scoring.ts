@@ -116,14 +116,10 @@ export function scoreDeal(
 
   if (mult === 1) {
     if (made) {
-      if (contract.capot) {
-        scores[takerTeam] = 250 + belote[takerTeam];
-        scores[defenseTeam] = belote[defenseTeam];
-      } else {
-        // L'attaque marque ses points (cartes + belote) + la valeur du contrat.
-        scores[takerTeam] = cardPoints[takerTeam] + contract.value + belote[takerTeam];
-        scores[defenseTeam] = realized[defenseTeam];
-      }
+      // L'attaque marque ses points (cartes + bonus capot éventuel) + la valeur du
+      // contrat. Pour un capot annoncé : 252 (162 + 90) + 250 = 502.
+      scores[takerTeam] = cardPoints[takerTeam] + contract.value + belote[takerTeam];
+      scores[defenseTeam] = realized[defenseTeam];
     } else {
       // Chute : la défense marque 162 (252 si elle capote) + le contrat ; belote imprenable.
       const base = defenseWonAll ? 252 : 162;

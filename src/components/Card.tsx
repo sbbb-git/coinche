@@ -1,4 +1,4 @@
-import { Card as TCard, RANK_LABEL, SUIT_IS_RED, SUIT_SYMBOL } from "../engine/cards";
+import { Card as TCard, RANK_LABEL, SUIT_IS_RED, SUIT_LABEL, SUIT_SYMBOL } from "../engine/cards";
 
 interface Props {
   card: TCard;
@@ -27,7 +27,7 @@ export function PlayingCard({ card, size = "md", playable, highlight = true, dim
       type="button"
       disabled={!playable && !!onClick}
       onClick={playable ? onClick : undefined}
-      aria-label={`${rank} de ${card.suit}`}
+      aria-label={`${rank} de ${SUIT_LABEL[card.suit]}`}
       className={[
         SIZES[size],
         "relative flex flex-col justify-between bg-white shadow-md border border-black/10 leading-none p-1",

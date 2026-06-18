@@ -42,49 +42,56 @@ export function BiddingPanel() {
     );
   }
 
-  const effValue = Math.max(value, minValue);
-  const canAnnounce = !game.standing?.capot && canBid(game, effValue, false);
   const values = BID_VALUES.filter((v) => v >= minValue);
+  const canStillAnnounce = values.length > 0 && !game.standing?.capot;
+  const effValue = Math.max(value, minValue);
+  const canAnnounce = canStillAnnounce && canBid(game, effValue, false);
 
   return (
     <Panel>
-      <p className="text-sm font-medium">À vous d'annoncer</p>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1">
-          {modes.map((m) => {
-            const lbl = modeLabel(m);
-            return (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                aria-pressed={mode === m}
-                className={[
-                  "h-11 min-w-11 px-2 rounded-md text-base font-bold shadow",
-                  mode === m ? "bg-yellow-400 text-emerald-950" : "bg-white/90 text-zinc-800",
-                  lbl.red && mode !== m ? "text-red-600" : "",
-                ].join(" ")}
-              >
-                {lbl.text}
-              </button>
-            );
-          })}
+      <p className="text-sm font-medium">
+        {canStillAnnounce ? "À vous d'annoncer" : "Plus d'annonce possible"}
+      </p>
+      {canStillAnnounce && (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1">
+            {modes.map((m) => {
+              const lbl = modeLabel(m);
+              return (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  aria-pressed={mode === m}
+                  className={[
+                    "h-11 min-w-11 px-2 rounded-md text-base font-bold shadow",
+                    mode === m ? "bg-yellow-400 text-emerald-950" : "bg-white/90 text-zinc-800",
+                    lbl.red && mode !== m ? "text-red-600" : "",
+                  ].join(" ")}
+                >
+                  {lbl.text}
+                </button>
+              );
+            })}
+          </div>
+          <select
+            value={effValue}
+            onChange={(e) => setValue(Number(e.target.value))}
+            className="h-11 px-2 rounded-md bg-white/90 text-zinc-800 font-semibold"
+          >
+            {values.map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
         </div>
-        <select
-          value={effValue}
-          onChange={(e) => setValue(Number(e.target.value))}
-          className="h-11 px-2 rounded-md bg-white/90 text-zinc-800 font-semibold"
-        >
-          {values.map((v) => (
-            <option key={v} value={v}>
-              {v}
-            </option>
-          ))}
-        </select>
-      </div>
+      )}
       <div className="flex flex-wrap gap-2">
-        <Btn primary disabled={!canAnnounce} onClick={() => bid(effValue, mode, false)}>
-          Annoncer {effValue} {modeLabel(mode).text}
-        </Btn>
+        {canStillAnnounce && (
+          <Btn primary disabled={!canAnnounce} onClick={() => bid(effValue, mode, false)}>
+            Annoncer {effValue} {modeLabel(mode).text}
+          </Btn>
+        )}
         {canCoinche(game, HUMAN) && (
           <Btn warn onClick={coinche}>
             Coincher

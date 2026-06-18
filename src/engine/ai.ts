@@ -1,6 +1,6 @@
 // Intelligence artificielle : enchères et jeu, sur 3 niveaux.
 
-import { Card, Suit, SUITS, TrumpMode, isTrump, points, strength } from "./cards";
+import { Card, Suit, SUITS, TrumpMode, freshDeck, isTrump, points, strength } from "./cards";
 import {
   GameState,
   availableModes,
@@ -329,15 +329,8 @@ function discardLow(legal: Card[], mode: TrumpMode): Card {
 
 // --- Mémoire des cartes (niveau difficile) ----------------------------------
 
-let CACHE: Card[] | null = null;
 function allCards(): Card[] {
-  if (!CACHE) {
-    CACHE = [];
-    for (const s of SUITS)
-      for (const r of ["7", "8", "9", "10", "J", "Q", "K", "A"] as Card["rank"][])
-        CACHE.push({ suit: s, rank: r, id: `${s}${r}` });
-  }
-  return CACHE;
+  return freshDeck();
 }
 
 /** Toutes les cartes déjà vues (plis terminés + pli courant + ma main). */

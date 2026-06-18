@@ -4,7 +4,7 @@ import { AiLevel, PlayProfile, Settings, winnerTeam } from "../engine/game";
 
 function Overlay({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
       <div
         className={[
           "animate-pop w-full rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700",
@@ -98,7 +98,11 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
     <Overlay wide>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Réglages</h2>
-        <button onClick={onClose} aria-label="Fermer" className="text-white/60 hover:text-white">
+        <button
+          onClick={onClose}
+          aria-label="Fermer"
+          className="grid h-11 w-11 place-items-center rounded-full text-white/60 hover:bg-white/10 hover:text-white"
+        >
           ✕
         </button>
       </div>
@@ -110,7 +114,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
             onClick={() => setTab(t.id)}
             aria-pressed={tab === t.id}
             className={[
-              "flex-1 rounded-md py-1.5 text-sm font-semibold transition",
+              "flex-1 rounded-md py-2.5 text-sm font-semibold transition",
               tab === t.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
             ].join(" ")}
           >
@@ -290,6 +294,9 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
           Nouvelle partie
         </button>
       </div>
+      <p className="mt-2 text-center text-[11px] text-white/50">
+        « Appliquer » garde la partie en cours (effet dès la prochaine donne) · « Nouvelle partie » redistribue.
+      </p>
     </Overlay>
   );
 }
@@ -349,18 +356,25 @@ function Slider({
   value: number;
   onChange: (v: number) => void;
 }) {
+  const word =
+    value <= 0.2 ? "Très prudent" : value < 0.45 ? "Prudent" : value < 0.55 ? "Équilibré" : value < 0.8 ? "Offensif" : "Très offensif";
   return (
     <div>
-      <p className="mb-1 text-xs uppercase tracking-wide text-white/60">{label}</p>
-      <input
-        type="range"
-        min={0}
-        max={1}
-        step={0.1}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-yellow-400"
-      />
+      <div className="mb-1 flex items-center justify-between">
+        <p className="text-xs uppercase tracking-wide text-white/60">{label}</p>
+        <span className="text-xs font-semibold text-yellow-300">{word}</span>
+      </div>
+      <div className="flex min-h-11 items-center">
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.1}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="w-full accent-yellow-400"
+        />
+      </div>
       <div className="flex justify-between text-[11px] text-white/60">
         <span>{left}</span>
         <span>{right}</span>

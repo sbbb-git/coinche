@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Card, makeCard, points, strength, totalPoints, freshDeck } from "./cards";
 import { beats, legalMoves, winningIndex } from "./rules";
 import { scoreDeal, Contract, DEFAULT_SCORE_OPTIONS } from "./scoring";
-import { DEFAULT_SETTINGS, applyPass, newGame } from "./game";
+import { DEFAULT_SETTINGS, applyPass, canBid, newGame } from "./game";
 
 /** Découpe le jeu en 8 plis de 4 cartes (pour des décomptes réalistes). */
 function dealIntoTricks() {
@@ -205,6 +205,26 @@ describe("décompte d'une donne", () => {
     expect(res.scores[0]).toBe(20); // imprenable même en chute
   });
 
+  it("capot annoncé réussi : 252 (points + bonus) + 250 = 502", () => {
+    const res = scoreDeal(baseContract({ value: 250, capot: true }), {
+      trickWinners: [0, 0, 0, 0, 0, 0, 0, 0], // l'attaque rafle tout
+      tricks: dealIntoTricks(),
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(true);
+    expect(res.scores[0]).toBe(252 + 250);
+  });
+
+  it("capot annoncé chuté : la défense marque 162 + 250", () => {
+    const res = scoreDeal(baseContract({ value: 250, capot: true }), {
+      trickWinners: [0, 1, 1, 1, 1, 1, 1, 1], // l'attaque rate le capot
+      tricks: [[], [], [], [], [], [], [], []],
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(false);
+    expect(res.scores[1]).toBe(162 + 250);
+  });
+
   it("option arrondi à la dizaine", () => {
     const res = scoreDeal(baseContract({ value: 90 }), {
       trickWinners: [0, 1, 1, 1, 1, 1, 1, 1], // chute -> défense 162 + 90 = 252
@@ -251,6 +271,12 @@ describe("légalité en Sans Atout / Tout Atout", () => {
     const hand = [makeCard("H", "8"), makeCard("H", "J")]; // J > 10 en atout
     expect(legalMoves(hand, trick, 1, "AT").map((c) => c.id)).toEqual(["HJ"]);
   });
+
+  it("Tout Atout : sans la couleur entamée, défausse libre", () => {
+    const trick = [{ card: makeCard("H", "10"), player: 0 }];
+    const hand = [makeCard("S", "J"), makeCard("D", "9")]; // pas de Cœur
+    expect(legalMoves(hand, trick, 1, "AT").length).toBe(2);
+  });
 });
 
 describe("enchères", () => {
@@ -265,5 +291,13 @@ describe("enchères", () => {
     expect(g.standing).toBeNull();
     // sens anti-horaire par défaut : le donneur passe à (dealer + 3) % 4
     expect(g.dealer).toBe((firstDealer + 3) % 4);
+  });
+
+  it("canBid refuse les valeurs invalides", () => {
+    const g = newGame(DEFAULT_SETTINGS);
+    expect(canBid(g, 75, false)).toBe(false); // < 80
+    expect(canBid(g, 85, false)).toBe(false); // pas un multiple de 10
+    expect(canBid(g, 170, false)).toBe(false); // > 160
+    expect(canBid(g, 80, false)).toBe(true);
   });
 });

@@ -37,7 +37,7 @@ function playFullGame(state: GameState): GameState {
 }
 
 describe("simulation de parties complètes (IA vs IA)", () => {
-  for (const level of ["easy", "medium", "hard"] as const) {
+  for (const level of ["easy", "medium", "hard", "expert"] as const) {
     it(`niveau ${level} : la partie se termine proprement`, () => {
       for (let i = 0; i < 5; i++) {
         const g = playFullGame(newGame({ ...DEFAULT_SETTINGS, aiLevel: level }));

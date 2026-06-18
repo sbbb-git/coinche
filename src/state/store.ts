@@ -30,6 +30,8 @@ interface Store {
 
   /** démarre l'orchestration des IA pour la partie déjà en cours (à appeler au montage) */
   init: () => void;
+  /** stoppe l'orchestration (nettoyage au démontage) */
+  stop: () => void;
   /** applique des réglages à la partie en cours sans la réinitialiser */
   updateSettings: (settings: Settings) => void;
   startNewGame: (settings?: Settings) => void;
@@ -143,10 +145,18 @@ export const useGame = create<Store>((set, get) => {
     init: () => {
       scheduleAI();
     },
+    stop: () => {
+      clearAiTimer();
+    },
     updateSettings: (settings) => {
-      storage.saveSettings(settings);
-      set({ game: { ...get().game, settings } });
-      scheduleAI();
+      storage.saveSettings(settings); // on mémorise le choix complet de l'utilisateur
+      const cur = get().game;
+      // En cours de donne, on ne change pas le sens de jeu (casserait l'ordre du tour).
+      const midDeal = cur.phase === "playing" || cur.phase === "bidding";
+      const applied = midDeal ? { ...settings, sensHoraire: cur.settings.sensHoraire } : settings;
+      set({ game: { ...cur, settings: applied } });
+      // Ne pas perturber un pli en cours de résolution (overlay) : son timer reprendra la main.
+      if (!get().overlayTrick) scheduleAI();
     },
     coinche: () => {
       if (get().game.current !== HUMAN) return;
