@@ -42,11 +42,14 @@ export interface Storage {
   saveStats(s: TrainingStats): void;
   loadHistory(): DealRecord[];
   saveDeal(rec: DealRecord): void;
+  loadDoneLessons(): string[];
+  setLessonDone(id: string): void;
 }
 
 const SETTINGS_KEY = "coincheur.settings.v1";
 const STATS_KEY = "coincheur.stats.v1";
 const HISTORY_KEY = "coincheur.history.v1";
+const LESSONS_KEY = "coincheur.lessons.v1";
 const HISTORY_MAX = 25;
 
 class LocalStorage implements Storage {
@@ -127,6 +130,26 @@ class LocalStorage implements Storage {
     try {
       const hist = [rec, ...this.loadHistory()].slice(0, HISTORY_MAX);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  loadDoneLessons(): string[] {
+    try {
+      const raw = localStorage.getItem(LESSONS_KEY);
+      const arr = raw ? (JSON.parse(raw) as unknown) : [];
+      return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  setLessonDone(id: string): void {
+    try {
+      const done = new Set(this.loadDoneLessons());
+      done.add(id);
+      localStorage.setItem(LESSONS_KEY, JSON.stringify([...done]));
     } catch {
       /* ignore */
     }

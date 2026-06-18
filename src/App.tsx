@@ -4,6 +4,7 @@ import { PlayScreen } from "./app/PlayScreen";
 import { ExercisesScreen } from "./training/ExercisesScreen";
 import { ReviewMyGamesScreen } from "./training/ReviewMyGamesScreen";
 import { ReviewGlobalScreen } from "./training/ReviewGlobalScreen";
+import { LessonsScreen } from "./training/LessonsScreen";
 import { GuidesScreen } from "./training/GuidesScreen";
 import { StatsScreen } from "./training/StatsScreen";
 
@@ -19,6 +20,8 @@ export default function App() {
       return <ReviewMyGamesScreen />;
     case "review":
       return <ReviewGlobalScreen />;
+    case "lessons":
+      return <LessonsScreen />;
     case "guides":
       return <GuidesScreen />;
     case "stats":

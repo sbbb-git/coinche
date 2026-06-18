@@ -5,6 +5,7 @@ const TILES: { view: View; emoji: string; title: string; desc: string }[] = [
   { view: "exercises", emoji: "🎯", title: "S'entraîner", desc: "Exercices d'enchères et de jeu, avec correction" },
   { view: "mygames", emoji: "🔍", title: "Mes parties", desc: "Analyse coup par coup de tes décisions" },
   { view: "review", emoji: "📊", title: "Review IA", desc: "Analyse globale de la stratégie sur des milliers de donnes" },
+  { view: "lessons", emoji: "🎓", title: "Leçons", desc: "Apprendre pas à pas, des règles aux conventions" },
   { view: "guides", emoji: "📖", title: "Guides", desc: "Que faire, dans quelle situation" },
   { view: "stats", emoji: "📈", title: "Progression", desc: "Tes statistiques d'entraînement" },
 ];
