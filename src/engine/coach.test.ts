@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { makeCard } from "./cards";
 import { DEFAULT_SETTINGS, dealStateFrom, legalForCurrent } from "./game";
 import { coachBid, coachPlay, isPlayDecision } from "./coach";
+import { aiBid } from "./ai";
 
 function stateWithHand(hand: ReturnType<typeof makeCard>[]) {
   return dealStateFrom(DEFAULT_SETTINGS, 3, [hand, [], [], []]);
@@ -26,6 +27,30 @@ describe("coach — enchères", () => {
       expect(adv.action.mode).toBe("S");
       expect(adv.action.value).toBeGreaterThanOrEqual(80);
     }
+  });
+
+  it("l'IA annonce une Générale avec une main qui rafle tout en solo", () => {
+    // 5 atouts maîtres consécutifs (V,9,A,10,R de pique) + 3 As secs.
+    const hand = [
+      makeCard("S", "J"),
+      makeCard("S", "9"),
+      makeCard("S", "A"),
+      makeCard("S", "10"),
+      makeCard("S", "K"),
+      makeCard("H", "A"),
+      makeCard("D", "A"),
+      makeCard("C", "A"),
+    ];
+    const base = dealStateFrom(
+      { ...DEFAULT_SETTINGS, allowGenerale: true, aiLevel: "hard" },
+      0,
+      [hand, [], [], []],
+    );
+    // Pas en premier de parole (une passe a précédé).
+    const state = { ...base, current: 0, bidHistory: [{ player: 3, kind: "pass" as const }] };
+    const d = aiBid(state, 0);
+    expect(d.action).toBe("bid");
+    if (d.action === "bid") expect(d.generale).toBe(true);
   });
 
   it("recommande de passer avec une main faible", () => {
@@ -53,7 +78,7 @@ describe("coach — jeu", () => {
     const playing = {
       ...g,
       phase: "playing" as const,
-      contract: { value: 80, mode: "S" as const, taker: 0, capot: false, coinche: 1 as const },
+      contract: { value: 80, mode: "S" as const, taker: 0, capot: false, generale: false, coinche: 1 as const },
       current: 0,
       trick: [],
     };

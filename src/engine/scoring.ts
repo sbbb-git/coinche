@@ -9,16 +9,19 @@ export function teamOf(player: number): Team {
 }
 
 export interface Contract {
-  value: number; // 80..160, ou 250 pour un capot
+  value: number; // 80..160, 250 (capot) ou 500 (générale)
   mode: TrumpMode;
   taker: number; // joueur preneur (0..3)
   capot: boolean;
+  generale: boolean; // tous les plis par le preneur SEUL (500)
   coinche: 1 | 2 | 4; // 1 = normal, 2 = coinché, 4 = surcoinché
 }
 
 export interface DealResult {
   /** plis remportés, chacun = liste de cartes + équipe gagnante */
   trickWinners: Team[];
+  /** joueur gagnant de chaque pli (pour la générale) */
+  trickWinnerPlayers?: number[];
   tricks: Card[][]; // les 8 plis (cartes), dans l'ordre
   /** main initiale de chaque joueur, pour détecter la belote */
   hands: Card[][];
@@ -100,6 +103,22 @@ export function scoreDeal(
     cardPoints[0] + belote[0],
     cardPoints[1] + belote[1],
   ];
+
+  // Générale : le preneur doit remporter TOUS les plis SEUL (500).
+  if (contract.generale) {
+    const players = result.trickWinnerPlayers ?? [];
+    const solo = players.length === 8 && players.every((p) => p === contract.taker);
+    const m = contract.coinche;
+    const sc: [number, number] = [0, 0];
+    const winner = solo ? takerTeam : defenseTeam;
+    sc[winner] = 500 * m + belote[winner];
+    sc[(1 - winner) as Team] = belote[(1 - winner) as Team];
+    if (opts.roundToTen) {
+      sc[0] = Math.round(sc[0] / 10) * 10;
+      sc[1] = Math.round(sc[1] / 10) * 10;
+    }
+    return { cardPoints, belote, realized, made: solo, scores: sc, takerTeam };
+  }
 
   // Réussite : capot annoncé => tous les plis ; sinon => au moins le contrat
   // ET (sauf option) strictement plus de points que la défense.

@@ -92,7 +92,7 @@ function runBidding(g: GameState): GameState {
   let s = 0;
   while (g.phase === "bidding" && s++ < 300) {
     const d = aiBid(g, g.current);
-    if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot);
+    if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot, d.generale);
     else if (d.action === "coinche") g = applyCoinche(g);
     else if (d.action === "surcoinche") g = applySurcoinche(g);
     else g = applyPass(g);

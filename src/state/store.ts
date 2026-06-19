@@ -36,7 +36,7 @@ interface Store {
   /** applique des réglages à la partie en cours sans la réinitialiser */
   updateSettings: (settings: Settings) => void;
   startNewGame: (settings?: Settings) => void;
-  bid: (value: number, mode: TrumpMode, capot: boolean) => void;
+  bid: (value: number, mode: TrumpMode, capot: boolean, generale?: boolean) => void;
   pass: () => void;
   coinche: () => void;
   surcoinche: () => void;
@@ -104,7 +104,7 @@ export const useGame = create<Store>((set, get) => {
       if (game.phase === "bidding") {
         const d = aiBid(game, game.current);
         let next: GameState;
-        if (d.action === "bid") next = applyBid(game, d.value, d.mode, d.capot);
+        if (d.action === "bid") next = applyBid(game, d.value, d.mode, d.capot, d.generale);
         else if (d.action === "coinche") next = applyCoinche(game);
         else if (d.action === "surcoinche") next = applySurcoinche(game);
         else next = applyPass(game);
@@ -157,9 +157,9 @@ export const useGame = create<Store>((set, get) => {
       scheduleAI();
     },
 
-    bid: (value, mode, capot) => {
+    bid: (value, mode, capot, generale = false) => {
       if (get().game.current !== HUMAN) return;
-      set({ game: applyBid(get().game, value, mode, capot) });
+      set({ game: applyBid(get().game, value, mode, capot, generale) });
       scheduleAI();
     },
     pass: () => {

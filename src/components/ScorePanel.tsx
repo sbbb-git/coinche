@@ -31,7 +31,7 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
             <div className="flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1">
               <span className="text-white/70">Contrat</span>
               <span className="font-bold">
-                {c.capot ? "Capot" : c.value}{" "}
+                {c.generale ? "Générale" : c.capot ? "Capot" : c.value}{" "}
                 <span
                   className={
                     modeLabel(c.mode).suit

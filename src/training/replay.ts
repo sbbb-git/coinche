@@ -48,10 +48,10 @@ function bidEntryLabel(b: BidEntry): string {
   if (b.kind === "pass") return "Passer";
   if (b.kind === "coinche") return "Coincher";
   if (b.kind === "surcoinche") return "Surcoincher";
-  return `${b.capot ? "Capot" : b.value} ${modeText(b.mode!)}`;
+  return `${b.generale ? "Générale" : b.capot ? "Capot" : b.value} ${modeText(b.mode!)}`;
 }
 function applyEntry(g: GameState, b: BidEntry): GameState {
-  if (b.kind === "bid") return applyBid(g, b.value!, b.mode!, !!b.capot);
+  if (b.kind === "bid") return applyBid(g, b.value!, b.mode!, !!b.capot, !!b.generale);
   if (b.kind === "coinche") return applyCoinche(g);
   if (b.kind === "surcoinche") return applySurcoinche(g);
   return applyPass(g);
@@ -103,7 +103,7 @@ export function reviewDeal(rec: DealRecord): DealReview {
   }
 
   const c = rec.contract;
-  const contractLabel = c ? `${c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "—";
+  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "—";
   const made = rec.result?.made;
   const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
 

@@ -113,6 +113,7 @@ describe("décompte d'une donne", () => {
     mode: "S",
     taker: 0,
     capot: false,
+    generale: false,
     coinche: 1,
     ...over,
   });
@@ -223,6 +224,28 @@ describe("décompte d'une donne", () => {
     });
     expect(res.made).toBe(false);
     expect(res.scores[1]).toBe(162 + 250);
+  });
+
+  it("générale réussie (tous les plis par le preneur seul) = 500", () => {
+    const res = scoreDeal(baseContract({ value: 500, generale: true }), {
+      trickWinners: [0, 0, 0, 0, 0, 0, 0, 0],
+      trickWinnerPlayers: [0, 0, 0, 0, 0, 0, 0, 0], // siège 0 rafle seul
+      tricks: dealIntoTricks(),
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(true);
+    expect(res.scores[0]).toBe(500);
+  });
+
+  it("générale chutée (le partenaire prend un pli) = 500 à la défense", () => {
+    const res = scoreDeal(baseContract({ value: 500, generale: true }), {
+      trickWinners: [0, 0, 0, 0, 0, 0, 0, 0], // l'équipe a tout fait...
+      trickWinnerPlayers: [0, 0, 2, 0, 0, 0, 0, 0], // ...mais le partenaire (2) a pris un pli
+      tricks: dealIntoTricks(),
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(false);
+    expect(res.scores[1]).toBe(500);
   });
 
   it("option arrondi à la dizaine", () => {

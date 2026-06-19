@@ -54,7 +54,8 @@ export function DealResultModal() {
         {r.made ? "✅ Contrat réussi" : "❌ Chute"}
       </h2>
       <p className="mt-1 text-center text-sm text-white/70">
-        {takerName} — {game.contract.capot ? "Capot" : game.contract.value}
+        {takerName} —{" "}
+        {game.contract.generale ? "Générale" : game.contract.capot ? "Capot" : game.contract.value}
         {game.contract.coinche > 1 ? (game.contract.coinche === 4 ? " ×4" : " ×2") : ""}
       </p>
       <div className="mt-4 space-y-1 text-sm">
@@ -228,6 +229,9 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
             </Toggle>
             <Toggle on={draft.allowSurcoinche} onClick={() => upd({ allowSurcoinche: !draft.allowSurcoinche })}>
               Autoriser la Surcoinche
+            </Toggle>
+            <Toggle on={draft.allowGenerale} onClick={() => upd({ allowGenerale: !draft.allowGenerale })}>
+              Autoriser la Générale (500, en solo)
             </Toggle>
             <Toggle on={draft.coincheEndsGame} onClick={() => upd({ coincheEndsGame: !draft.coincheEndsGame })}>
               La coinche fait gagner la partie

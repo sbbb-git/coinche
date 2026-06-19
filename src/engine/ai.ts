@@ -15,7 +15,7 @@ import { teamOf } from "./scoring";
 
 export type BidDecision =
   | { action: "pass" }
-  | { action: "bid"; value: number; mode: TrumpMode; capot: boolean }
+  | { action: "bid"; value: number; mode: TrumpMode; capot: boolean; generale: boolean }
   | { action: "coinche" }
   | { action: "surcoinche" };
 
@@ -166,8 +166,19 @@ export function aiBid(state: GameState, player: number): BidDecision {
     const hasJ = hand.some((c) => c.suit === tr && c.rank === "J");
     const has9 = hand.some((c) => c.suit === tr && c.rank === "9");
     if (hasJ && has9 && canBid(state, 100, false)) {
-      return { action: "bid", value: 100, mode: tr, capot: false };
+      return { action: "bid", value: 100, mode: tr, capot: false, generale: false };
     }
+  }
+
+  // Générale : main capable de tout rafler SEUL (très rare, jamais en 1er de parole).
+  if (
+    level !== "easy" &&
+    state.settings.allowGenerale &&
+    state.bidHistory.length > 0 &&
+    !state.standing?.generale &&
+    generaleWorthy(hand, mode)
+  ) {
+    return { action: "bid", value: 500, mode, capot: false, generale: true };
   }
 
   // Valeur d'annonce visée (arrondie à la dizaine inférieure).
@@ -184,11 +195,11 @@ export function aiBid(state: GameState, player: number): BidDecision {
 
   // Capot : main qui domine vraiment (atout maître + couleurs annexes tenues).
   if (level !== "easy" && !state.standing?.capot && capotWorthy(hand, mode)) {
-    return { action: "bid", value: 250, mode, capot: true };
+    return { action: "bid", value: 250, mode, capot: true, generale: false };
   }
 
   if (est >= 80 && target >= minToBid && !state.standing?.capot) {
-    return { action: "bid", value: target, mode, capot: false };
+    return { action: "bid", value: target, mode, capot: false, generale: false };
   }
   return { action: "pass" };
 }
@@ -203,6 +214,21 @@ function capotWorthy(hand: Card[], mode: TrumpMode): boolean {
   const sideSuits = SUITS.filter((s) => s !== mode && hand.some((c) => c.suit === s));
   const heldBySAce = sideSuits.filter((s) => hand.some((c) => c.suit === s && c.rank === "A"));
   return heldBySAce.length === sideSuits.length; // chaque couleur annexe a son As
+}
+
+/** Main capable de remporter les 8 plis SEUL : suite d'atouts maîtres (sans trou
+ *  depuis le Valet) assez longue pour épuiser les atouts adverses, et toutes les
+ *  cartes hors atout sont des As (imprenables une fois les atouts tombés). */
+function generaleWorthy(hand: Card[], mode: TrumpMode): boolean {
+  if (mode === "NT" || mode === "AT") return false;
+  const trumps = hand.filter((c) => c.suit === mode);
+  const n = trumps.length;
+  if (n < 5) return false; // 5 atouts du haut épuisent les 3 atouts adverses
+  // Les atouts doivent être les n plus forts : forces 8 (V), 7 (9), 6 (As), 5 (10)…
+  const strengths = trumps.map((c) => strength(c, mode)).sort((a, b) => b - a);
+  for (let i = 0; i < n; i++) if (strengths[i] !== 8 - i) return false;
+  // Toutes les cartes hors atout sont des As.
+  return hand.every((c) => c.suit === mode || c.rank === "A");
 }
 
 function shouldCoinche(

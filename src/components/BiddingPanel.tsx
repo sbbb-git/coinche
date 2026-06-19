@@ -98,6 +98,11 @@ export function BiddingPanel() {
             Coincher
           </Btn>
         )}
+        {game.settings.allowGenerale &&
+          game.bidHistory.length > 0 &&
+          !game.standing?.generale && (
+            <Btn onClick={() => bid(500, mode, false, true)}>Générale {modeLabel(mode).text}</Btn>
+          )}
         <Btn onClick={pass}>Passer</Btn>
       </div>
     </Panel>

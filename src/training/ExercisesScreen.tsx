@@ -169,7 +169,7 @@ function PlayTrainer() {
       </div>
       <div className="mb-2 flex items-center justify-center gap-2 text-sm">
         <span className="rounded-full bg-black/40 px-3 py-1">
-          Contrat <b>{c.capot ? "Capot" : c.value}</b>{" "}
+          Contrat <b>{c.generale ? "Générale" : c.capot ? "Capot" : c.value}</b>{" "}
           <span
             className={
               modeLabel(c.mode).suit

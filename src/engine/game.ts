@@ -113,6 +113,7 @@ export interface StandingBid {
   value: number;
   mode: TrumpMode;
   capot: boolean;
+  generale: boolean;
 }
 
 export interface BidEntry {
@@ -121,6 +122,7 @@ export interface BidEntry {
   value?: number;
   mode?: TrumpMode;
   capot?: boolean;
+  generale?: boolean;
 }
 
 export interface GameState {
@@ -283,7 +285,22 @@ export function sortHand(hand: Card[], order: "asc" | "desc" = "asc"): Card[] {
 
 // --- Enchères ---------------------------------------------------------------
 
-export function canBid(state: GameState, value: number, capot: boolean): boolean {
+export function canBid(
+  state: GameState,
+  value: number,
+  capot: boolean,
+  generale = false,
+): boolean {
+  // Générale : autorisée si l'option est active, jamais en premier de parole,
+  // et bat tout (capot inclus).
+  if (generale) {
+    return (
+      state.settings.allowGenerale &&
+      state.bidHistory.length > 0 &&
+      !state.standing?.generale
+    );
+  }
+  if (state.standing?.generale) return false; // rien ne passe au-dessus d'une générale
   if (capot) return !state.standing?.capot;
   if (state.standing?.capot) return false;
   // Annonce valide : 80..160 par pas de 10.
@@ -339,12 +356,13 @@ export function applyBid(
   value: number,
   mode: TrumpMode,
   capot: boolean,
+  generale = false,
 ): GameState {
-  if (!canBid(state, value, capot)) return state;
-  const standing: StandingBid = { player: state.current, value, mode, capot };
+  if (!canBid(state, value, capot, generale)) return state;
+  const standing: StandingBid = { player: state.current, value, mode, capot, generale };
   const history = [
     ...state.bidHistory,
-    { player: state.current, kind: "bid" as const, value, mode, capot },
+    { player: state.current, kind: "bid" as const, value, mode, capot, generale },
   ];
   return {
     ...state,
@@ -382,10 +400,11 @@ export function applySurcoinche(state: GameState): GameState {
 export function openPlay(state: GameState): GameState {
   const s = state.standing!;
   const contract: Contract = {
-    value: s.capot ? 250 : s.value,
+    value: s.generale ? 500 : s.capot ? 250 : s.value,
     mode: s.mode,
     taker: s.player,
     capot: s.capot,
+    generale: s.generale,
     coinche: state.coinche,
   };
   const leader = next(state, state.dealer);
@@ -462,6 +481,7 @@ function finishDeal(state: GameState): GameState {
     contract,
     {
       trickWinners: state.completedTricks.map((t) => t.winnerTeam),
+      trickWinnerPlayers: state.completedTricks.map((t) => t.winner),
       tricks: state.completedTricks.map((t) => t.cards),
       hands: state.dealtHands,
     },

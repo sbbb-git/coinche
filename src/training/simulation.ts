@@ -60,7 +60,7 @@ function playGame(
   while (g.phase !== "gameOver" && guard++ < 100000) {
     if (g.phase === "bidding") {
       const d = aiBid(withLevel(g, levelOf(g.current)), g.current);
-      if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot);
+      if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot, d.generale);
       else if (d.action === "coinche") g = applyCoinche(g);
       else if (d.action === "surcoinche") g = applySurcoinche(g);
       else g = applyPass(g);
