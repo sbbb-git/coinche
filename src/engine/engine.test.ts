@@ -206,6 +206,32 @@ describe("décompte d'une donne", () => {
     expect(res.scores[0]).toBe(20); // imprenable même en chute
   });
 
+  it("capot DÉFENSE non annoncé : la défense rafle tout → 252 + contrat", () => {
+    const res = scoreDeal(baseContract({ value: 90 }), {
+      trickWinners: [1, 1, 1, 1, 1, 1, 1, 1], // la défense gagne les 8 plis
+      tricks: dealIntoTricks(),
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(false);
+    expect(res.scores[1]).toBe(252 + 90); // 162 + 90 (bonus capot) + contrat
+    expect(res.scores[0]).toBe(0);
+  });
+
+  it("belote à Tout-Atout : comptée uniquement si l'option est active", () => {
+    const mk = () => ({
+      trickWinners: [1, 1, 1, 1, 1, 1, 1, 1],
+      tricks: [[], [], [], [], [], [], [], []] as Card[][],
+      hands: [c(["S", "K"], ["S", "Q"]), [], [], []], // R+D de pique au siège 0
+    });
+    const off = scoreDeal(baseContract({ value: 80, mode: "AT" }), mk());
+    const on = scoreDeal(baseContract({ value: 80, mode: "AT" }), mk(), {
+      ...DEFAULT_SCORE_OPTIONS,
+      beloteAtToutAtout: true,
+    });
+    expect(off.belote[0]).toBe(0);
+    expect(on.belote[0]).toBe(20);
+  });
+
   it("capot annoncé réussi : 252 (points + bonus) + 250 = 502", () => {
     const res = scoreDeal(baseContract({ value: 250, capot: true }), {
       trickWinners: [0, 0, 0, 0, 0, 0, 0, 0], // l'attaque rafle tout
