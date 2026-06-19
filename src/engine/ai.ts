@@ -402,7 +402,9 @@ export function aiPlay(state: GameState, deterministic = false): Card {
   const rng = deterministic ? mulberry32(hashState(state)) : Math.random;
   if (level === "hard") return expertPlay(state, legal, deterministic ? rng : Math.random, 8, false);
   const depth = { rapide: 14, normal: 24, fort: 40 }[state.settings.expertDepth] ?? 24;
-  const samples = deterministic ? 28 : depth;
+  // Le coach n'est pas contraint par le temps réel (calcul à la demande) : on lui
+  // donne plus de simulations pour un conseil aussi fiable que possible.
+  const samples = deterministic ? 48 : depth;
   // Expert : PIMC. Le rollout utilise la politique BASIQUE — mesuré comme la plus
   // forte (les variantes « malines » se sont révélées contre-productives en jeu).
   return expertPlay(state, legal, rng, samples, false);

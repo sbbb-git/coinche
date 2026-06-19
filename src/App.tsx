@@ -10,6 +10,7 @@ import { GuidesScreen } from "./training/GuidesScreen";
 import { StatsScreen } from "./training/StatsScreen";
 import { AccountScreen } from "./app/AccountScreen";
 import { LegalScreen } from "./app/LegalScreen";
+import { AboutScreen } from "./app/AboutScreen";
 import { InstallBanner } from "./components/InstallBanner";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
@@ -37,6 +38,8 @@ function CurrentView() {
       return <AccountScreen />;
     case "legal":
       return <LegalScreen />;
+    case "about":
+      return <AboutScreen />;
     default:
       return <Home />;
   }

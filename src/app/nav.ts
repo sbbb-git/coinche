@@ -12,7 +12,8 @@ export type View =
   | "guides"
   | "stats"
   | "account"
-  | "legal";
+  | "legal"
+  | "about";
 
 interface Nav {
   view: View;
