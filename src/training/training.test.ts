@@ -85,6 +85,11 @@ describe("simulation massive IA vs IA", () => {
     expect(r.winsA).toBeGreaterThan(r.winsB);
   });
 
+  it("l'Expert (PIMC) bat nettement le Moyen", () => {
+    const r = simulate(S, { games: 30, levelA: "expert", levelB: "medium" });
+    expect(r.winsA).toBeGreaterThan(r.winsB);
+  });
+
   it("taux de contrats réussis réaliste (pas ~100% : calibration des enchères)", () => {
     const r = simulate(S, { games: 80, levelA: "hard", levelB: "hard" });
     const taken = r.takerStat[0].taken + r.takerStat[1].taken;

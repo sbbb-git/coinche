@@ -40,6 +40,18 @@ const SECTIONS: Section[] = [
         q: "Petit jeu ou jeu offensif ?",
         a: "Petit jeu = tu sécurises, tu n'annonces que le sûr. Offensif = tu pousses les enchères et coinches plus large. Adapte selon le score et l'adversaire.",
       },
+      {
+        q: "Faut-il compter sur son partenaire ?",
+        a: "Oui : ton partenaire apporte en moyenne ~20 points. C'est pour ça qu'on peut annoncer un peu au-dessus de sa seule main. Mais s'il a passé, reste prudent.",
+      },
+      {
+        q: "Bicolore : quelle couleur choisir ?",
+        a: "Avec deux couleurs jouables, privilégie la plus longue (contrôle des plis) plutôt que la plus 'belle'. La longueur d'atout prime presque toujours.",
+      },
+      {
+        q: "Quand passer même avec de beaux honneurs ?",
+        a: "Des As et 10 éparpillés sans longueur d'atout chutent souvent : sans 4+ atouts ni Valet/9, mieux vaut passer ou rester bas.",
+      },
     ],
   },
   {
@@ -73,6 +85,40 @@ const SECTIONS: Section[] = [
       {
         q: "Quand garder mes maîtres ?",
         a: "Ne gâche pas un As ou un 10 sur un pli que l'adversaire va prendre. Défausse petit et garde tes maîtres pour les plis que tu remporteras.",
+      },
+      {
+        q: "Tirer les atouts ou pas ?",
+        a: "En attaque, oui : tire-les pour protéger tes As. En défense, généralement non — tu prives ton partenaire de ses coupes. Laisse plutôt le preneur s'en occuper.",
+      },
+      {
+        q: "Sur quoi se défausser ?",
+        a: "Garde tes maîtres et tes longueurs. Défausse une couleur courte sans avenir. Et profites-en pour signaler (appel) où tu es fort.",
+      },
+    ],
+  },
+  {
+    title: "Avancé",
+    emoji: "🧠",
+    guides: [
+      {
+        q: "Compter les points en cours de jeu",
+        a: "Garde un compte approximatif : 'mon camp a déjà ~X'. Dès que tu sais le contrat atteint (ou la chute assurée), tu peux jouer plus librement (donner la der, sécuriser).",
+      },
+      {
+        q: "Mémoriser les atouts tombés",
+        a: "Il n'y a que 8 atouts. Compte-les : quand les adversaires n'en ont plus, tes cartes deviennent maîtresses et tu peux dérouler sans risque de coupe.",
+      },
+      {
+        q: "Qu'est-ce qu'une impasse ?",
+        a: "Capturer une carte adverse placée entre deux des tiennes (ex. As + Dame, Roi chez l'adversaire à droite) en le faisant jouer avant toi. À tenter seulement si tu ne peux pas gagner autrement.",
+      },
+      {
+        q: "Mener un capot",
+        a: "Tire tes atouts maîtres pour vider les adversaires, puis déroule tes couleurs maîtresses. Vérifie qu'aucune carte adverse ne peut prendre un pli avant de te lancer.",
+      },
+      {
+        q: "Lire une coinche adverse",
+        a: "Un adversaire qui coinche pense te faire chuter : il a souvent de l'atout ou des As bien placés. Joue plus prudemment et compte précisément.",
       },
     ],
   },
