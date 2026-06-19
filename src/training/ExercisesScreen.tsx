@@ -8,6 +8,7 @@ import { Card } from "../engine/cards";
 import {
   BidExercise,
   PlayExercise,
+  PlayFocus,
   genBidExercise,
   genPlayExercise,
 } from "./exercises";
@@ -116,14 +117,15 @@ function EstimateBar({ estimates }: { estimates: BidExercise["estimates"] }) {
 function PlayTrainer() {
   const settings = useGame((s) => s.game.settings);
   const record = useStats((s) => s.record);
+  const [focus, setFocus] = useState<PlayFocus>("any");
   const [ex, setEx] = useState<PlayExercise | null>(null);
   const [pickedId, setPickedId] = useState<string | null>(null);
 
   const next = () => {
     setPickedId(null);
-    setEx(genPlayExercise(settings));
+    setEx(genPlayExercise(settings, focus));
   };
-  useEffect(next, [settings]);
+  useEffect(next, [settings, focus]);
   if (!ex) return null;
 
   const answered = pickedId !== null;
@@ -147,6 +149,24 @@ function PlayTrainer() {
 
   return (
     <div>
+      <div className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1" role="tablist" aria-label="Thème">
+        {([["any", "Tout"], ["attack", "Attaque"], ["defense", "Défense"]] as [PlayFocus, string][]).map(
+          ([id, lbl]) => (
+            <button
+              key={id}
+              onClick={() => setFocus(id)}
+              role="tab"
+              aria-selected={focus === id}
+              className={[
+                "flex-1 rounded-md py-1.5 text-xs font-semibold transition",
+                focus === id ? "bg-yellow-400 text-emerald-950" : "text-white/75 hover:bg-white/10",
+              ].join(" ")}
+            >
+              {lbl}
+            </button>
+          ),
+        )}
+      </div>
       <div className="mb-2 flex items-center justify-center gap-2 text-sm">
         <span className="rounded-full bg-black/40 px-3 py-1">
           Contrat <b>{c.capot ? "Capot" : c.value}</b>{" "}

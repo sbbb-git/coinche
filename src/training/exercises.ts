@@ -15,6 +15,9 @@ import {
 } from "../engine/game";
 import { aiBid, aiPlay } from "../engine/ai";
 import { coachBid, coachPlay, handEstimates } from "../engine/coach";
+import { teamOf } from "../engine/scoring";
+
+export type PlayFocus = "any" | "attack" | "defense";
 
 function modeLabel(mode: TrumpMode): string {
   if (mode === "NT") return "Sans Atout";
@@ -97,15 +100,19 @@ function runBidding(g: GameState): GameState {
   return g;
 }
 
-export function genPlayExercise(userSettings: Settings): PlayExercise {
+export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any"): PlayExercise {
   // Remplissage des IA en "hard" (rapide) même si l'utilisateur joue en Expert
   // (l'Expert/PIMC est coûteux) ; le coach, lui, évalue toujours en expert.
   const settings: Settings = { ...userSettings, aiLevel: "hard" };
-  // À défaut d'un vrai choix, on garde le premier coup (même forcé) rencontré,
-  // pour toujours renvoyer une situation valide (jamais de contrat nul).
-  let fallback: PlayExercise | null = null;
+  let anyDecision: PlayExercise | null = null; // repli si le focus n'est jamais satisfait
 
-  for (let attempt = 0; attempt < 80; attempt++) {
+  const matchesFocus = (g: GameState): boolean => {
+    if (focus === "any") return true;
+    const attack = teamOf(0) === teamOf(g.contract!.taker);
+    return focus === "attack" ? attack : !attack;
+  };
+
+  for (let attempt = 0; attempt < 120; attempt++) {
     let g = runBidding(newGame(settings));
     if (g.phase !== "playing") continue;
 
@@ -114,33 +121,17 @@ export function genPlayExercise(userSettings: Settings): PlayExercise {
       if (g.current === 0) {
         const legal = legalForCurrent(g);
         if (legal.length === 0) break;
-        const { best, reason } = coachPlay(g);
-        const exo: PlayExercise = { kind: "play", state: g, legal, correctId: best.id, reason };
-        if (legal.length > 1) return exo; // vrai choix : on le renvoie
-        if (!fallback) fallback = exo; // coup forcé : repli éventuel
-        g = applyPlay(g, legal[0]);
-      } else {
-        g = applyPlay(g, aiPlay(g));
-      }
-    }
-    if (fallback) return fallback; // on a au moins une situation jouable valide
-  }
-  if (fallback) return fallback;
-  // Garantie absolue : on force une donne qui atteint la phase de jeu.
-  for (let attempt = 0; attempt < 200; attempt++) {
-    let g = runBidding(newGame(settings));
-    if (g.phase !== "playing") continue;
-    let s = 0;
-    while (g.phase === "playing" && s++ < 60) {
-      if (g.current === 0) {
-        const legal = legalForCurrent(g);
-        if (legal.length === 0) break;
-        const { best, reason } = coachPlay(g);
-        return { kind: "play", state: g, legal, correctId: best.id, reason };
+        if (legal.length > 1) {
+          const { best, reason } = coachPlay(g);
+          const exo: PlayExercise = { kind: "play", state: g, legal, correctId: best.id, reason };
+          if (matchesFocus(g)) return exo; // bon thème : on le renvoie
+          if (!anyDecision) anyDecision = exo; // sinon on le garde en repli
+        }
       }
       g = applyPlay(g, aiPlay(g));
     }
   }
+  if (anyDecision) return anyDecision; // jamais trouvé le thème exact : on renvoie autre chose
   throw new Error("Impossible de générer un exercice de jeu avec ces réglages.");
 }
 
