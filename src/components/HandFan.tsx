@@ -1,11 +1,13 @@
 import { useGame, HUMAN } from "../state/store";
 import { PlayingCard } from "./Card";
 import { legalForCurrent } from "../engine/game";
+import { useCompactHeight } from "../app/useMediaQuery";
 
 export function HandFan() {
   const game = useGame((s) => s.game);
   const overlay = useGame((s) => s.overlayTrick);
   const play = useGame((s) => s.play);
+  const compact = useCompactHeight();
 
   const hand = game.hands[HUMAN];
   const myTurn = game.current === HUMAN && game.phase === "playing" && !overlay;
@@ -29,7 +31,7 @@ export function HandFan() {
               >
                 <PlayingCard
                   card={card}
-                  size="lg"
+                  size={compact ? "md" : "lg"}
                   playable={playable}
                   highlight={preselect}
                   dimmed={myTurn && !playable && preselect}

@@ -44,12 +44,19 @@ export interface Storage {
   saveDeal(rec: DealRecord): void;
   loadDoneLessons(): string[];
   setLessonDone(id: string): void;
+  loadProfile(): LocalProfile;
+  saveProfile(p: LocalProfile): void;
+}
+
+export interface LocalProfile {
+  name: string;
 }
 
 const SETTINGS_KEY = "coincheur.settings.v1";
 const STATS_KEY = "coincheur.stats.v1";
 const HISTORY_KEY = "coincheur.history.v1";
 const LESSONS_KEY = "coincheur.lessons.v1";
+const PROFILE_KEY = "coincheur.profile.v1";
 const HISTORY_MAX = 25;
 
 class LocalStorage implements Storage {
@@ -150,6 +157,24 @@ class LocalStorage implements Storage {
       const done = new Set(this.loadDoneLessons());
       done.add(id);
       localStorage.setItem(LESSONS_KEY, JSON.stringify([...done]));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  loadProfile(): LocalProfile {
+    try {
+      const raw = localStorage.getItem(PROFILE_KEY);
+      const p = raw ? (JSON.parse(raw) as Partial<LocalProfile>) : {};
+      return { name: typeof p.name === "string" && p.name.trim() ? p.name : "Vous" };
+    } catch {
+      return { name: "Vous" };
+    }
+  }
+
+  saveProfile(p: LocalProfile): void {
+    try {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
     } catch {
       /* ignore */
     }

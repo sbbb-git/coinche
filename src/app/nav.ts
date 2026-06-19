@@ -8,7 +8,8 @@ export type View =
   | "review"
   | "lessons"
   | "guides"
-  | "stats";
+  | "stats"
+  | "account";
 
 interface Nav {
   view: View;

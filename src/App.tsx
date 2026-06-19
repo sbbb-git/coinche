@@ -7,6 +7,7 @@ import { ReviewGlobalScreen } from "./training/ReviewGlobalScreen";
 import { LessonsScreen } from "./training/LessonsScreen";
 import { GuidesScreen } from "./training/GuidesScreen";
 import { StatsScreen } from "./training/StatsScreen";
+import { AccountScreen } from "./app/AccountScreen";
 
 export default function App() {
   const view = useNav((s) => s.view);
@@ -26,6 +27,8 @@ export default function App() {
       return <GuidesScreen />;
     case "stats":
       return <StatsScreen />;
+    case "account":
+      return <AccountScreen />;
     default:
       return <Home />;
   }
