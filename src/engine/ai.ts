@@ -75,6 +75,15 @@ function estimateSuit(hand: Card[], trump: Suit): number {
     if (suit.length === 0 && n >= 3) est += n >= 4 ? 12 : 8;
     else if (suit.length === 1 && n >= 4) est += 4;
   }
+
+  // FORME (mains bicolores, cf. Graux §5.14) : une 2e couleur longue hors atout
+  // donne des plis « de longueur » après la chute des atouts. Bonus volontairement
+  // modéré (la longueur d'atout et les As sont déjà comptés) pour ne pas sur-annoncer.
+  const sideLengths = SUITS.filter((s) => s !== trump)
+    .map((s) => hand.filter((c) => c.suit === s).length)
+    .sort((a, b) => b - a);
+  if ((sideLengths[0] ?? 0) >= 5) est += 6; // couleur annexe longue (5+)
+  if ((sideLengths[1] ?? 0) >= 4 && (sideLengths[0] ?? 0) >= 4) est += 4; // vrai bicolore
   // Contribution attendue du partenaire : à la coinche on joue en équipe, le
   // partenaire apporte en moyenne ~25-30 points. Sans cette allocation, l'IA
   // sous-évalue massivement (elle réalise ~140 mais n'annonce que ~90).
@@ -498,6 +507,20 @@ function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
   const profile = state.settings.profile;
   const iAmTaker = teamOf(state.contract!.taker) === teamOf(me);
   const trumps = legal.filter((c) => isTrump(c, mode));
+
+  // RÈGLE TACITE (Graux) : preneur CONTRÉ → on ne PART JAMAIS à l'atout. Le
+  // contreur a très probablement de l'atout/des As bien placés ; ouvrir atout
+  // jouerait dans son jeu. On encaisse d'abord ses maîtres dans les couleurs.
+  if (iAmTaker && (state.contract!.coinche ?? 1) > 1) {
+    const sideAces = legal.filter((c) => c.rank === "A" && !isTrump(c, mode));
+    const safeAce =
+      sideAces.find((a) => isMasterCard(state, a)) ??
+      sideAces.find((a) => !opponentVoidInSuit(state, a.suit)) ??
+      sideAces[0];
+    if (safeAce) return safeAce;
+    const sideLow = legal.filter((c) => !isTrump(c, mode));
+    if (sideLow.length > 0) return lowest(sideLow, mode); // une couleur, surtout pas l'atout
+  }
 
   // Convention : entamer atout avec le Valet si on l'a (équipe preneuse).
   if (iAmTaker && profile.entameAtoutValet) {

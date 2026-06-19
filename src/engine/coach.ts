@@ -54,7 +54,11 @@ function playReason(state: GameState, card: Card): string {
   const me = state.current;
 
   if (trick.length === 0) {
-    if (isTrump(card, mode) && teamOf(state.contract!.taker) === teamOf(me)) {
+    const iAmTaker = teamOf(state.contract!.taker) === teamOf(me);
+    if (iAmTaker && state.contract!.coinche > 1 && !isTrump(card, mode)) {
+      return "Tu as été contré : on ne part JAMAIS à l'atout (le contreur en a). Tu encaisses d'abord tes maîtres dans les couleurs.";
+    }
+    if (isTrump(card, mode) && iAmTaker) {
       return "Tu es preneur : tu tires l'atout pour faire tomber ceux des adversaires.";
     }
     if (card.rank === "A" && !isTrump(card, mode)) {
