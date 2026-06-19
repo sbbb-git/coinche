@@ -11,6 +11,13 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg"],
+      // Offline-first : tout le shell + les assets sont précachés ; les routes
+      // retombent sur index.html ; les vieux caches sont nettoyés à la mise à jour.
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
+        navigateFallback: "index.html",
+        cleanupOutdatedCaches: true,
+      },
       manifest: {
         name: "Coincheur — Coinche & entraînement",
         short_name: "Coincheur",

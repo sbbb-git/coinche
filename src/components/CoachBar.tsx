@@ -19,13 +19,13 @@ export function CoachBar() {
   const myTurn = game.current === HUMAN && !overlay;
 
   const mode = game.contract?.mode;
+  // Comptage utile uniquement à l'atout couleur (8 atouts) ; pas en SA ni en TA.
   let trumpLine: string | null = null;
-  if (game.settings.trumpHelper && game.phase === "playing" && mode && mode !== "NT") {
+  if (game.settings.trumpHelper && game.phase === "playing" && mode && mode !== "NT" && mode !== "AT") {
     let seen = 0;
     for (const t of game.completedTricks) for (const c of t.cards) if (isTrump(c, mode)) seen++;
     for (const p of overlay ?? game.trick) if (isTrump(p.card, mode)) seen++;
-    const total = mode === "AT" ? 32 : 8;
-    trumpLine = `Atouts tombés : ${seen}/${total}`;
+    trumpLine = `Atouts tombés : ${seen}/8`;
   }
 
   return (
@@ -34,7 +34,7 @@ export function CoachBar() {
         {myTurn && (
           <button
             onClick={askHint}
-            className="min-h-9 rounded-full bg-sky-500/90 px-4 text-sm font-bold text-white shadow hover:bg-sky-400"
+            className="inline-flex min-h-11 items-center rounded-full bg-sky-500/90 px-4 text-sm font-bold text-white shadow hover:bg-sky-400"
           >
             💡 Conseil
           </button>
@@ -42,7 +42,8 @@ export function CoachBar() {
         <button
           onClick={() => setRecap((v) => !v)}
           aria-pressed={recap}
-          className="min-h-9 rounded-full bg-white/10 px-3 text-xs font-semibold text-white/85 hover:bg-white/20"
+          aria-expanded={recap}
+          className="inline-flex min-h-11 items-center rounded-full bg-white/10 px-4 text-xs font-semibold text-white/85 hover:bg-white/20"
         >
           📜 Enchères
         </button>
@@ -54,7 +55,10 @@ export function CoachBar() {
       </div>
 
       {hint && (
-        <div className="mx-auto mt-2 flex max-w-lg items-start gap-2 rounded-xl bg-sky-950/80 p-3 text-sm ring-1 ring-sky-600">
+        <div
+          aria-live="polite"
+          className="mx-auto mt-2 flex max-w-lg items-start gap-2 rounded-xl bg-sky-950/80 p-3 text-sm ring-1 ring-sky-600"
+        >
           <span aria-hidden>💡</span>
           <p className="min-w-0 flex-1 text-white/90">{hint.text}</p>
           <button

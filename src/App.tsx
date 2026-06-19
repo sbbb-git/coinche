@@ -9,8 +9,11 @@ import { LessonsScreen } from "./training/LessonsScreen";
 import { GuidesScreen } from "./training/GuidesScreen";
 import { StatsScreen } from "./training/StatsScreen";
 import { AccountScreen } from "./app/AccountScreen";
+import { LegalScreen } from "./app/LegalScreen";
+import { InstallBanner } from "./components/InstallBanner";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 
-export default function App() {
+function CurrentView() {
   const view = useNav((s) => s.view);
 
   switch (view) {
@@ -32,7 +35,24 @@ export default function App() {
       return <StatsScreen />;
     case "account":
       return <AccountScreen />;
+    case "legal":
+      return <LegalScreen />;
     default:
       return <Home />;
   }
+}
+
+export default function App() {
+  const view = useNav((s) => s.view);
+  // Pas de bannière d'install pendant l'onboarding ni en pleine partie.
+  const showInstall = view !== "welcome" && view !== "play";
+  return (
+    <div className="flex h-full flex-col">
+      {showInstall && <InstallBanner />}
+      <div className="min-h-0 flex-1">
+        <CurrentView />
+      </div>
+      <OfflineIndicator />
+    </div>
+  );
 }

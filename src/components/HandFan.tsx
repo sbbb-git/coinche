@@ -30,10 +30,14 @@ export function HandFan() {
                 className={[
                   "-ml-3 sm:-ml-1 transition-transform",
                   playable ? "z-10 hover:z-20" : "",
-                  hinted ? "z-20 -translate-y-3" : "",
+                  hinted ? "z-30 -translate-y-3" : "",
                 ].join(" ")}
               >
-                <div className={hinted ? "rounded-lg ring-2 ring-sky-400" : ""}>
+                <div
+                  className={
+                    hinted ? "rounded-lg ring-4 ring-sky-300 ring-offset-2 ring-offset-emerald-900" : ""
+                  }
+                >
                   <PlayingCard
                     card={card}
                     size={compact ? "md" : "lg"}

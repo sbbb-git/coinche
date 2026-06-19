@@ -44,9 +44,12 @@ export function Home() {
         ))}
       </div>
 
-      <p className="shrink-0 pt-4 text-center text-[11px] text-white/40">
-        100 % hors-ligne · vos données restent sur l'appareil
-      </p>
+      <div className="shrink-0 pt-4 text-center text-[11px] text-white/40">
+        <p>100 % hors-ligne · vos données restent sur l'appareil</p>
+        <button onClick={() => go("legal")} className="mt-1 underline hover:text-white/70">
+          Confidentialité · CGU · Mentions légales
+        </button>
+      </div>
     </div>
   );
 }

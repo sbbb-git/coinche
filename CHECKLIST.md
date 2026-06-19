@@ -4,6 +4,18 @@
 > Légende : ✅ fait · 🔜 prochain · ⏳ plus tard · 💤 optionnel.
 > Objectif : avancer sans se rush, dans le bon ordre.
 
+### Avancé pendant la session autonome (Chabbat)
+- ✅ Site EN LIGNE (gh-pages) : https://sbbb-git.github.io/coinche/
+- ✅ **IA recalibrée** : fini le « contrat moyen à 90 » (mesuré : annonçait 94, réalisait 142).
+  Contrat moyen ~106, vrais 130/140/150/160 + capots, réussite ~70% (test de régression).
+- ✅ Coach EN DIRECT (bouton 💡 Conseil), récap des enchères, aide au comptage des atouts.
+- ✅ Progression : niveau/Elo + paliers (Débutant→Maître).
+- ✅ Offline-first renforcé (precache + navigateFallback) + indicateur « hors-ligne ».
+- ✅ Bannière « Installer l'app » sur le web mobile (PWA ; liens stores à brancher).
+- ✅ Pages légales in-app (Confidentialité / CGU / Mentions) — champs [À COMPLÉTER].
+- ✅ Abstraction freemium/pubs (`entitlements.ts`) — 100% gratuit sans pub pour l'instant.
+- ✅ `capacitor.config.json` + `STORE.md` (guide iOS/Android/Game Center/stores).
+
 ---
 
 ## 0. Bloquant immédiat
