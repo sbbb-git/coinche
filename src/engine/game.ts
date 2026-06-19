@@ -309,12 +309,14 @@ export function canBid(
 }
 
 export function canCoinche(state: GameState, player: number): boolean {
+  if (state.phase !== "bidding") return false;
   if (!state.settings.allowCoinche || !state.standing) return false;
   if (state.coinche !== 1) return false;
   return teamOf(player) !== teamOf(state.standing.player);
 }
 
 export function canSurcoinche(state: GameState, player: number): boolean {
+  if (state.phase !== "bidding") return false;
   if (!state.settings.allowCoinche || !state.settings.allowSurcoinche || !state.standing)
     return false;
   if (state.coinche !== 2) return false;

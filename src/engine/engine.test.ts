@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Card, makeCard, points, strength, totalPoints, freshDeck } from "./cards";
 import { beats, legalMoves, winningIndex } from "./rules";
 import { scoreDeal, Contract, DEFAULT_SCORE_OPTIONS } from "./scoring";
-import { DEFAULT_SETTINGS, applyPass, canBid, newGame } from "./game";
+import { DEFAULT_SETTINGS, applyBid, applyCoinche, canBid, canCoinche, applyPass, newGame } from "./game";
 
 /** Découpe le jeu en 8 plis de 4 cartes (pour des décomptes réalistes). */
 function dealIntoTricks() {
@@ -322,5 +322,39 @@ describe("enchères", () => {
     expect(canBid(g, 85, false)).toBe(false); // pas un multiple de 10
     expect(canBid(g, 170, false)).toBe(false); // > 160
     expect(canBid(g, 80, false)).toBe(true);
+  });
+
+  it("générale interdite en premier de parole, autorisée ensuite", () => {
+    const g = newGame({ ...DEFAULT_SETTINGS, allowGenerale: true });
+    expect(canBid(g, 500, false, true)).toBe(false); // premier de parole
+    const g2 = applyPass(g);
+    expect(canBid(g2, 500, false, true)).toBe(true); // après une passe
+  });
+
+  it("coinche à la volée : un adversaire coinche hors de son tour", () => {
+    let g = newGame(DEFAULT_SETTINGS);
+    const opener = g.current;
+    g = applyBid(g, 90, "H", false); // l'ouvreur prend, le tour avance
+    const flyer = (opener + 1) % 4; // adversaire de l'ouvreur, pas forcément de tour
+    expect(canCoinche(g, flyer)).toBe(true);
+    const g2 = applyCoinche(g, flyer);
+    expect(g2.coinche).toBe(2);
+    expect(g2.current).toBe(opener); // le preneur peut surcoincher
+  });
+});
+
+describe("score générale coinchée", () => {
+  it("générale coinchée réussie = 500 × 2", () => {
+    const res = scoreDeal(
+      { value: 500, mode: "S", taker: 0, capot: false, generale: true, coinche: 2 },
+      {
+        trickWinners: [0, 0, 0, 0, 0, 0, 0, 0],
+        trickWinnerPlayers: [0, 0, 0, 0, 0, 0, 0, 0],
+        tricks: dealIntoTricks(),
+        hands: [[], [], [], []],
+      },
+    );
+    expect(res.made).toBe(true);
+    expect(res.scores[0]).toBe(1000);
   });
 });
