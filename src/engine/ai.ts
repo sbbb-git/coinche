@@ -542,7 +542,13 @@ function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number):
   const scores = new Array(legal.length).fill(0);
 
   for (let s = 0; s < samples; s++) {
-    const world: GameState = { ...state, hands: sampleWorld(state, me, voids, rng) };
+    const sampled = sampleWorld(state, me, voids, rng);
+    // dealtHands (mains initiales) = mains restantes échantillonnées + cartes déjà
+    // jouées par chaque joueur, sinon la belote au décompte serait biaisée.
+    const dealtHands = sampled.map((h) => [...h]);
+    for (const t of state.completedTricks) for (const pc of t.played) dealtHands[pc.player].push(pc.card);
+    for (const pc of state.trick) dealtHands[pc.player].push(pc.card);
+    const world: GameState = { ...state, hands: sampled, dealtHands };
     // Mêmes cartes échantillonnées pour tous les candidats (réduction de variance).
     for (let i = 0; i < legal.length; i++) {
       const after = applyPlay(world, legal[i]);
