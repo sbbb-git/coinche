@@ -34,7 +34,7 @@ export const EMPTY_STATS: TrainingStats = {
   play: { done: 0, correct: 0 },
   streak: 0,
   bestStreak: 0,
-  rating: 1000,
+  rating: 800, // on démarre « Débutant » et on progresse vers Amateur (1000+)
 };
 
 export interface Storage {

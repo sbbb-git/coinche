@@ -133,7 +133,7 @@ export function Table() {
   const complete = trick.length === 4;
 
   return (
-    <div className="relative flex-1 min-h-0 rounded-3xl m-2 bg-felt-dark/60 shadow-inner ring-1 ring-emerald-900/50 overflow-hidden">
+    <div className="relative flex-1 min-h-40 rounded-3xl m-2 bg-felt-dark/60 shadow-inner ring-1 ring-emerald-900/50 overflow-hidden">
       {[2, 1, 3, 0].map((seat) => (
         <Seat key={seat} game={game} seat={seat} thinking={thinking} />
       ))}

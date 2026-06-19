@@ -77,7 +77,7 @@ export function InstallBanner() {
   };
 
   return (
-    <div className="safe-top sticky top-0 z-40 bg-gradient-to-r from-sky-600 to-emerald-600 px-3 py-2 text-white shadow-lg">
+    <div className="sticky top-0 z-40 bg-gradient-to-r from-sky-600 to-emerald-600 px-3 py-2 text-white shadow-lg">
       <div className="mx-auto flex max-w-3xl items-center gap-2">
         <span className="text-xl" aria-hidden>
           📱
@@ -90,14 +90,14 @@ export function InstallBanner() {
         </p>
         <button
           onClick={install}
-          className="min-h-9 shrink-0 rounded-full bg-white px-3 text-sm font-bold text-emerald-700 hover:bg-white/90"
+          className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-white px-4 text-sm font-bold text-emerald-700 hover:bg-white/90"
         >
           Installer
         </button>
         <button
           onClick={close}
           aria-label="Fermer"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/80 hover:bg-white/20"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-white/80 hover:bg-white/20"
         >
           ✕
         </button>

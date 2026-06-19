@@ -154,7 +154,7 @@ export function CoinchePrompt() {
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="animate-pop mx-auto mb-1 flex max-w-lg flex-col gap-2 rounded-xl bg-emerald-950/90 p-3 shadow-lg ring-1 ring-emerald-700">
+    <div className="animate-pop mx-auto mb-1 flex max-h-[46vh] max-w-lg flex-col gap-2 overflow-y-auto rounded-xl bg-emerald-950/90 p-3 shadow-lg ring-1 ring-emerald-700">
       {children}
     </div>
   );

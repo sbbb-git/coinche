@@ -30,7 +30,7 @@ function Overlay({
         aria-label={label}
         onClick={(e) => e.stopPropagation()}
         className={[
-          "animate-pop w-full rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700",
+          "animate-pop max-h-[88dvh] w-full overflow-y-auto rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700",
           wide ? "max-w-md" : "max-w-sm",
         ].join(" ")}
       >

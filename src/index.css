@@ -36,6 +36,11 @@ body {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+/* Encoches latérales en paysage (iPhone X+ à l'horizontale) */
+.safe-x {
+  padding-left: max(0px, env(safe-area-inset-left));
+  padding-right: max(0px, env(safe-area-inset-right));
+}
 
 button:focus-visible,
 select:focus-visible {

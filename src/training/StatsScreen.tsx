@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { levelInfo, useStats } from "../state/stats";
 
@@ -8,6 +9,7 @@ function pct(n: number, d: number): string {
 export function StatsScreen() {
   const stats = useStats((s) => s.stats);
   const reset = useStats((s) => s.reset);
+  const [confirming, setConfirming] = useState(false);
   const totalDone = stats.bid.done + stats.play.done;
   const lvl = levelInfo(stats.rating);
 
@@ -50,14 +52,35 @@ export function StatsScreen() {
         </p>
       )}
 
-      <button
-        onClick={() => {
-          if (confirm("Réinitialiser toutes tes statistiques ?")) reset();
-        }}
-        className="mt-6 w-full rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/20"
-      >
-        Réinitialiser les statistiques
-      </button>
+      {confirming ? (
+        <div className="mt-6 rounded-xl bg-white/5 p-3 text-center ring-1 ring-white/10">
+          <p className="mb-2 text-sm text-white/80">Effacer toute ta progression ?</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setConfirming(false)}
+              className="min-h-11 flex-1 rounded-lg bg-white/10 text-sm font-semibold hover:bg-white/20"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={() => {
+                reset();
+                setConfirming(false);
+              }}
+              className="min-h-11 flex-1 rounded-lg bg-red-500/90 text-sm font-bold text-white hover:bg-red-500"
+            >
+              Tout effacer
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setConfirming(true)}
+          className="mt-6 min-h-11 w-full rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/20"
+        >
+          Réinitialiser les statistiques
+        </button>
+      )}
     </ScreenShell>
   );
 }

@@ -28,7 +28,7 @@ export function HandFan() {
               <div
                 key={card.id}
                 className={[
-                  "-ml-3 sm:-ml-1 transition-transform",
+                  "-ml-4 sm:-ml-1 transition-transform",
                   playable ? "z-10 hover:z-20" : "",
                   hinted ? "z-30 -translate-y-3" : "",
                 ].join(" ")}

@@ -13,7 +13,7 @@ export function ScreenShell({
   const go = useNav((s) => s.go);
   const back = onBack ?? (() => go("home"));
   return (
-    <div className="mx-auto flex h-full w-full max-w-md flex-col">
+    <div className="safe-x mx-auto flex h-full w-full max-w-md flex-col">
       <header className="safe-top flex items-center gap-2 px-3 pt-2 pb-2">
         <button
           onClick={back}
