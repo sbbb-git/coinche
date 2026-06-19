@@ -130,13 +130,19 @@ interface PlayProfile {
   - Appels (directs/indirects) câblés ; agressivité (petit jeu ↔ offensif) effective.
 - **Phase 4 — iPhone** : finition PWA (icônes, offline) → option App Store (Capacitor).
 
+### IA (état actuel)
+- **Expert = Monte-Carlo (PIMC)** : échantillonne les mains adverses (coupes respectées),
+  simule la fin de la donne (rollout avec comptage), choisit le meilleur coup. Force réglable
+  (Rapide/Normal/Fort). Coach = expert déterministe (RNG seedé).
+- Hiérarchie validée : Expert > Difficile ≳ Moyen ≫ Facile. Réussite des contrats ~85-90 %.
+- Coinche pilotée par l'agressivité (≈0 en prudent → ~25/200 donnes en offensif) ; capot
+  annoncé uniquement sur main dominante.
+
 ### Chantiers / dette identifiés (backlog)
-- **Tuning IA défense** : la simulation montre des contrats réussis ~99 % (défense trop passive,
-  bidding prudent-mais-juste). Améliorer la coopération défensive (cash des As, jeu dans la
-  couleur du partenaire, refus de nourrir le preneur) pour des taux de chute réalistes.
-- Coinche « à la volée » (hors tour) ; Générale (500) ; belote en défense (option).
-- Précision du comptage de cartes IA (distinguer cartes adverses vs partenaire).
-- Sons & haptique (réglage prévu), animations gamifiées avancées.
+- Écart **Difficile vs Moyen** faible (le comptage apporte peu) : à creuser si besoin.
+- Coinche « à la volée » (hors tour) ; **Générale (500)** non implémentée ; belote en défense (option).
+- Architecture comptes : brancher un fournisseur réel (Firebase/Supabase) + sync.
+- Packaging stores (Capacitor) quand souhaité ; animations gamifiées avancées.
 
 ## 9. Modèle de données (local-first)
 
