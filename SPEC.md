@@ -138,11 +138,15 @@ interface PlayProfile {
 - Coinche pilotée par l'agressivité (≈0 en prudent → ~25/200 donnes en offensif) ; capot
   annoncé uniquement sur main dominante.
 
+### Résolu récemment
+- **Niveaux distincts** : Difficile = mini-PIMC (6 sim.) → ~74 % vs Moyen ; Expert = PIMC profond.
+- **Générale (500)** : moteur + IA (detection solo) + UI + tests.
+- **Coinche à la volée** : le joueur peut coincher l'IA hors de son tour.
+
 ### Chantiers / dette identifiés (backlog)
-- Écart **Difficile vs Moyen** faible (le comptage apporte peu) : à creuser si besoin.
-- Coinche « à la volée » (hors tour) ; **Générale (500)** non implémentée ; belote en défense (option).
 - Architecture comptes : brancher un fournisseur réel (Firebase/Supabase) + sync.
 - Packaging stores (Capacitor) quand souhaité ; animations gamifiées avancées.
+- (Optionnel) belote en défense réglable ; surcoinche à la volée.
 
 ## 9. Modèle de données (local-first)
 
