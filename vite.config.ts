@@ -36,5 +36,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    testTimeout: 30000, // les simulations Expert (PIMC) peuvent dépasser 5s
   },
 });
