@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { ScreenShell } from "./ScreenShell";
+import { useNav } from "./nav";
 import { useGame } from "../state/store";
 import { storage } from "../storage";
-import { auth, AuthProviderId, ProviderNotConfiguredError } from "../auth";
 
 export function AccountScreen() {
   const game = useGame((s) => s.game);
+  const go = useNav((s) => s.go);
   const updateSettings = useGame((s) => s.updateSettings);
   const [name, setName] = useState(() => storage.loadProfile().name);
-  const [info, setInfo] = useState<string | null>(null);
 
   const saveName = (n: string) => {
     setName(n);
@@ -16,18 +16,6 @@ export function AccountScreen() {
     storage.saveProfile({ name: clean });
     const pn = game.settings.playerNames;
     updateSettings({ ...game.settings, playerNames: [clean, pn[1], pn[2], pn[3]] });
-  };
-
-  const signIn = async (provider: AuthProviderId) => {
-    try {
-      await auth.signIn(provider);
-    } catch (e) {
-      setInfo(
-        e instanceof ProviderNotConfiguredError
-          ? e.message
-          : "Connexion impossible pour le moment.",
-      );
-    }
   };
 
   return (
@@ -46,40 +34,28 @@ export function AccountScreen() {
         />
       </section>
 
+      {/* Pas de compte en v1 : 100% local. La synchro cloud est annoncée comme
+          « à venir » sans bouton non fonctionnel (exigence de revue des stores). */}
       <section className="mt-4 rounded-2xl bg-white/8 p-4 ring-1 ring-white/10">
-        <p className="text-sm font-semibold text-white/80">Compte cloud</p>
+        <p className="text-sm font-semibold text-white/80">Synchronisation cloud</p>
         <p className="mt-1 text-xs text-white/60">
-          Connecte-toi pour synchroniser entre tes appareils : réglages, progression, historique de
-          parties, et (à venir) profil & classement.
+          Bientôt : un compte optionnel pour synchroniser ta progression entre tes appareils. Pour
+          l'instant, l'app fonctionne 100 % hors-ligne et tes données restent sur cet appareil.
         </p>
-        <div className="mt-3 flex flex-col gap-2">
-          <button
-            onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-2 rounded-xl bg-white py-3 font-semibold text-zinc-800 hover:bg-zinc-100"
-          >
-            <span aria-hidden>🔵</span> Continuer avec Google
-          </button>
-          <button
-            onClick={() => signIn("apple")}
-            className="flex items-center justify-center gap-2 rounded-xl bg-black py-3 font-semibold text-white hover:bg-zinc-900"
-          >
-            <span aria-hidden></span> Continuer avec Apple
-          </button>
-        </div>
-        {info && (
-          <p className="animate-pop mt-3 rounded-lg bg-emerald-900/70 p-3 text-sm text-white/85 ring-1 ring-emerald-700">
-            ℹ️ {info}
-          </p>
-        )}
-        {!auth.isConfigured() && !info && (
-          <p className="mt-3 text-center text-[11px] text-white/40">
-            Architecture prête · synchronisation activée prochainement
-          </p>
-        )}
+        <span className="mt-3 inline-block rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/60">
+          À venir
+        </span>
       </section>
 
-      <p className="mt-4 text-center text-[11px] text-white/40">
-        Aujourd'hui, tes données restent 100 % sur cet appareil.
+      <button
+        onClick={() => go("legal")}
+        className="mt-4 w-full rounded-xl bg-white/5 py-2.5 text-sm font-semibold text-white/70 hover:bg-white/10"
+      >
+        Confidentialité · CGU · Mentions légales
+      </button>
+
+      <p className="mt-3 text-center text-[11px] text-white/40">
+        Tes données restent 100 % sur cet appareil.
       </p>
     </ScreenShell>
   );

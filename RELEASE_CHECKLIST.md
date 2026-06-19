@@ -2,6 +2,11 @@
 
 > Tout ce qu'il faut câbler/vérifier avant de publier. Coche au fur et à mesure.
 > Légende : ✅ fait · 🔜 à faire · ⏳ plus tard.
+>
+> **Décision v1 : 100% LOCAL, sans compte ni pub, tout public 4+.** C'est le profil
+> le plus simple à faire valider. Les réponses de soumission prêtes sont dans
+> **`SUBMISSION.md`**. Toute la section « Comptes & Auth » ci-dessous devient ⏳
+> (reportée après la v1).
 
 ## Comptes & Authentification (parcours utilisateur)
 - ✅ Mode invité : jouer SANS compte (local-first) — déjà le cas.

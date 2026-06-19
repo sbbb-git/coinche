@@ -9,7 +9,7 @@ const TILES: { view: View; emoji: string; title: string; desc: string }[] = [
   { view: "lessons", emoji: "🎓", title: "Leçons", desc: "Apprendre pas à pas, des règles aux conventions" },
   { view: "guides", emoji: "📖", title: "Guides", desc: "Que faire, dans quelle situation" },
   { view: "stats", emoji: "📈", title: "Progression", desc: "Tes statistiques d'entraînement" },
-  { view: "account", emoji: "👤", title: "Compte", desc: "Profil et connexion (Google / Apple)" },
+  { view: "account", emoji: "👤", title: "Compte", desc: "Ton profil, sur cet appareil" },
 ];
 
 export function Home() {

@@ -23,6 +23,9 @@ export default defineConfig({
         short_name: "Coincheur",
         description:
           "Jouez à la Coinche contre des IA paramétrables et entraînez-vous, hors-ligne.",
+        lang: "fr",
+        dir: "ltr",
+        categories: ["games", "entertainment", "education"],
         theme_color: "#0f5132",
         background_color: "#0b3d28",
         display: "standalone",
