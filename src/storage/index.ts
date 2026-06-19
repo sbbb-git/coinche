@@ -26,6 +26,7 @@ export interface TrainingStats {
   play: ExoStat;
   streak: number; // série en cours
   bestStreak: number;
+  rating: number; // niveau estimé façon Elo (départ 1000)
 }
 
 export const EMPTY_STATS: TrainingStats = {
@@ -33,6 +34,7 @@ export const EMPTY_STATS: TrainingStats = {
   play: { done: 0, correct: 0 },
   streak: 0,
   bestStreak: 0,
+  rating: 1000,
 };
 
 export interface Storage {
@@ -98,6 +100,7 @@ class LocalStorage implements Storage {
         play: { ...EMPTY_STATS.play, ...(p.play ?? {}) },
         streak: p.streak ?? 0,
         bestStreak: p.bestStreak ?? 0,
+        rating: p.rating ?? EMPTY_STATS.rating,
       };
     } catch {
       return { ...EMPTY_STATS };

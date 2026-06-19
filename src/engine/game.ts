@@ -52,6 +52,7 @@ export interface Settings {
   autoPlaySingle: boolean; // jouer automatiquement quand une seule carte est jouable
   preselectPlayable: boolean; // mettre en évidence les cartes jouables
   showLiveScores: boolean; // afficher les scores en cours de donne
+  trumpHelper: boolean; // aide au comptage : atouts déjà tombés
 
   /** noms des 4 joueurs ; index 0 = joueur humain (en bas) */
   playerNames: [string, string, string, string];
@@ -93,6 +94,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoPlaySingle: false,
   preselectPlayable: true,
   showLiveScores: true,
+  trumpHelper: false,
   playerNames: ["Vous", "Ouest", "Nord", "Est"],
 };
 

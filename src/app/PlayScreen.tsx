@@ -5,6 +5,7 @@ import { ScorePanel } from "../components/ScorePanel";
 import { Table } from "../components/Table";
 import { HandFan } from "../components/HandFan";
 import { BiddingPanel, CoinchePrompt } from "../components/BiddingPanel";
+import { CoachBar } from "../components/CoachBar";
 import { DealResultModal, GameOverModal, MenuSheet } from "../components/Modals";
 
 export function PlayScreen() {
@@ -25,6 +26,7 @@ export function PlayScreen() {
       <Table />
       <CoinchePrompt />
       <BiddingPanel />
+      <CoachBar />
       <HandFan />
 
       <DealResultModal />

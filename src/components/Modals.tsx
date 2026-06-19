@@ -224,6 +224,9 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
             <Toggle on={draft.showLiveScores} onClick={() => upd({ showLiveScores: !draft.showLiveScores })}>
               Afficher les scores en cours de donne
             </Toggle>
+            <Toggle on={draft.trumpHelper} onClick={() => upd({ trumpHelper: !draft.trumpHelper })}>
+              Aide au comptage (atouts tombés)
+            </Toggle>
           </>
         )}
 

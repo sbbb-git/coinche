@@ -17,6 +17,7 @@ import {
   speedMs,
 } from "../engine/game";
 import { aiBid, aiPlay } from "../engine/ai";
+import { coachBid, coachPlay } from "../engine/coach";
 import { PlayedCard } from "../engine/rules";
 import { loadInitialSettings, storage } from "../storage";
 import { feedback } from "./feedback";
@@ -29,6 +30,8 @@ interface Store {
   thinking: boolean;
   /** pli complet figé à l'écran le temps qu'on le voie, avant résolution */
   overlayTrick: PlayedCard[] | null;
+  /** conseil du coach en direct (carte suggérée + explication), à la demande */
+  hint: { cardId: string | null; text: string } | null;
 
   /** démarre l'orchestration des IA pour la partie déjà en cours (à appeler au montage) */
   init: () => void;
@@ -43,6 +46,9 @@ interface Store {
   surcoinche: () => void;
   play: (card: Card) => void;
   continueDeal: () => void;
+  /** demande un conseil du coach pour la situation courante (humain) */
+  askHint: () => void;
+  clearHint: () => void;
 }
 
 // Timers au niveau module (hors du state React) pour piloter les IA.
@@ -149,23 +155,24 @@ export const useGame = create<Store>((set, get) => {
     game: newGame(loadInitialSettings()),
     thinking: false,
     overlayTrick: null,
+    hint: null,
 
     startNewGame: (settings) => {
       clearAiTimer();
       const s = settings ?? get().game.settings;
       storage.saveSettings(s); // persiste les réglages choisis
-      set({ game: newGame(s), overlayTrick: null });
+      set({ game: newGame(s), overlayTrick: null, hint: null });
       scheduleAI();
     },
 
     bid: (value, mode, capot, generale = false) => {
       if (get().game.current !== HUMAN) return;
-      set({ game: applyBid(get().game, value, mode, capot, generale) });
+      set({ game: applyBid(get().game, value, mode, capot, generale), hint: null });
       scheduleAI();
     },
     pass: () => {
       if (get().game.current !== HUMAN) return;
-      set({ game: applyPass(get().game) });
+      set({ game: applyPass(get().game), hint: null });
       scheduleAI();
     },
     init: () => {
@@ -188,26 +195,40 @@ export const useGame = create<Store>((set, get) => {
       // Coinche « à la volée » : autorisée même si ce n'est pas le tour de l'humain.
       if (get().overlayTrick || !canCoinche(get().game, HUMAN)) return;
       clearAiTimer();
-      set({ game: applyCoinche(get().game, HUMAN) });
+      set({ game: applyCoinche(get().game, HUMAN), hint: null });
       scheduleAI();
     },
     surcoinche: () => {
       if (get().game.current !== HUMAN) return;
-      set({ game: applySurcoinche(get().game) });
+      set({ game: applySurcoinche(get().game), hint: null });
       scheduleAI();
     },
 
     play: (card) => {
       const g = get().game;
       if (g.current !== HUMAN || g.phase !== "playing" || get().overlayTrick) return;
+      set({ hint: null });
       doPlay(card);
     },
 
     continueDeal: () => {
       clearAiTimer();
-      set({ game: engineNextDeal(get().game), overlayTrick: null });
+      set({ game: engineNextDeal(get().game), overlayTrick: null, hint: null });
       scheduleAI();
     },
+
+    askHint: () => {
+      const g = get().game;
+      if (g.current !== HUMAN) return;
+      if (g.phase === "playing" && !get().overlayTrick) {
+        const { best, reason } = coachPlay(g);
+        set({ hint: { cardId: best.id, text: reason } });
+      } else if (g.phase === "bidding") {
+        const a = coachBid(g, HUMAN);
+        set({ hint: { cardId: null, text: a.reason } });
+      }
+    },
+    clearHint: () => set({ hint: null }),
   };
 });
 
