@@ -403,7 +403,9 @@ export function aiPlay(state: GameState, deterministic = false): Card {
   if (level === "hard") return expertPlay(state, legal, deterministic ? rng : Math.random, 8, false);
   const depth = { rapide: 14, normal: 24, fort: 40 }[state.settings.expertDepth] ?? 24;
   const samples = deterministic ? 28 : depth;
-  return expertPlay(state, legal, rng, samples, true);
+  // Expert : PIMC. Le rollout utilise la politique BASIQUE — mesuré comme la plus
+  // forte (les variantes « malines » se sont révélées contre-productives en jeu).
+  return expertPlay(state, legal, rng, samples, false);
 }
 
 function lowest(cards: Card[], mode: TrumpMode): Card {
@@ -431,7 +433,7 @@ function heuristicPlay(state: GameState, legal: Card[], hard: boolean): Card {
   const me = state.current;
 
   // Entame.
-  if (trick.length === 0) return leadCard(state, legal, hard);
+  if (trick.length === 0) return leadCard(state, legal);
 
   const partnerMaster = partnerIsWinning(trick, me, mode);
   const isLastToPlay = trick.length === 3;
@@ -479,18 +481,6 @@ function partnerSurelyWins(state: GameState, hard: boolean): boolean {
   return !remaining.some((c) => beats(c, master, led, mode));
 }
 
-/** Reste-t-il des atouts en dehors de ma main (chez le partenaire ou les
- *  adversaires) ? Sert au preneur à savoir s'il doit continuer à tirer atout. */
-function opponentsMayHaveTrump(state: GameState): boolean {
-  const mode = state.contract!.mode;
-  if (mode === "NT") return false;
-  const seen = seenCards(state); // ma main + cartes déjà jouées
-  let accounted = 0;
-  for (const c of allCards()) if (isTrump(c, mode) && seen.has(c.id)) accounted++;
-  const total = mode === "AT" ? 32 : 8;
-  return accounted < total;
-}
-
 /** Un adversaire est-il connu coupé (void) dans cette couleur ? (lecture des plis) */
 function opponentVoidInSuit(state: GameState, suit: Suit): boolean {
   const voids = inferVoids(state);
@@ -501,7 +491,7 @@ function opponentVoidInSuit(state: GameState, suit: Suit): boolean {
   return false;
 }
 
-function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
+function leadCard(state: GameState, legal: Card[]): Card {
   const mode = state.contract!.mode;
   const me = state.current;
   const profile = state.settings.profile;
@@ -528,14 +518,8 @@ function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
     if (jack) return jack;
   }
 
-  // Équipe preneuse : tirer ses atouts pour faire tomber ceux des adversaires.
-  // (Fondamental — on le fait à tous les niveaux. Le niveau « fort » arrête de
-  // tirer quand les adversaires n'ont plus d'atout et bascule sur ses maîtres.)
+  // Équipe preneuse : tirer ses atouts maîtres pour faire tomber ceux des adversaires.
   if (iAmTaker && trumps.length > 0) {
-    if (!hard || opponentsMayHaveTrump(state)) return highest(trumps, mode);
-    // Atouts adverses épuisés : on encaisse plutôt une couleur maîtresse.
-    const masterAce = legal.find((c) => c.rank === "A" && !isTrump(c, mode) && isMasterCard(state, c));
-    if (masterAce) return masterAce;
     return highest(trumps, mode);
   }
 
@@ -546,15 +530,10 @@ function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
     if (inCalled.length > 0) return lowest(inCalled, mode);
   }
 
-  // Jouer une couleur maîtresse (As) hors atout, si le profil le veut. On encaisse
-  // l'As tant qu'il reste des atouts chez les adversaires uniquement si la couleur
-  // n'est pas déjà coupée par un adversaire (sinon on garderait l'As trop longtemps).
+  // Jouer une couleur maîtresse (As) hors atout, si le profil le veut.
   if (profile.jeuAuxAs) {
-    const aces = legal.filter((c) => c.rank === "A" && !isTrump(c, mode));
-    // Au niveau fort, on évite d'ouvrir une couleur où un adversaire est déjà coupé.
-    const safeAce = hard ? aces.find((a) => !opponentVoidInSuit(state, a.suit)) : aces[0];
-    if (safeAce) return safeAce;
-    if (!hard && aces[0]) return aces[0];
+    const ace = legal.find((c) => c.rank === "A" && !isTrump(c, mode));
+    if (ace) return ace;
   }
 
   // À défaut, entamer petit dans une couleur non-atout.
