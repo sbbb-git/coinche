@@ -86,7 +86,27 @@ function BidTrainer() {
           />
         ))}
       </div>
-      {answered && <Feedback ok={picked === ex.correctIndex} reason={ex.reason} onNext={next} />}
+      {answered && (
+        <>
+          <EstimateBar estimates={ex.estimates} />
+          <Feedback ok={picked === ex.correctIndex} reason={ex.reason} onNext={next} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function EstimateBar({ estimates }: { estimates: BidExercise["estimates"] }) {
+  const sorted = [...estimates].sort((a, b) => b.est - a.est);
+  return (
+    <div className="mt-3 rounded-lg bg-white/5 p-2 text-xs text-white/70">
+      <span className="text-white/50">Valeur estimée de ta main : </span>
+      {sorted.map((e, i) => (
+        <span key={e.mode} className="ml-1 tabular-nums">
+          {modeLabel(e.mode).text} <b className="text-white/90">{e.est}</b>
+          {i < sorted.length - 1 ? " ·" : ""}
+        </span>
+      ))}
     </div>
   );
 }
