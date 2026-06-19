@@ -1,7 +1,7 @@
 // Génération d'exercices d'entraînement, à l'infini, via le moteur + le coach.
 // Deux familles bien distinctes : ENCHÈRES et JEU DE LA CARTE.
 
-import { Card, SUIT_SYMBOL, TrumpMode } from "../engine/cards";
+import { Card, TrumpMode } from "../engine/cards";
 import {
   GameState,
   Settings,
@@ -19,26 +19,20 @@ import { teamOf } from "../engine/scoring";
 
 export type PlayFocus = "any" | "attack" | "defense";
 
-function modeLabel(mode: TrumpMode): string {
-  if (mode === "NT") return "Sans Atout";
-  if (mode === "AT") return "Tout Atout";
-  return SUIT_SYMBOL[mode];
-}
-
-function bidLabel(value: number, mode: TrumpMode): string {
-  return `${value} ${modeLabel(mode)}`;
-}
-
 // --- Exercice d'enchères ----------------------------------------------------
+
+export type BidOption = { kind: "pass" } | { kind: "bid"; value: number; mode: TrumpMode };
 
 export interface BidExercise {
   kind: "bid";
   hand: Card[];
-  options: string[];
+  options: BidOption[];
   correctIndex: number;
   reason: string;
   estimates: { mode: TrumpMode; est: number }[];
 }
+
+const optKey = (o: BidOption) => (o.kind === "pass" ? "pass" : `${o.value}${o.mode}`);
 
 export function genBidExercise(settings: Settings): BidExercise {
   const g = newGame(settings);
@@ -46,32 +40,33 @@ export function genBidExercise(settings: Settings): BidExercise {
   const advice = coachBid(g, 0);
   const estimates = handEstimates(hand, g);
 
-  const opts: string[] = [];
+  const opts: BidOption[] = [];
   if (advice.action.action === "bid") {
     const { value, mode } = advice.action;
     const second = estimates.filter((e) => e.mode !== mode).sort((a, b) => b.est - a.est)[0];
-    opts.push(bidLabel(value, mode)); // correct
-    opts.push("Passer"); // trop prudent
-    opts.push(bidLabel(Math.min(160, value + 20), mode)); // trop gourmand
-    if (second) opts.push(bidLabel(value, second.mode)); // mauvaise couleur
+    opts.push({ kind: "bid", value, mode }); // correct
+    opts.push({ kind: "pass" }); // trop prudent
+    opts.push({ kind: "bid", value: Math.min(160, value + 20), mode }); // trop gourmand
+    if (second) opts.push({ kind: "bid", value, mode: second.mode }); // mauvaise couleur
   } else {
     const best = estimates.slice().sort((a, b) => b.est - a.est)[0];
     const second = estimates.filter((e) => e.mode !== best.mode).sort((a, b) => b.est - a.est)[0];
-    opts.push("Passer"); // correct
-    opts.push(bidLabel(80, best.mode)); // trop optimiste
-    opts.push(bidLabel(90, best.mode));
-    if (second) opts.push(bidLabel(80, second.mode));
+    opts.push({ kind: "pass" }); // correct
+    opts.push({ kind: "bid", value: 80, mode: best.mode }); // trop optimiste
+    opts.push({ kind: "bid", value: 90, mode: best.mode });
+    if (second) opts.push({ kind: "bid", value: 80, mode: second.mode });
   }
 
   // Dédoublonne et complète à 4 options si besoin.
-  const uniq = Array.from(new Set(opts)).slice(0, 4);
-  const correct = uniq[0];
+  const seen = new Set<string>();
+  const uniq = opts.filter((o) => (seen.has(optKey(o)) ? false : seen.add(optKey(o)))).slice(0, 4);
+  const correctKey = optKey(uniq[0]);
   const shuffled = shuffle(uniq);
   return {
     kind: "bid",
     hand,
     options: shuffled,
-    correctIndex: shuffled.indexOf(correct),
+    correctIndex: shuffled.findIndex((o) => optKey(o) === correctKey),
     reason: advice.reason,
     estimates,
   };

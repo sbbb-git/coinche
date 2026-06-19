@@ -4,9 +4,10 @@ import { useGame } from "../state/store";
 import { useStats } from "../state/stats";
 import { PlayingCard, suitColorClassDark } from "../components/Card";
 import { modeLabel } from "../components/Table";
-import { Card } from "../engine/cards";
+import { Card, TrumpMode } from "../engine/cards";
 import {
   BidExercise,
+  BidOption,
   PlayExercise,
   PlayFocus,
   genBidExercise,
@@ -79,7 +80,8 @@ function BidTrainer() {
         {ex.options.map((opt, i) => (
           <OptionBtn
             key={i}
-            label={opt}
+            option={opt}
+            fourColors={settings.fourColors}
             state={
               !answered ? "idle" : i === ex.correctIndex ? "good" : i === picked ? "bad" : "muted"
             }
@@ -89,7 +91,7 @@ function BidTrainer() {
       </div>
       {answered && (
         <>
-          <EstimateBar estimates={ex.estimates} />
+          <EstimateBar estimates={ex.estimates} fourColors={settings.fourColors} />
           <Feedback ok={picked === ex.correctIndex} reason={ex.reason} onNext={next} />
         </>
       )}
@@ -97,14 +99,27 @@ function BidTrainer() {
   );
 }
 
-function EstimateBar({ estimates }: { estimates: BidExercise["estimates"] }) {
+/** Symbole d'atout coloré (rouge/bleu/vert/blanc) sur fond sombre. */
+function ModeSym({ mode, fourColors }: { mode: TrumpMode; fourColors: boolean }) {
+  const m = modeLabel(mode);
+  if (!m.suit) return <span>{m.text}</span>;
+  return <span className={suitColorClassDark(m.suit, fourColors)}>{m.text}</span>;
+}
+
+function EstimateBar({
+  estimates,
+  fourColors,
+}: {
+  estimates: BidExercise["estimates"];
+  fourColors: boolean;
+}) {
   const sorted = [...estimates].sort((a, b) => b.est - a.est);
   return (
     <div className="mt-3 rounded-lg bg-white/5 p-2 text-xs text-white/70">
       <span className="text-white/50">Valeur estimée de ta main : </span>
       {sorted.map((e, i) => (
         <span key={e.mode} className="ml-1 tabular-nums">
-          {modeLabel(e.mode).text} <b className="text-white/90">{e.est}</b>
+          <ModeSym mode={e.mode} fourColors={fourColors} /> <b className="text-white/90">{e.est}</b>
           {i < sorted.length - 1 ? " ·" : ""}
         </span>
       ))}
@@ -263,7 +278,17 @@ function Tab({ active, onClick, children }: { active: boolean; onClick: () => vo
 }
 
 type OptState = "idle" | "good" | "bad" | "muted";
-function OptionBtn({ label, state, onClick }: { label: string; state: OptState; onClick: () => void }) {
+function OptionBtn({
+  option,
+  fourColors,
+  state,
+  onClick,
+}: {
+  option: BidOption;
+  fourColors: boolean;
+  state: OptState;
+  onClick: () => void;
+}) {
   const cls =
     state === "good"
       ? "bg-green-500/90 text-white"
@@ -276,9 +301,15 @@ function OptionBtn({ label, state, onClick }: { label: string; state: OptState; 
     <button
       onClick={onClick}
       disabled={state !== "idle"}
-      className={`rounded-xl px-4 py-3 text-left font-semibold ${cls}`}
+      className={`rounded-xl px-4 py-3 text-left text-base font-semibold ${cls}`}
     >
-      {label}
+      {option.kind === "pass" ? (
+        "Passer"
+      ) : (
+        <>
+          {option.value} <ModeSym mode={option.mode} fourColors={fourColors} />
+        </>
+      )}
     </button>
   );
 }

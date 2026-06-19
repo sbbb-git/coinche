@@ -86,12 +86,12 @@ describe("simulation massive IA vs IA", () => {
   });
 
   it("l'Expert (PIMC) bat nettement le Moyen", () => {
-    const r = simulate(S, { games: 30, levelA: "expert", levelB: "medium" });
+    const r = simulate(S, { games: 50, levelA: "expert", levelB: "medium" });
     expect(r.winsA).toBeGreaterThan(r.winsB);
   });
 
   it("le Difficile (mini-PIMC) bat le Moyen", () => {
-    const r = simulate(S, { games: 30, levelA: "hard", levelB: "medium" });
+    const r = simulate(S, { games: 50, levelA: "hard", levelB: "medium" });
     expect(r.winsA).toBeGreaterThan(r.winsB);
   });
 
