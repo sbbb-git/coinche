@@ -53,6 +53,57 @@ describe("coach — enchères", () => {
     if (d.action === "bid") expect(d.generale).toBe(true);
   });
 
+  it("applique la convention « 100 fort » : partenaire 80 + on a Valet & 9 de sa couleur", () => {
+    // Le partenaire (siège 2) a ouvert à 80 Pique ; on a Valet + 9 de Pique.
+    const hand = [
+      makeCard("S", "J"),
+      makeCard("S", "9"),
+      makeCard("S", "8"),
+      makeCard("H", "K"),
+      makeCard("H", "7"),
+      makeCard("D", "9"),
+      makeCard("C", "Q"),
+      makeCard("C", "7"),
+    ];
+    const base = dealStateFrom(DEFAULT_SETTINGS, 3, [hand, [], [], []]);
+    const state = {
+      ...base,
+      current: 0,
+      standing: { player: 2, value: 80, mode: "S" as const, capot: false, generale: false },
+      bidHistory: [
+        { player: 2, kind: "bid" as const, value: 80, mode: "S" as const, capot: false, generale: false },
+        { player: 1, kind: "pass" as const },
+      ],
+    };
+    const adv = coachBid(state, 0);
+    expect(adv.action).toEqual({ action: "bid", value: 100, mode: "S" });
+  });
+
+  it("lit les annonces adverses : ne reprend pas la couleur déjà prise par l'adversaire", () => {
+    // Main correcte à Cœur, mais un adversaire a déjà annoncé 110 Cœur → on évite Cœur.
+    const hand = [
+      makeCard("H", "A"),
+      makeCard("H", "10"),
+      makeCard("H", "K"),
+      makeCard("S", "A"),
+      makeCard("S", "10"),
+      makeCard("D", "8"),
+      makeCard("C", "9"),
+      makeCard("C", "7"),
+    ];
+    const base = dealStateFrom(DEFAULT_SETTINGS, 3, [hand, [], [], []]);
+    const state = {
+      ...base,
+      current: 0,
+      standing: { player: 1, value: 110, mode: "H" as const, capot: false, generale: false },
+      bidHistory: [
+        { player: 1, kind: "bid" as const, value: 110, mode: "H" as const, capot: false, generale: false },
+      ],
+    };
+    const adv = coachBid(state, 0);
+    if (adv.action.action === "bid") expect(adv.action.mode).not.toBe("H");
+  });
+
   it("recommande de passer avec une main faible", () => {
     const hand = [
       makeCard("S", "7"),

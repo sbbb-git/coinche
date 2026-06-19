@@ -49,17 +49,26 @@ const optKey = (o: BidOption) => (o.kind === "pass" ? "pass" : `${o.value}${o.mo
 function setupBidScenario(settings: Settings): GameState {
   // Les meneurs d'enchères jouent « difficile » : des annonces réalistes et variées.
   const fillerSettings: Settings = { ...settings, aiLevel: "hard" };
-  let g = newGame(fillerSettings);
-  let guard = 0;
-  while (g.phase === "bidding" && g.current !== 0 && guard++ < 6) {
-    const d = aiBid(g, g.current);
-    if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot, d.generale);
-    else if (d.action === "coinche") g = applyCoinche(g);
-    else if (d.action === "surcoinche") g = applySurcoinche(g);
-    else g = applyPass(g);
+  for (let attempt = 0; attempt < 30; attempt++) {
+    let g = newGame(fillerSettings);
+    let guard = 0;
+    while (g.phase === "bidding" && g.current !== 0 && guard++ < 12) {
+      const d = aiBid(g, g.current);
+      if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot, d.generale);
+      else if (d.action === "coinche") g = applyCoinche(g);
+      else if (d.action === "surcoinche") g = applySurcoinche(g);
+      else g = applyPass(g);
+    }
+    // On n'accepte que les situations VALIDES : c'est au siège 0 de parler,
+    // toujours en phase d'enchères (une redonne / surcoinche est rejetée).
+    if (g.phase === "bidding" && g.current === 0) {
+      // On rend la main au profil de l'utilisateur (le coach évalue en expert).
+      return { ...g, settings };
+    }
   }
-  // On rend la main au profil de l'utilisateur (le coach évalue toujours en expert).
-  return { ...g, settings };
+  // Repli garanti (cas rarissime) : tu ouvres, sans annonce préalable.
+  const g = newGame(settings);
+  return { ...g, current: 0, trickLeader: 0, bidHistory: [], standing: null, passStreak: 0 };
 }
 
 function auctionLines(g: GameState): AuctionLine[] {

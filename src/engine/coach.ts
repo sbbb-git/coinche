@@ -7,6 +7,7 @@ import {
   GameState,
   PlayProfile,
   availableModes,
+  canBid,
   legalForCurrent,
 } from "./game";
 import { aiPlay, bestContractAuction, estimateForMode, readAuction } from "./ai";
@@ -125,15 +126,16 @@ export function coachBid(state: GameState, player: number): BidAdvice {
   if (target < minToBid) target = minToBid; // pour annoncer il faut dépasser l'enchère en cours
 
   // Convention « 100 fort » : le partenaire a ouvert à 80 dans une couleur, et on
-  // a Valet + 9 de cette couleur → on relance à 100.
+  // a Valet + 9 de cette couleur → on relance à 100 (si c'est légalement annonçable).
+  const tr = state.standing?.mode;
   if (
     state.standing &&
     !state.standing.capot &&
     state.standing.value === 80 &&
     standingIsPartner &&
-    (read.partnerSuit === "S" || read.partnerSuit === "H" || read.partnerSuit === "D" || read.partnerSuit === "C")
+    (tr === "S" || tr === "H" || tr === "D" || tr === "C") &&
+    canBid(state, 100, false)
   ) {
-    const tr = read.partnerSuit;
     const hasJ = hand.some((c) => c.suit === tr && c.rank === "J");
     const has9 = hand.some((c) => c.suit === tr && c.rank === "9");
     if (hasJ && has9) {

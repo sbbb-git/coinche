@@ -57,6 +57,36 @@ describe("lecture des annonces (enchères)", () => {
     expect(estimateWithAuction(hand, "S", read)).toBeGreaterThan(base);
   });
 
+  it("ignore les annonces de structure (capot / générale) dans la lecture", () => {
+    const r = readAuction(
+      withBids([
+        { player: 1, kind: "bid", value: 250, mode: "H", capot: true },
+        { player: 3, kind: "bid", value: 500, mode: "S", generale: true },
+      ]),
+      0,
+    );
+    expect(r.oppBestInSuit.H).toBeUndefined();
+    expect(r.oppBestAny).toBe(0);
+  });
+
+  it("ne dévalue pas à Sans Atout / Tout Atout (pas de couleur d'atout adverse)", () => {
+    const hand = [
+      makeCard("S", "A"),
+      makeCard("H", "A"),
+      makeCard("D", "A"),
+      makeCard("C", "A"),
+      makeCard("S", "10"),
+      makeCard("H", "10"),
+      makeCard("D", "K"),
+      makeCard("C", "K"),
+    ];
+    // Un adversaire a annoncé une couleur : cela ne doit pas pénaliser un mode SA.
+    const read = readAuction(withBids([{ player: 1, kind: "bid", value: 110, mode: "H" }]), 0);
+    const base = estimateForMode(hand, "NT");
+    // Seule la pénalité globale "adversaires forts" s'applique (pas la pénalité de couleur).
+    expect(estimateWithAuction(hand, "NT", read)).toBeGreaterThan(base - 12);
+  });
+
   it("sans annonce, l'estimation est inchangée", () => {
     const hand = [
       makeCard("D", "J"),
