@@ -233,9 +233,10 @@ export function aiPlay(state: GameState, deterministic = false): Card {
   const level = state.settings.aiLevel;
   if (level === "easy") return legal[Math.floor(rnd() * legal.length)];
   if (level === "medium") return heuristicPlay(state, legal, false);
-  if (level === "hard") return heuristicPlay(state, legal, true);
-  // Expert : simulation Monte-Carlo (PIMC). Seedé => déterministe pour le coach.
+  // Difficile : mini-PIMC (peu de simulations) => nettement au-dessus du Moyen.
+  // Expert : PIMC profond, déterministe pour le coach (RNG seedé).
   const rng = deterministic ? mulberry32(hashState(state)) : Math.random;
+  if (level === "hard") return expertPlay(state, legal, deterministic ? rng : Math.random, 6);
   const depth = { rapide: 10, normal: 18, fort: 32 }[state.settings.expertDepth] ?? 18;
   const samples = deterministic ? 28 : depth;
   return expertPlay(state, legal, rng, samples);

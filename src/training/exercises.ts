@@ -101,9 +101,9 @@ function runBidding(g: GameState): GameState {
 }
 
 export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any"): PlayExercise {
-  // Remplissage des IA en "hard" (rapide) même si l'utilisateur joue en Expert
-  // (l'Expert/PIMC est coûteux) ; le coach, lui, évalue toujours en expert.
-  const settings: Settings = { ...userSettings, aiLevel: "hard" };
+  // Remplissage des IA en "medium" (heuristique, rapide) : Difficile/Expert font
+  // du PIMC coûteux. Le coach, lui, évalue toujours en expert.
+  const settings: Settings = { ...userSettings, aiLevel: "medium" };
   let anyDecision: PlayExercise | null = null; // repli si le focus n'est jamais satisfait
 
   const matchesFocus = (g: GameState): boolean => {
