@@ -5,17 +5,18 @@ on:
     branches: [claude/coinche-game-app-5es6j5, main]
   workflow_dispatch:
 
+# Publication sur la branche gh-pages (méthode « Deploy from a branch »), qui ne
+# dépend PAS de l'environnement protégé github-pages : elle fonctionne donc
+# depuis n'importe quelle branche.
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: pages-gh
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,16 +26,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publier sur gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          # Évite que GitHub tente de traiter le site avec Jekyll.
+          enable_jekyll: false
