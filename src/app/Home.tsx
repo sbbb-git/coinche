@@ -1,4 +1,5 @@
 import { useNav, View } from "./nav";
+import { storage } from "../storage";
 
 const TILES: { view: View; emoji: string; title: string; desc: string }[] = [
   { view: "play", emoji: "🃏", title: "Jouer", desc: "Une partie contre 3 IA paramétrables" },
@@ -13,16 +14,19 @@ const TILES: { view: View; emoji: string; title: string; desc: string }[] = [
 
 export function Home() {
   const go = useNav((s) => s.go);
+  const name = storage.loadProfile().name;
   return (
-    <div className="safe-top safe-bottom mx-auto flex h-full w-full max-w-md flex-col px-5 py-6">
-      <header className="mb-6 text-center">
+    <div className="safe-top safe-bottom mx-auto flex h-full w-full max-w-md flex-col px-5 py-4">
+      <header className="mb-4 shrink-0 text-center">
         <h1 className="text-3xl font-black tracking-tight">
           Coin<span className="text-yellow-400">cheur</span>
         </h1>
-        <p className="mt-1 text-sm text-white/70">Jouer & progresser à la Coinche</p>
+        <p className="mt-1 text-sm text-white/70">
+          {name && name !== "Vous" ? `Salut ${name} — ` : ""}Jouer & progresser à la Coinche
+        </p>
       </header>
 
-      <div className="flex flex-col gap-3 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
         {TILES.map((t) => (
           <button
             key={t.view}
@@ -40,7 +44,7 @@ export function Home() {
         ))}
       </div>
 
-      <p className="mt-auto pt-6 text-center text-[11px] text-white/40">
+      <p className="shrink-0 pt-4 text-center text-[11px] text-white/40">
         100 % hors-ligne · vos données restent sur l'appareil
       </p>
     </div>

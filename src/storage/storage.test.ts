@@ -53,6 +53,22 @@ describe("persistance locale", () => {
     expect(s.bestStreak).toBe(5);
   });
 
+  it("profil local : aller-retour + défaut", () => {
+    expect(storage.loadProfile().name).toBe("Vous"); // défaut
+    storage.saveProfile({ name: "Sacha" });
+    expect(storage.loadProfile().name).toBe("Sacha");
+  });
+
+  it("leçons : marquage et lecture", () => {
+    storage.setLessonDone("bases");
+    storage.setLessonDone("bases"); // idempotent
+    storage.setLessonDone("encheres");
+    const done = storage.loadDoneLessons();
+    expect(done).toContain("bases");
+    expect(done).toContain("encheres");
+    expect(done.length).toBe(2);
+  });
+
   it("réglages : fusion avec les défauts pour un schéma partiel", () => {
     localStorage.setItem("coincheur.settings.v1", JSON.stringify({ aiLevel: "expert" }));
     const s = storage.loadSettings()!;

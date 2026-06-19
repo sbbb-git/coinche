@@ -130,12 +130,13 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      <div className="mt-3 flex gap-1 rounded-lg bg-black/30 p-1">
+      <div role="tablist" aria-label="Sections des réglages" className="mt-3 flex gap-1 rounded-lg bg-black/30 p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            aria-pressed={tab === t.id}
+            role="tab"
+            aria-selected={tab === t.id}
             className={[
               "flex-1 rounded-md py-2.5 text-sm font-semibold transition",
               tab === t.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",

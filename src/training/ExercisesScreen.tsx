@@ -18,7 +18,7 @@ export function ExercisesScreen() {
   const [kind, setKind] = useState<Kind>("bid");
   return (
     <ScreenShell title="S'entraîner">
-      <div className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
+      <div role="tablist" aria-label="Type d'exercice" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
         <Tab active={kind === "bid"} onClick={() => setKind("bid")}>
           🂠 Enchères
         </Tab>
@@ -194,7 +194,8 @@ function Tab({ active, onClick, children }: { active: boolean; onClick: () => vo
   return (
     <button
       onClick={onClick}
-      aria-pressed={active}
+      role="tab"
+      aria-selected={active}
       className={[
         "flex-1 rounded-md py-2 text-sm font-semibold transition",
         active ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
