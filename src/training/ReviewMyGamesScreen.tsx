@@ -3,7 +3,7 @@ import { ScreenShell } from "../app/ScreenShell";
 import { useNav } from "../app/nav";
 import { PlayingCard } from "../components/Card";
 import { storage, DealRecord } from "../storage";
-import { ReviewPoint, reviewDeal } from "./replay";
+import { DealReview, FullReplay, ReviewPoint, exportDealText, fullReplay, reviewDeal } from "./replay";
 
 export function ReviewMyGamesScreen() {
   const history = useMemo(() => storage.loadHistory(), []);
@@ -28,7 +28,7 @@ export function ReviewMyGamesScreen() {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="mb-1 text-sm text-white/70">Tes dernières donnes — touche pour analyser.</p>
+            <p className="mb-1 text-sm text-white/70">Tes dernières donnes — touche pour revoir.</p>
             {history.map((rec, i) => (
               <DealRow key={rec.ts} rec={rec} onClick={() => setSelected(i)} />
             ))}
@@ -38,7 +38,7 @@ export function ReviewMyGamesScreen() {
     );
   }
 
-  return <DealReviewView rec={history[selected]} onBack={() => setSelected(null)} />;
+  return <DealDetail rec={history[selected]} onBack={() => setSelected(null)} />;
 }
 
 function DealRow({ rec, onClick }: { rec: DealRecord; onClick: () => void }) {
@@ -60,32 +60,171 @@ function DealRow({ rec, onClick }: { rec: DealRecord; onClick: () => void }) {
   );
 }
 
-function DealReviewView({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
+// --- Détail d'une donne : onglets « Donne complète » / « Tes décisions » ------
+
+type DetailTab = "full" | "decisions";
+
+function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
+  const full = useMemo(() => fullReplay(rec), [rec]);
   const review = useMemo(() => reviewDeal(rec), [rec]);
+  const [tab, setTab] = useState<DetailTab>("full");
+
+  return (
+    <ScreenShell title="Revoir la donne" onBack={onBack}>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <span className="text-sm text-white/70">
+          {full.contractLabel} · {full.resultLabel}{" "}
+          <span className="text-white/45">({full.scores[0]}-{full.scores[1]})</span>
+        </span>
+        <ExportButton rec={rec} />
+      </div>
+
+      <div role="tablist" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
+        <TabBtn active={tab === "full"} onClick={() => setTab("full")}>
+          🃏 Donne complète
+        </TabBtn>
+        <TabBtn active={tab === "decisions"} onClick={() => setTab("decisions")}>
+          🎯 Tes décisions
+        </TabBtn>
+      </div>
+
+      {tab === "full" ? <FullDealView full={full} rec={rec} /> : <DecisionsView review={review} />}
+    </ScreenShell>
+  );
+}
+
+function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      role="tab"
+      aria-selected={active}
+      className={[
+        "flex-1 rounded-md py-2 text-sm font-semibold transition",
+        active ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ExportButton({ rec }: { rec: DealRecord }) {
+  const [done, setDone] = useState(false);
+  const onExport = async () => {
+    const text = exportDealText(rec);
+    try {
+      await navigator.clipboard.writeText(text);
+      setDone(true);
+      setTimeout(() => setDone(false), 1800);
+    } catch {
+      // Repli : téléchargement d'un fichier si le presse-papier est indisponible.
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `coinche-donne-${rec.ts}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+  return (
+    <button
+      onClick={onExport}
+      className="shrink-0 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20"
+    >
+      {done ? "✅ Copié !" : "📋 Exporter"}
+    </button>
+  );
+}
+
+// --- Vue « donne complète » : qui avait quoi + pli par pli -------------------
+
+function FullDealView({ full, rec }: { full: FullReplay; rec: DealRecord }) {
+  const names = rec.settings?.playerNames ?? ["Vous", "Ouest", "Nord", "Est"];
+  return (
+    <div className="space-y-4">
+      <section>
+        <h3 className="mb-2 text-sm font-bold text-white/80">Les mains distribuées</h3>
+        <div className="flex flex-col gap-2">
+          {[0, 2, 1, 3].map((p) => (
+            <div key={p} className="rounded-xl bg-white/5 p-2 ring-1 ring-white/10">
+              <div className="mb-1 text-xs">
+                <span className={p % 2 === 0 ? "text-sky-300" : "text-white/70"}>{names[p]}</span>
+                {p === full.taker && <span className="ml-1">👑 preneur</span>}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {full.hands[p].map((c) => (
+                  <PlayingCard key={c.id} card={c} size="sm" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-sm font-bold text-white/80">Les enchères</h3>
+        <div className="flex flex-wrap gap-x-3 gap-y-1 rounded-xl bg-white/5 p-2.5 text-sm ring-1 ring-white/10">
+          {full.bids.map((b, i) => (
+            <span key={i}>
+              <span className={b.player % 2 === 0 ? "text-sky-300" : "text-white/60"}>{names[b.player]}</span>{" "}
+              <b>{b.text}</b>
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-sm font-bold text-white/80">Les plis</h3>
+        <div className="flex flex-col gap-2">
+          {full.tricks.map((t, i) => (
+            <div key={i} className="rounded-xl bg-white/5 p-2 ring-1 ring-white/10">
+              <div className="mb-1 flex items-center justify-between text-xs text-white/60">
+                <span>Pli {i + 1}</span>
+                <span>
+                  remporté par <b className="text-yellow-300">{names[t.winner]}</b> · +{t.points}
+                  {t.lastDix ? " (+10 der)" : ""} · cumul {full.cumul[i][0]}-{full.cumul[i][1]}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {t.played.map((p) => {
+                  const isWin = p.player === t.winner;
+                  return (
+                    <div key={p.player} className="flex flex-col items-center gap-0.5">
+                      <div className={isWin ? "rounded-lg ring-2 ring-yellow-400" : ""}>
+                        <PlayingCard card={p.card} size="sm" />
+                      </div>
+                      <span className="text-[10px] text-white/55">{names[p.player]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// --- Vue « tes décisions » (coup par coup) ----------------------------------
+
+function DecisionsView({ review }: { review: DealReview }) {
   const [i, setI] = useState(0);
 
   if (review.points.length === 0) {
     return (
-      <ScreenShell title="Analyse de la donne" onBack={onBack}>
-        <p className="text-sm text-white/70">
-          Cette donne n'avait aucun choix à analyser pour toi (que des coups forcés).
-        </p>
-        <button onClick={onBack} className="mt-4 rounded-lg bg-white/10 px-4 py-2 text-sm">
-          ← Mes parties
-        </button>
-      </ScreenShell>
+      <p className="mt-4 text-sm text-white/70">
+        Cette donne n'avait aucun choix à analyser pour toi (que des coups forcés). Va voir l'onglet
+        « Donne complète ».
+      </p>
     );
   }
 
   const p = review.points[i];
   return (
-    <ScreenShell title="Analyse de la donne" onBack={onBack}>
-      <div className="mb-2 flex items-center justify-end text-sm">
-        <span className="text-white/70">
-          {review.contractLabel} · {review.resultLabel}
-        </span>
-      </div>
-
+    <div>
       <div className="mb-2 flex items-center justify-between">
         <span className="rounded-full bg-black/40 px-3 py-1 text-sm font-semibold">
           {p.phase === "bid" ? "🂠 Enchère" : "🃏 Jeu"} · choix {i + 1}/{review.points.length}
@@ -113,7 +252,7 @@ function DealReviewView({ rec, onBack }: { rec: DealRecord; onBack: () => void }
           Suivant →
         </button>
       </div>
-    </ScreenShell>
+    </div>
   );
 }
 

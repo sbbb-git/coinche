@@ -2,7 +2,7 @@ import { useGame, HUMAN } from "../state/store";
 import { CardBack, PlayingCard } from "./Card";
 import { Suit, SUIT_SYMBOL, TrumpMode } from "../engine/cards";
 import { GameState } from "../engine/game";
-import { PlayedCard } from "../engine/rules";
+import { PlayedCard, winningIndex } from "../engine/rules";
 
 // Position écran de chaque siège (0 = humain en bas).
 const SEAT_POS: Record<number, string> = {
@@ -77,15 +77,47 @@ function Seat({ game, seat, thinking }: { game: GameState; seat: number; thinkin
   );
 }
 
-function TrickArea({ trick }: { trick: PlayedCard[] }) {
+function TrickArea({
+  trick,
+  mode,
+  names,
+  complete,
+}: {
+  trick: PlayedCard[];
+  mode: TrumpMode | null;
+  names: GameState["settings"]["playerNames"];
+  complete: boolean;
+}) {
+  // Carte maîtresse à l'instant t : surlignée en continu (« qui tient le pli »),
+  // et fortement mise en avant + nommée quand le pli est complet (« qui le remporte »).
+  const winnerPlayer =
+    mode && trick.length > 0 ? trick[winningIndex(trick, mode)].player : -1;
+
   return (
     <div className="absolute inset-0 m-auto w-44 h-44 sm:w-56 sm:h-56">
       <div className="relative w-full h-full">
-        {trick.map((p) => (
-          <div key={p.player} className={`absolute ${TRICK_POS[p.player]} animate-pop`}>
-            <PlayingCard card={p.card} size="md" />
-          </div>
-        ))}
+        {trick.map((p) => {
+          const isWinner = p.player === winnerPlayer;
+          return (
+            <div key={p.player} className={`absolute ${TRICK_POS[p.player]} animate-pop`}>
+              <div
+                className={[
+                  "relative rounded-lg transition",
+                  isWinner ? "ring-2 ring-yellow-400 ring-offset-1 ring-offset-emerald-900" : "",
+                  complete && !isWinner ? "opacity-50 saturate-50" : "",
+                  complete && isWinner ? "scale-110" : "",
+                ].join(" ")}
+              >
+                <PlayingCard card={p.card} size="md" />
+              </div>
+              {complete && isWinner && (
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 animate-pop whitespace-nowrap rounded-full bg-yellow-400 px-2 py-0.5 text-[11px] font-bold text-emerald-950 shadow">
+                  ✓ {names[p.player]}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -96,13 +128,19 @@ export function Table() {
   const overlay = useGame((s) => s.overlayTrick);
   const thinking = useGame((s) => s.thinking);
   const trick = overlay ?? game.trick;
+  const complete = trick.length === 4;
 
   return (
     <div className="relative flex-1 min-h-0 rounded-3xl m-2 bg-felt-dark/60 shadow-inner ring-1 ring-emerald-900/50 overflow-hidden">
       {[2, 1, 3, 0].map((seat) => (
         <Seat key={seat} game={game} seat={seat} thinking={thinking} />
       ))}
-      <TrickArea trick={trick} />
+      <TrickArea
+        trick={trick}
+        mode={game.contract?.mode ?? null}
+        names={game.settings.playerNames}
+        complete={complete}
+      />
     </div>
   );
 }

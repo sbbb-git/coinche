@@ -10,7 +10,7 @@ import {
   canBid,
   legalForCurrent,
 } from "./game";
-import { aiPlay, bestContractAuction, estimateForMode, readAuction } from "./ai";
+import { aiPlay, bestContractAuction, estimateForMode, partnerSupportRaise, readAuction } from "./ai";
 import { beats, partnerIsWinning, winningIndex } from "./rules";
 import { teamOf } from "./scoring";
 import { SUIT_LABEL } from "./cards";
@@ -146,6 +146,32 @@ export function coachBid(state: GameState, player: number): BidAdvice {
         reason:
           `Ton partenaire a ouvert à 80 ${modeLabelText(tr)} et tu as le Valet ET le 9 de sa ` +
           `couleur : relance à 100 (« 100 fort »), c'est un soutien décisif.`,
+      };
+    }
+  }
+
+  // Soutien du partenaire : il a pris, et on a du jeu dans sa couleur / des As.
+  // (Pas de re-relance en boucle : seulement si l'on n'a pas déjà annoncé.)
+  const iHaveBid = state.bidHistory.some((e) => e.player === player && e.kind === "bid");
+  if (
+    state.standing &&
+    !state.standing.capot &&
+    !state.standing.generale &&
+    standingIsPartner &&
+    !iHaveBid &&
+    state.standing.value <= 120 &&
+    (tr === "S" || tr === "H" || tr === "D" || tr === "C")
+  ) {
+    const inc = partnerSupportRaise(hand, tr);
+    const tgt = Math.min(160, state.standing.value + inc);
+    if (inc > 0 && canBid(state, tgt, false)) {
+      return {
+        action: { action: "bid", value: tgt, mode: tr },
+        estimate,
+        mode: tr,
+        reason:
+          `Ton partenaire a pris à ${modeLabelText(tr)} et tu as de quoi le soutenir ` +
+          `(atouts et/ou As) : relance à ${tgt} plutôt que de passer.`,
       };
     }
   }

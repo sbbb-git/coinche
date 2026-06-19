@@ -104,6 +104,36 @@ describe("coach — enchères", () => {
     if (adv.action.action === "bid") expect(adv.action.mode).not.toBe("H");
   });
 
+  it("soutient le partenaire : relance son 80 avec un fit + un As extérieur", () => {
+    // Partenaire (siège 2) a ouvert à 80 Pique ; on a Valet de Pique + un As extérieur.
+    const hand = [
+      makeCard("S", "J"),
+      makeCard("S", "7"),
+      makeCard("H", "A"),
+      makeCard("H", "8"),
+      makeCard("D", "9"),
+      makeCard("D", "7"),
+      makeCard("C", "8"),
+      makeCard("C", "7"),
+    ];
+    const base = dealStateFrom(DEFAULT_SETTINGS, 3, [hand, [], [], []]);
+    const state = {
+      ...base,
+      current: 0,
+      standing: { player: 2, value: 80, mode: "S" as const, capot: false, generale: false },
+      bidHistory: [
+        { player: 2, kind: "bid" as const, value: 80, mode: "S" as const, capot: false, generale: false },
+        { player: 1, kind: "pass" as const },
+      ],
+    };
+    const adv = coachBid(state, 0);
+    expect(adv.action.action).toBe("bid");
+    if (adv.action.action === "bid") {
+      expect(adv.action.mode).toBe("S");
+      expect(adv.action.value).toBeGreaterThan(80); // on relance, on ne laisse pas tomber
+    }
+  });
+
   it("recommande de passer avec une main faible", () => {
     const hand = [
       makeCard("S", "7"),

@@ -2,7 +2,7 @@
 // (siège 0) : enchères puis jeu, en sautant les coups forcés. Pour chacun, on
 // compare ce qui a été joué au conseil du coach.
 
-import { Card, RANK_LABEL, SUIT_SYMBOL, TrumpMode } from "../engine/cards";
+import { Card, RANK_LABEL, SUIT_SYMBOL, TrumpMode, points } from "../engine/cards";
 import {
   BidEntry,
   DEFAULT_PROFILE,
@@ -16,6 +16,7 @@ import {
   dealStateFrom,
 } from "../engine/game";
 import { coachBid, coachPlay, isPlayDecision } from "../engine/coach";
+import { Team } from "../engine/scoring";
 import { DealRecord } from "../storage";
 
 export interface ReviewPoint {
@@ -57,6 +58,119 @@ function applyEntry(g: GameState, b: BidEntry): GameState {
   if (b.kind === "coinche") return applyCoinche(g);
   if (b.kind === "surcoinche") return applySurcoinche(g);
   return applyPass(g);
+}
+
+// --- Rejeu COMPLET d'une donne (qui avait quoi + pli par pli) ----------------
+
+export interface ReplayTrick {
+  played: { player: number; card: Card }[];
+  winner: number;
+  team: Team;
+  points: number; // points cartes du pli (hors 10 de der)
+  lastDix: boolean; // ce pli est le dernier (10 de der)
+}
+
+export interface FullReplay {
+  hands: Card[][]; // mains initiales des 4 joueurs (telles que distribuées)
+  dealer: number;
+  taker: number;
+  mode: TrumpMode;
+  contractLabel: string;
+  resultLabel: string;
+  scores: [number, number];
+  bids: { player: number; text: string }[];
+  tricks: ReplayTrick[];
+  cumul: [number, number][]; // cumul des points par équipe après chaque pli (avec 10 de der au dernier)
+}
+
+function mergedSettings(rec: DealRecord) {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...rec.settings,
+    profile: { ...DEFAULT_PROFILE, ...(rec.settings?.profile ?? {}) },
+  };
+}
+
+/** Rejoue intégralement une donne enregistrée et en extrait les mains initiales,
+ *  la séquence d'enchères et le détail pli par pli. */
+export function fullReplay(rec: DealRecord): FullReplay {
+  const settings = mergedSettings(rec);
+  let g = dealStateFrom(settings, rec.dealer, rec.dealtHands);
+  for (const b of rec.bids) g = applyEntry(g, b);
+  for (const pl of rec.plays) {
+    if (g.phase !== "playing") break;
+    const card = g.hands[g.current].find((c) => c.id === pl.cardId);
+    if (!card) break;
+    const prev = g;
+    g = applyPlay(g, card);
+    if (g === prev) break;
+  }
+
+  const mode = rec.contract?.mode ?? "S";
+  const n = g.completedTricks.length;
+  const tricks: ReplayTrick[] = g.completedTricks.map((t, i) => ({
+    played: t.played.map((p) => ({ player: p.player, card: p.card })),
+    winner: t.winner,
+    team: t.winnerTeam,
+    points: t.cards.reduce((s, c) => s + points(c, mode), 0),
+    lastDix: i === n - 1,
+  }));
+
+  const cumul: [number, number][] = [];
+  const acc: [number, number] = [0, 0];
+  tricks.forEach((t) => {
+    acc[t.team] += t.points + (t.lastDix ? 10 : 0);
+    cumul.push([acc[0], acc[1]]);
+  });
+
+  const c = rec.contract;
+  const contractLabel = c
+    ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}${
+        c.coinche > 1 ? (c.coinche === 4 ? " ×4" : " ×2") : ""
+      }`
+    : "—";
+  const made = rec.result?.made;
+  const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
+
+  return {
+    hands: rec.dealtHands,
+    dealer: rec.dealer,
+    taker: c?.taker ?? 0,
+    mode,
+    contractLabel,
+    resultLabel,
+    scores: rec.result?.scores ?? [0, 0],
+    bids: rec.bids.map((b) => ({ player: b.player, text: bidEntryLabel(b) })),
+    tricks,
+    cumul,
+  };
+}
+
+/** Export texte lisible d'une donne (mains, enchères, plis) + JSON exact en fin,
+ *  pour la partager / la coller dans une analyse. */
+export function exportDealText(rec: DealRecord): string {
+  const names = mergedSettings(rec).playerNames;
+  const r = fullReplay(rec);
+  const L: string[] = [];
+  L.push(`Coinche — donne du ${new Date(rec.ts).toLocaleString("fr-FR")}`);
+  L.push(`Contrat : ${r.contractLabel} par ${names[r.taker]} — ${r.resultLabel} (${r.scores[0]}-${r.scores[1]})`);
+  L.push("");
+  L.push("Mains initiales :");
+  for (let p = 0; p < 4; p++) {
+    L.push(`  ${names[p]}${p === r.taker ? " (preneur)" : ""} : ${r.hands[p].map(cardLabel).join(" ")}`);
+  }
+  L.push("");
+  L.push("Enchères : " + r.bids.map((b) => `${names[b.player]} ${b.text}`).join(" · "));
+  L.push("");
+  L.push("Plis :");
+  r.tricks.forEach((t, i) => {
+    const cards = t.played.map((p) => `${names[p.player]}:${cardLabel(p.card)}`).join("  ");
+    L.push(`  ${i + 1}. ${cards}  → ${names[t.winner]} (+${t.points}${t.lastDix ? " +10 der" : ""})`);
+  });
+  L.push("");
+  L.push("Données exactes (JSON) :");
+  L.push(JSON.stringify(rec));
+  return L.join("\n");
 }
 
 export function reviewDeal(rec: DealRecord): DealReview {

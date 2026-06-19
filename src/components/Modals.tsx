@@ -46,8 +46,14 @@ export function DealResultModal() {
   if (game.phase !== "dealScored" || !game.lastResult || !game.contract) return null;
 
   const r = game.lastResult;
+  const c = game.contract;
   const n = game.settings.playerNames;
-  const takerName = n[game.contract.taker];
+  const takerTeam = r.takerTeam;
+  const defTeam = (1 - takerTeam) as 0 | 1;
+  const takerName = n[c.taker];
+  const teamName = (t: 0 | 1) => `${n[t === 0 ? 0 : 1]} & ${n[t === 0 ? 2 : 3]}`;
+  const target = c.generale ? "Générale" : c.capot ? "Capot" : c.value;
+  const mult = c.coinche > 1 ? (c.coinche === 4 ? " ×4" : " ×2") : "";
 
   return (
     <Overlay label="Résultat de la donne">
@@ -55,19 +61,39 @@ export function DealResultModal() {
         {r.made ? "✅ Contrat réussi" : "❌ Chute"}
       </h2>
       <p className="mt-1 text-center text-sm text-white/70">
-        {takerName} —{" "}
-        {game.contract.generale ? "Générale" : game.contract.capot ? "Capot" : game.contract.value}
-        {game.contract.coinche > 1 ? (game.contract.coinche === 4 ? " ×4" : " ×2") : ""}
+        {takerName} — {target}
+        {mult}
       </p>
+
       <div className="mt-4 space-y-1 text-sm">
-        <Row label="Points réalisés (preneur)" value={r.realized[r.takerTeam]} />
+        <p className="mb-1 text-xs uppercase tracking-wide text-white/45">Dans les plis (+ 10 de der)</p>
+        <Row label={`${teamName(takerTeam)} (preneur)`} value={r.cardPoints[takerTeam]} />
+        <Row label={`${teamName(defTeam)} (défense)`} value={r.cardPoints[defTeam]} />
         {(r.belote[0] > 0 || r.belote[1] > 0) && (
-          <Row label="Belote" value={r.belote[0] + r.belote[1]} />
+          <>
+            <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/45">Belote (imprenable)</p>
+            {r.belote[takerTeam] > 0 && <Row label={teamName(takerTeam)} value={`+${r.belote[takerTeam]}`} />}
+            {r.belote[defTeam] > 0 && <Row label={teamName(defTeam)} value={`+${r.belote[defTeam]}`} />}
+          </>
         )}
+        <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/45">Contrat</p>
+        <Row
+          label={`Réalisé ${r.realized[takerTeam]} / ${c.capot || c.generale ? "tous les plis" : c.value} requis`}
+          value={r.made ? "réussi" : "chute"}
+        />
+
         <div className="my-2 h-px bg-white/10" />
-        <Row label={`Manche — ${n[0]} & ${n[2]}`} value={`+${r.scores[0]}`} bold />
-        <Row label={`Manche — ${n[1]} & ${n[3]}`} value={`+${r.scores[1]}`} bold />
+        <p className="mb-1 text-xs uppercase tracking-wide text-white/45">Points marqués (cette manche)</p>
+        <Row label={teamName(0)} value={`+${r.scores[0]}`} bold />
+        <Row label={teamName(1)} value={`+${r.scores[1]}`} bold />
+        <div className="mt-1 flex justify-between text-xs text-white/55">
+          <span>Total partie</span>
+          <span className="tabular-nums">
+            {game.scores[0]} — {game.scores[1]}
+          </span>
+        </div>
       </div>
+
       <button
         onClick={cont}
         className="mt-5 w-full rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
@@ -283,17 +309,18 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
               onChange={(v) => updP({ appels: v as PlayProfile["appels"] })}
             />
             <Seg
-              label="Système d'enchères"
-              value={draft.profile.systemeEncheres}
+              label="Système d'annonce"
+              value={draft.profile.jeuAuxAs ? "as" : "petit"}
               options={[
-                ["simple", "Simple"],
-                ["graux", "Graux"],
+                ["petit", "Petit jeu"],
+                ["as", "Aux as"],
               ]}
-              onChange={(v) => updP({ systemeEncheres: v as PlayProfile["systemeEncheres"] })}
+              onChange={(v) => updP({ jeuAuxAs: v === "as" })}
             />
-            <Toggle on={draft.profile.jeuAuxAs} onClick={() => updP({ jeuAuxAs: !draft.profile.jeuAuxAs })}>
-              Jeu aux as (sortir les as)
-            </Toggle>
+            <p className="-mt-1 px-1 text-[11px] text-white/45">
+              « Petit jeu » : on sécurise, on garde ses maîtres. « Aux as » : on sort les As
+              d'attaque pour faire des plis francs.
+            </p>
             <Toggle on={draft.profile.entameAtoutValet} onClick={() => updP({ entameAtoutValet: !draft.profile.entameAtoutValet })}>
               Entamer atout avec le valet s'il l'a
             </Toggle>

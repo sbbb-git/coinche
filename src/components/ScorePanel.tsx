@@ -1,6 +1,26 @@
 import { useGame } from "../state/store";
 import { modeLabel } from "./Table";
 import { suitColorClassDark } from "./Card";
+import { GameState } from "../engine/game";
+import { points } from "../engine/cards";
+import { Team } from "../engine/scoring";
+
+/** Points « ramassés » par chaque équipe dans la manche en cours (plis joués). */
+function dealCardPoints(game: GameState): [number, number] {
+  const res: [number, number] = [0, 0];
+  const mode = game.contract?.mode;
+  if (!mode) return res;
+  for (const t of game.completedTricks) {
+    let p = 0;
+    for (const card of t.cards) p += points(card, mode);
+    res[t.winnerTeam] += p;
+  }
+  // 10 de der une fois la donne terminée (8 plis joués).
+  if (game.completedTricks.length === 8) {
+    res[game.completedTricks[7].winnerTeam] += 10;
+  }
+  return res;
+}
 
 export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () => void }) {
   const game = useGame((s) => s.game);
@@ -8,6 +28,8 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
   const c = game.contract;
   const hideScores =
     !game.settings.showLiveScores && (game.phase === "playing" || game.phase === "bidding");
+  const showDeal = !!c && !hideScores && (game.phase === "playing" || game.phase === "dealScored");
+  const dealPts = showDeal ? dealCardPoints(game) : null;
 
   return (
     <div className="safe-top px-3 pt-2">
@@ -70,6 +92,55 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
         >
           ⚙️
         </button>
+      </div>
+
+      {dealPts && c && <DealProgress game={game} contractValue={c.value} takerTeam={(c.taker % 2) as Team} dealPts={dealPts} />}
+    </div>
+  );
+}
+
+/** Bandeau « manche en cours » : points ramassés par chaque camp + progression du
+ *  preneur vers son contrat (distinct du score TOTAL affiché au-dessus). */
+function DealProgress({
+  game,
+  contractValue,
+  takerTeam,
+  dealPts,
+}: {
+  game: GameState;
+  contractValue: number;
+  takerTeam: Team;
+  dealPts: [number, number];
+}) {
+  const names = game.settings.playerNames;
+  const teamName = (t: Team) => `${names[t === 0 ? 0 : 1]} & ${names[t === 0 ? 2 : 3]}`;
+  const defTeam = (1 - takerTeam) as Team;
+  const taken = dealPts[takerTeam];
+  const target = Math.min(contractValue, 162);
+  const pct = Math.max(0, Math.min(100, (taken / target) * 100));
+  const made = taken >= target;
+
+  return (
+    <div className="mx-auto mt-1.5 max-w-md rounded-lg bg-black/30 px-3 py-1.5">
+      <div className="flex items-center justify-between text-[11px] text-white/70">
+        <span>
+          Manche · {teamName(takerTeam)} <span className="text-white/50">(preneur)</span>
+        </span>
+        <span className="tabular-nums">
+          <b className={made ? "text-emerald-300" : "text-yellow-300"}>{taken}</b> / {target}
+        </span>
+      </div>
+      <div className="my-1 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div
+          className={`h-full transition-all ${made ? "bg-emerald-400" : "bg-yellow-400"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between text-[11px] text-white/55">
+        <span>
+          {teamName(defTeam)} <span className="text-white/40">(défense)</span>
+        </span>
+        <span className="tabular-nums">{dealPts[defTeam]}</span>
       </div>
     </div>
   );

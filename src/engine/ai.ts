@@ -106,6 +106,28 @@ function estimateAT(hand: Card[]): number {
   return est * 0.9;
 }
 
+/**
+ * De combien (0 / 10 / 20) relancer le contrat du partenaire selon notre SOUTIEN
+ * dans sa couleur : atouts détenus, Valet/9 de sa couleur, et As extérieurs (plis
+ * probables pour l'équipe). Sert à ce que le partenaire ne « laisse pas tomber »
+ * une bonne main quand on a déjà pris.
+ */
+export function partnerSupportRaise(hand: Card[], ps: Suit): number {
+  const trumps = hand.filter((c) => c.suit === ps);
+  const n = trumps.length;
+  const hasJ = trumps.some((c) => c.rank === "J");
+  const has9 = trumps.some((c) => c.rank === "9");
+  const outsideAces = hand.filter((c) => c.suit !== ps && c.rank === "A").length;
+  let s = 0;
+  if (hasJ) s += 3;
+  if (has9) s += 2;
+  s += Math.max(0, n - 1); // chaque atout au-delà du premier renforce le soutien
+  s += outsideAces * 3; // un As extérieur = un pli quasi sûr pour l'équipe
+  if (s >= 8) return 20;
+  if (s >= 5) return 10;
+  return 0;
+}
+
 /** Meilleur mode pour une main + estimation associée. */
 export function bestContract(hand: Card[], modes: TrumpMode[]): { mode: TrumpMode; est: number } {
   let best: { mode: TrumpMode; est: number } = { mode: "S", est: -1 };
@@ -266,6 +288,31 @@ export function aiBid(state: GameState, player: number): BidDecision {
   // Capot : main qui domine vraiment (atout maître + couleurs annexes tenues).
   if (level !== "easy" && !state.standing?.capot && capotWorthy(hand, mode)) {
     return { action: "bid", value: 250, mode, capot: true, generale: false };
+  }
+
+  // Soutien du partenaire : il a pris dans une couleur ; si j'y ai du jeu (atouts,
+  // Valet/9) ou des As extérieurs, je RELANCE dans sa couleur au lieu de passer.
+  // Garde-fou anti-surenchère en boucle : on ne soutient QUE si l'on n'a pas
+  // encore annoncé soi-même dans cette donne, et tant que l'enchère reste basse.
+  const iHaveBid = state.bidHistory.some((e) => e.player === player && e.kind === "bid");
+  if (
+    state.standing &&
+    !state.standing.capot &&
+    !state.standing.generale &&
+    !iHaveBid &&
+    state.standing.value <= 120 &&
+    teamOf(state.standing.player) === teamOf(player) &&
+    (state.standing.mode === "S" ||
+      state.standing.mode === "H" ||
+      state.standing.mode === "D" ||
+      state.standing.mode === "C")
+  ) {
+    const ps = state.standing.mode;
+    const inc = partnerSupportRaise(hand, ps);
+    const tgt = Math.min(160, state.standing.value + inc);
+    if (inc > 0 && canBid(state, tgt, false)) {
+      return { action: "bid", value: tgt, mode: ps, capot: false, generale: false };
+    }
   }
 
   if (est >= 80 && target >= minToBid && !state.standing?.capot) {
