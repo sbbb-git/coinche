@@ -1,13 +1,23 @@
 // Parcours pédagogique progressif. Chaque leçon = une suite d'étapes (cartes
 // de texte). Certaines invitent à enchaîner sur un exercice.
 
+import { Card, Rank, Suit, makeCard } from "../engine/cards";
+
+export interface LessonVisual {
+  caption: string;
+  cards: Card[];
+}
+
 export interface Lesson {
   id: string;
   emoji: string;
   title: string;
   steps: string[];
+  visual?: LessonVisual; // illustration en cartes réelles
   practice?: "bid" | "play"; // propose un exercice à la fin
 }
+
+const c = (suit: Suit, rank: Rank) => makeCard(suit, rank);
 
 export const LESSONS: Lesson[] = [
   {
@@ -32,6 +42,10 @@ export const LESSONS: Lesson[] = [
       "La Belote (Roi + Dame d'atout dans la même main) rapporte 20 points, et elle est imprenable : tu la gardes même si ton contrat chute.",
       "Le Valet et le 9 d'atout sont donc les rois du jeu : 34 points à eux deux ! Bien les évaluer est la clé des enchères.",
     ],
+    visual: {
+      caption: "L'ordre à l'atout, du plus fort au plus faible (V = 20, 9 = 14, As = 11…)",
+      cards: [c("S", "J"), c("S", "9"), c("S", "A"), c("S", "10"), c("S", "K"), c("S", "Q"), c("S", "8"), c("S", "7")],
+    },
   },
   {
     id: "encheres",
@@ -44,6 +58,10 @@ export const LESSONS: Lesson[] = [
       "Convention utile : si ton partenaire ouvre à 80 et que tu as le Valet ET le 9 de sa couleur, relance à 100 — c'est un soutien fort.",
       "Dans le doute, sous-enchéris légèrement : mieux vaut réussir un 80 que chuter un 110.",
     ],
+    visual: {
+      caption: "Une couleur d'atout idéale : longue, avec Valet + 9 (34 pts) et l'As",
+      cards: [c("H", "J"), c("H", "9"), c("H", "A"), c("H", "10"), c("H", "7")],
+    },
     practice: "bid",
   },
   {
@@ -56,6 +74,10 @@ export const LESSONS: Lesson[] = [
       "Une fois les atouts adverses épuisés, tes As et 10 dans les autres couleurs deviennent des plis sûrs.",
       "Garde un œil sur le « dix de der » : remporter le dernier pli vaut 10 points, parfois décisifs.",
     ],
+    visual: {
+      caption: "Tes atouts maîtres : commence par le Valet et le 9 pour vider les adversaires",
+      cards: [c("S", "J"), c("S", "9")],
+    },
     practice: "play",
   },
   {
@@ -69,6 +91,10 @@ export const LESSONS: Lesson[] = [
       "Quand ton partenaire est maître d'un pli, « charge-le » : donne-lui tes points (As, 10) plutôt que de les laisser au preneur.",
       "Ne gâche pas tes maîtres : ne mets pas ton As sous une coupe. Défausse petit et garde-le pour un pli que tu gagneras.",
     ],
+    visual: {
+      caption: "Appel DIRECT : tu te défausses d'une grosse carte (le 9) dans ta couleur forte → « rejoue ici »",
+      cards: [c("D", "9")],
+    },
     practice: "play",
   },
   {
@@ -95,6 +121,10 @@ export const LESSONS: Lesson[] = [
       "À TA, les écarts de valeur sont faibles : les plis se gagnent serré et le 10 de der est souvent décisif. Ne lâche pas tes Valets trop tôt.",
       "Ces deux modes sont désactivés par défaut, mais tu peux les activer dans les réglages pour t'entraîner.",
     ],
+    visual: {
+      caption: "À Sans Atout, l'ordre suit les valeurs : As (19 pts) puis 10, Roi, Dame, Valet…",
+      cards: [c("C", "A"), c("C", "10"), c("C", "K"), c("C", "Q"), c("C", "J"), c("C", "9"), c("C", "8"), c("C", "7")],
+    },
   },
   {
     id: "lecture",
@@ -130,5 +160,9 @@ export const LESSONS: Lesson[] = [
       "Le Capot (250 points) : tu t'engages à remporter TOUS les plis. Réserve-le aux mains qui maîtrisent totalement l'atout et tiennent les autres couleurs.",
       "Bien jouées, la coinche et la défense active sont ce qui sépare un bon joueur d'un débutant. Entraîne-toi !",
     ],
+    visual: {
+      caption: "La Belote : Roi + Dame d'atout dans la même main = 20 pts imprenables",
+      cards: [c("S", "K"), c("S", "Q")],
+    },
   },
 ];

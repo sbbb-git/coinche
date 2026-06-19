@@ -9,7 +9,7 @@ import {
 } from "../engine/game";
 import { TrumpMode } from "../engine/cards";
 import { modeLabel } from "./Table";
-import { suitColorClass } from "./Card";
+import { suitColorClass, suitColorClassDark } from "./Card";
 
 export function BiddingPanel() {
   const game = useGame((s) => s.game);
@@ -45,8 +45,12 @@ export function BiddingPanel() {
 
   const values = BID_VALUES.filter((v) => v >= minValue);
   const canStillAnnounce = values.length > 0 && !game.standing?.capot;
-  const effValue = Math.max(value, minValue);
+  const minBid = values[0] ?? minValue;
+  const maxBid = values[values.length - 1] ?? minValue;
+  const effValue = Math.min(maxBid, Math.max(value, minBid));
   const canAnnounce = canStillAnnounce && canBid(game, effValue, false);
+  const step = (delta: number) =>
+    setValue(Math.min(maxBid, Math.max(minBid, effValue + delta)));
 
   return (
     <Panel>
@@ -54,7 +58,8 @@ export function BiddingPanel() {
         {canStillAnnounce ? "À vous d'annoncer" : "Plus d'annonce possible"}
       </p>
       {canStillAnnounce && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-2">
+          {/* Choix de l'atout */}
           <div className="flex gap-1">
             {modes.map((m) => {
               const lbl = modeLabel(m);
@@ -64,7 +69,7 @@ export function BiddingPanel() {
                   onClick={() => setMode(m)}
                   aria-pressed={mode === m}
                   className={[
-                    "h-11 min-w-11 px-2 rounded-md text-base font-bold shadow",
+                    "h-11 flex-1 min-w-11 px-2 rounded-md text-lg font-bold shadow",
                     mode === m ? "bg-yellow-400 text-emerald-950" : "bg-white/90 text-zinc-800",
                     lbl.suit && mode !== m ? suitColorClass(lbl.suit, game.settings.fourColors) : "",
                   ].join(" ")}
@@ -74,17 +79,35 @@ export function BiddingPanel() {
               );
             })}
           </div>
-          <select
-            value={effValue}
-            onChange={(e) => setValue(Number(e.target.value))}
-            className="h-11 px-2 rounded-md bg-white/90 text-zinc-800 font-semibold"
-          >
-            {values.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
+          {/* Choix de la valeur : pas de −/+ + accès direct au palier */}
+          <div className="flex items-stretch gap-2">
+            <button
+              onClick={() => step(-10)}
+              disabled={effValue <= minBid}
+              aria-label="Diminuer l'annonce"
+              className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white shadow transition hover:bg-white/25 disabled:opacity-30"
+            >
+              −
+            </button>
+            <div className="flex h-12 flex-1 items-center justify-center gap-1 rounded-lg bg-black/30 text-2xl font-bold tabular-nums">
+              <span>{effValue}</span>
+              {modeLabel(mode).suit ? (
+                <span className={suitColorClassDark(modeLabel(mode).suit!, game.settings.fourColors)}>
+                  {modeLabel(mode).text}
+                </span>
+              ) : (
+                <span className="text-base text-white/80">{modeLabel(mode).text}</span>
+              )}
+            </div>
+            <button
+              onClick={() => step(10)}
+              disabled={effValue >= maxBid}
+              aria-label="Augmenter l'annonce"
+              className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white shadow transition hover:bg-white/25 disabled:opacity-30"
+            >
+              +
+            </button>
+          </div>
         </div>
       )}
       <div className="flex flex-wrap gap-2">

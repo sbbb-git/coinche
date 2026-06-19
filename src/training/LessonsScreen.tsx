@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { useNav } from "../app/nav";
 import { storage } from "../storage";
+import { PlayingCard } from "../components/Card";
 import { Lesson, LESSONS } from "./lessons";
 
 export function LessonsScreen() {
@@ -72,59 +73,54 @@ function LessonView({
   onDone: () => void;
   onBack: () => void;
 }) {
-  const [i, setI] = useState(0);
   const go = useNav((s) => s.go);
-  const last = i === lesson.steps.length - 1;
 
+  // Toute la leçon sur une seule page : chaque idée est un bloc visible, et
+  // l'illustration en cartes réelles s'affiche en évidence (pas de carrousel).
   return (
     <ScreenShell title={lesson.title} onBack={onBack}>
-      <div className="mb-3 flex gap-1">
-        {lesson.steps.map((_, k) => (
+      <div className="mb-4 flex items-center gap-3">
+        <span className="text-4xl" aria-hidden>
+          {lesson.emoji}
+        </span>
+        <h2 className="text-xl font-bold">{lesson.title}</h2>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        {lesson.steps.map((step, k) => (
           <div
             key={k}
-            className={`h-1.5 flex-1 rounded-full ${k <= i ? "bg-yellow-400" : "bg-white/15"}`}
-          />
+            className="flex gap-3 rounded-2xl bg-white/8 p-4 text-[15px] leading-relaxed ring-1 ring-white/10"
+          >
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-yellow-400/90 text-sm font-bold text-emerald-950">
+              {k + 1}
+            </span>
+            <p className="text-white/90">{step}</p>
+          </div>
         ))}
       </div>
 
-      <div
-        key={i}
-        className="animate-pop rounded-2xl bg-white/8 p-4 text-[15px] leading-relaxed ring-1 ring-white/10"
-      >
-        <div className="mb-2 text-3xl" aria-hidden>
-          {lesson.emoji}
+      {lesson.visual && (
+        <div className="mt-4 rounded-2xl bg-emerald-900/40 p-4 ring-1 ring-emerald-600/40">
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {lesson.visual.cards.map((card) => (
+              <PlayingCard key={card.id} card={card} size="md" />
+            ))}
+          </div>
+          <p className="mt-3 text-center text-sm text-white/75">{lesson.visual.caption}</p>
         </div>
-        {lesson.steps[i]}
-      </div>
+      )}
 
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={() => setI((x) => Math.max(0, x - 1))}
-          disabled={i === 0}
-          className="flex-1 rounded-lg bg-white/10 py-2.5 text-sm font-semibold disabled:opacity-40"
-        >
-          ← Précédent
-        </button>
-        {last ? (
-          <button
-            onClick={() => {
-              onDone();
-              if (lesson.practice) go("exercises");
-              else onBack();
-            }}
-            className="flex-1 rounded-lg bg-yellow-400 py-2.5 text-sm font-bold text-emerald-950 hover:bg-yellow-300"
-          >
-            {lesson.practice ? "S'entraîner →" : "Terminer ✅"}
-          </button>
-        ) : (
-          <button
-            onClick={() => setI((x) => x + 1)}
-            className="flex-1 rounded-lg bg-yellow-400 py-2.5 text-sm font-bold text-emerald-950 hover:bg-yellow-300"
-          >
-            Suivant →
-          </button>
-        )}
-      </div>
+      <button
+        onClick={() => {
+          onDone();
+          if (lesson.practice) go("exercises");
+          else onBack();
+        }}
+        className="mt-5 w-full rounded-lg bg-yellow-400 py-3 text-sm font-bold text-emerald-950 hover:bg-yellow-300"
+      >
+        {lesson.practice ? "S'entraîner →" : "Terminer ✅"}
+      </button>
     </ScreenShell>
   );
 }

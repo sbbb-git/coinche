@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 
 interface Guide {
@@ -147,18 +146,11 @@ export function GuidesScreen() {
 }
 
 function GuideItem({ guide }: { guide: Guide }) {
-  const [open, setOpen] = useState(false);
+  // Tout est visible (plus d'accordéon à dérouler).
   return (
-    <button
-      onClick={() => setOpen((o) => !o)}
-      className="rounded-xl bg-white/8 p-3 text-left ring-1 ring-white/10 hover:bg-white/12"
-      aria-expanded={open}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-semibold">{guide.q}</span>
-        <span className="text-white/50">{open ? "−" : "+"}</span>
-      </div>
-      {open && <p className="mt-2 text-sm text-white/80">{guide.a}</p>}
-    </button>
+    <div className="rounded-xl bg-white/8 p-3 ring-1 ring-white/10">
+      <p className="font-semibold text-yellow-300">{guide.q}</p>
+      <p className="mt-1 text-sm leading-relaxed text-white/85">{guide.a}</p>
+    </div>
   );
 }
