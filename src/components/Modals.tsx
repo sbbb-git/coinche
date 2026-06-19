@@ -46,7 +46,8 @@ export function DealResultModal() {
   if (game.phase !== "dealScored" || !game.lastResult || !game.contract) return null;
 
   const r = game.lastResult;
-  const takerName = game.settings.playerNames[game.contract.taker];
+  const n = game.settings.playerNames;
+  const takerName = n[game.contract.taker];
 
   return (
     <Overlay label="Résultat de la donne">
@@ -64,8 +65,8 @@ export function DealResultModal() {
           <Row label="Belote" value={r.belote[0] + r.belote[1]} />
         )}
         <div className="my-2 h-px bg-white/10" />
-        <Row label="Manche — équipe Vous & Nord" value={`+${r.scores[0]}`} bold />
-        <Row label="Manche — équipe Ouest & Est" value={`+${r.scores[1]}`} bold />
+        <Row label={`Manche — ${n[0]} & ${n[2]}`} value={`+${r.scores[0]}`} bold />
+        <Row label={`Manche — ${n[1]} & ${n[3]}`} value={`+${r.scores[1]}`} bold />
       </div>
       <button
         onClick={cont}

@@ -150,7 +150,9 @@ export function scoreDeal(
     const winner = made ? takerTeam : defenseTeam;
     const loser = (1 - winner) as Team;
     const winnerWonAll = winner === takerTeam ? attackWonAll : defenseWonAll;
-    const base = winnerWonAll || contract.capot ? 252 : 162;
+    // 252 seulement si le gagnant a réellement fait tous les plis (capot annoncé
+    // réussi => attackWonAll ; capot chuté où la défense ne rafle pas tout => 162).
+    const base = winnerWonAll ? 252 : 162;
     scores[winner] = base + contract.value * mult + belote[winner];
     scores[loser] = belote[loser];
   }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { useGame } from "../state/store";
 import { AiLevel } from "../engine/game";
@@ -20,14 +20,26 @@ export function ReviewGlobalScreen() {
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [report, setReport] = useState<SimReport | null>(null);
+  const cancel = useRef(false);
+
+  // Si on quitte l'écran pendant une simulation, on l'annule.
+  useEffect(() => {
+    return () => {
+      cancel.current = true;
+    };
+  }, []);
 
   const run = async () => {
     setRunning(true);
     setReport(null);
     setProgress(0);
-    const r = await simulateAsync(settings, { games, levelA, levelB }, (done, total) =>
-      setProgress(Math.round((100 * done) / total)),
+    const r = await simulateAsync(
+      settings,
+      { games, levelA, levelB },
+      (done, total) => setProgress(Math.round((100 * done) / total)),
+      () => cancel.current,
     );
+    if (cancel.current) return; // écran quitté entre-temps
     setReport(r);
     setRunning(false);
   };

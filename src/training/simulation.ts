@@ -158,10 +158,12 @@ export async function simulateAsync(
   settings: Settings,
   cfg: SimConfig,
   onProgress?: (done: number, total: number) => void,
+  isCancelled?: () => boolean,
 ): Promise<SimReport> {
   const acc = newAcc(cfg);
   const BATCH = 20;
   for (let i = 0; i < cfg.games; i++) {
+    if (isCancelled?.()) return finalize(acc); // écran quitté : on s'arrête
     runOneGame(settings, cfg, acc);
     if ((i + 1) % BATCH === 0) {
       onProgress?.(i + 1, cfg.games);

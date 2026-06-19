@@ -121,11 +121,27 @@ function PlayTrainer() {
   const [ex, setEx] = useState<PlayExercise | null>(null);
   const [pickedId, setPickedId] = useState<string | null>(null);
 
+  const [error, setError] = useState(false);
   const next = () => {
     setPickedId(null);
-    setEx(genPlayExercise(settings, focus));
+    try {
+      setEx(genPlayExercise(settings, focus));
+      setError(false);
+    } catch {
+      setEx(null);
+      setError(true);
+    }
   };
   useEffect(next, [settings, focus]);
+  if (error)
+    return (
+      <p className="mt-6 text-center text-sm text-white/70">
+        Impossible de générer une situation pour ce thème avec ces réglages.{" "}
+        <button onClick={next} className="underline">
+          Réessayer
+        </button>
+      </p>
+    );
   if (!ex) return null;
 
   const answered = pickedId !== null;

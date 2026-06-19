@@ -5,6 +5,8 @@
 import { Card, RANK_LABEL, SUIT_SYMBOL, TrumpMode } from "../engine/cards";
 import {
   BidEntry,
+  DEFAULT_PROFILE,
+  DEFAULT_SETTINGS,
   GameState,
   applyBid,
   applyCoinche,
@@ -58,7 +60,13 @@ function applyEntry(g: GameState, b: BidEntry): GameState {
 }
 
 export function reviewDeal(rec: DealRecord): DealReview {
-  let g = dealStateFrom(rec.settings, rec.dealer, rec.dealtHands);
+  // Fusion avec les défauts : tolère les anciennes parties enregistrées (schéma incomplet).
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    ...rec.settings,
+    profile: { ...DEFAULT_PROFILE, ...(rec.settings?.profile ?? {}) },
+  };
+  let g = dealStateFrom(settings, rec.dealer, rec.dealtHands);
   const points: ReviewPoint[] = [];
 
   // --- Enchères ---

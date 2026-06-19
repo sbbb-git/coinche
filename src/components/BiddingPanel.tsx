@@ -121,7 +121,7 @@ export function CoinchePrompt() {
     <div className="pointer-events-none flex justify-center pb-1">
       <button
         onClick={coinche}
-        className="pointer-events-auto animate-pop rounded-full bg-orange-500 px-5 py-2 text-sm font-bold text-white shadow-lg hover:bg-orange-400"
+        className="pointer-events-auto animate-pop rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-orange-400"
       >
         ✊ Coincher !
       </button>

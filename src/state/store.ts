@@ -186,7 +186,7 @@ export const useGame = create<Store>((set, get) => {
     },
     coinche: () => {
       // Coinche « à la volée » : autorisée même si ce n'est pas le tour de l'humain.
-      if (!canCoinche(get().game, HUMAN)) return;
+      if (get().overlayTrick || !canCoinche(get().game, HUMAN)) return;
       clearAiTimer();
       set({ game: applyCoinche(get().game, HUMAN) });
       scheduleAI();

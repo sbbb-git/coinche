@@ -226,6 +226,26 @@ describe("décompte d'une donne", () => {
     expect(res.scores[1]).toBe(162 + 250);
   });
 
+  it("capot coinché réussi : 252 + 250×2 = 752", () => {
+    const res = scoreDeal(baseContract({ value: 250, capot: true, coinche: 2 }), {
+      trickWinners: [0, 0, 0, 0, 0, 0, 0, 0],
+      tricks: dealIntoTricks(),
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(true);
+    expect(res.scores[0]).toBe(252 + 250 * 2);
+  });
+
+  it("capot coinché chuté (défense ne rafle pas tout) : 162 + 250×2", () => {
+    const res = scoreDeal(baseContract({ value: 250, capot: true, coinche: 2 }), {
+      trickWinners: [0, 1, 1, 1, 1, 1, 1, 1], // l'attaque rate le capot mais prend 1 pli
+      tricks: dealIntoTricks(),
+      hands: [[], [], [], []],
+    });
+    expect(res.made).toBe(false);
+    expect(res.scores[1]).toBe(162 + 250 * 2); // 662, pas 752
+  });
+
   it("générale réussie (tous les plis par le preneur seul) = 500", () => {
     const res = scoreDeal(baseContract({ value: 500, generale: true }), {
       trickWinners: [0, 0, 0, 0, 0, 0, 0, 0],
