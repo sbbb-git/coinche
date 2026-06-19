@@ -227,9 +227,10 @@ export function aiBid(state: GameState, player: number): BidDecision {
       : level === "medium"
         ? (rnd() - 0.55) * 16
         : 0;
-  // Les niveaux faibles jouent moins bien : ils doivent aussi enchérir un peu
-  // plus prudemment (sinon ils sur-annoncent par rapport à leur jeu et chutent).
-  const levelBias = level === "easy" ? -16 : level === "medium" ? -12 : 0;
+  // Le niveau d'enchère suit la force de JEU : seul l'Expert (recherche PIMC)
+  // annonce au plus juste ; les niveaux qui jouent à l'heuristique enchérissent
+  // plus prudemment, sinon ils sur-annoncent et chutent.
+  const levelBias = level === "easy" ? -22 : level === "medium" ? -14 : 0;
   const aggro = (profile.aggressiveness - 0.5) * 24; // prudent baisse, offensif relève
   const est = rawEst + noise + aggro + levelBias;
 
@@ -381,15 +382,19 @@ export function aiPlay(state: GameState, deterministic = false): Card {
   const legal = legalForCurrent(state);
   if (legal.length === 1) return legal[0];
   const level = state.settings.aiLevel;
+  // Échelle de force RÉELLEMENT distincte :
+  //  Facile  = aléatoire ; Moyen = heuristique de base ;
+  //  Difficile = heuristique forte (comptage des cartes, cartes maîtresses) ;
+  //  Expert   = le SEUL à faire de la recherche (Monte-Carlo PIMC).
   if (level === "easy") return legal[Math.floor(rnd() * legal.length)];
   if (level === "medium") return heuristicPlay(state, legal, false);
-  // Difficile : mini-PIMC (peu de simulations) => nettement au-dessus du Moyen.
-  // Expert : PIMC profond, déterministe pour le coach (RNG seedé).
+  // Difficile : mini-PIMC (recherche légère) ; Expert : PIMC plus profond +
+  // politique de simulation améliorée ; déterministe (RNG seedé) pour le coach.
   const rng = deterministic ? mulberry32(hashState(state)) : Math.random;
-  if (level === "hard") return expertPlay(state, legal, deterministic ? rng : Math.random, 6);
-  const depth = { rapide: 10, normal: 18, fort: 32 }[state.settings.expertDepth] ?? 18;
+  if (level === "hard") return expertPlay(state, legal, deterministic ? rng : Math.random, 8, false);
+  const depth = { rapide: 14, normal: 24, fort: 40 }[state.settings.expertDepth] ?? 24;
   const samples = deterministic ? 28 : depth;
-  return expertPlay(state, legal, rng, samples);
+  return expertPlay(state, legal, rng, samples, true);
 }
 
 function lowest(cards: Card[], mode: TrumpMode): Card {
@@ -465,6 +470,28 @@ function partnerSurelyWins(state: GameState, hard: boolean): boolean {
   return !remaining.some((c) => beats(c, master, led, mode));
 }
 
+/** Reste-t-il des atouts en dehors de ma main (chez le partenaire ou les
+ *  adversaires) ? Sert au preneur à savoir s'il doit continuer à tirer atout. */
+function opponentsMayHaveTrump(state: GameState): boolean {
+  const mode = state.contract!.mode;
+  if (mode === "NT") return false;
+  const seen = seenCards(state); // ma main + cartes déjà jouées
+  let accounted = 0;
+  for (const c of allCards()) if (isTrump(c, mode) && seen.has(c.id)) accounted++;
+  const total = mode === "AT" ? 32 : 8;
+  return accounted < total;
+}
+
+/** Un adversaire est-il connu coupé (void) dans cette couleur ? (lecture des plis) */
+function opponentVoidInSuit(state: GameState, suit: Suit): boolean {
+  const voids = inferVoids(state);
+  const me = state.current;
+  for (let p = 0; p < 4; p++) {
+    if (teamOf(p) !== teamOf(me) && voids[p].has(suit)) return true;
+  }
+  return false;
+}
+
 function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
   const mode = state.contract!.mode;
   const me = state.current;
@@ -478,10 +505,15 @@ function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
     if (jack) return jack;
   }
 
-  // Équipe preneuse : tirer ses atouts maîtres pour faire tomber ceux des adversaires.
+  // Équipe preneuse : tirer ses atouts pour faire tomber ceux des adversaires.
+  // (Fondamental — on le fait à tous les niveaux. Le niveau « fort » arrête de
+  // tirer quand les adversaires n'ont plus d'atout et bascule sur ses maîtres.)
   if (iAmTaker && trumps.length > 0) {
-    const topTrump = highest(trumps, mode);
-    if (!hard || isMasterCard(state, topTrump)) return topTrump;
+    if (!hard || opponentsMayHaveTrump(state)) return highest(trumps, mode);
+    // Atouts adverses épuisés : on encaisse plutôt une couleur maîtresse.
+    const masterAce = legal.find((c) => c.rank === "A" && !isTrump(c, mode) && isMasterCard(state, c));
+    if (masterAce) return masterAce;
+    return highest(trumps, mode);
   }
 
   // Lecture de l'appel du partenaire : il a réclamé une couleur, on la lui rejoue (petit).
@@ -491,12 +523,15 @@ function leadCard(state: GameState, legal: Card[], hard: boolean): Card {
     if (inCalled.length > 0) return lowest(inCalled, mode);
   }
 
-  // Jouer une couleur maîtresse (As) hors atout, si le profil le veut.
+  // Jouer une couleur maîtresse (As) hors atout, si le profil le veut. On encaisse
+  // l'As tant qu'il reste des atouts chez les adversaires uniquement si la couleur
+  // n'est pas déjà coupée par un adversaire (sinon on garderait l'As trop longtemps).
   if (profile.jeuAuxAs) {
     const aces = legal.filter((c) => c.rank === "A" && !isTrump(c, mode));
-    for (const ace of aces) {
-      if (!hard || isMasterCard(state, ace)) return ace;
-    }
+    // Au niveau fort, on évite d'ouvrir une couleur où un adversaire est déjà coupé.
+    const safeAce = hard ? aces.find((a) => !opponentVoidInSuit(state, a.suit)) : aces[0];
+    if (safeAce) return safeAce;
+    if (!hard && aces[0]) return aces[0];
   }
 
   // À défaut, entamer petit dans une couleur non-atout.
@@ -756,18 +791,25 @@ function sampleWorld(
   return hands;
 }
 
-/** Joue la donne jusqu'au bout avec une politique gloutonne (avec comptage). */
-function rollout(state: GameState): GameState {
+/** Joue la donne jusqu'au bout avec une politique gloutonne. `smart` choisit
+ *  l'heuristique forte (évaluations plus réalistes = Expert) ou basique (Difficile). */
+function rollout(state: GameState, smart: boolean): GameState {
   let g = state;
   let guard = 0;
   while (g.phase === "playing" && guard++ < 40) {
     const legal = legalForCurrent(g);
-    g = applyPlay(g, legal.length === 1 ? legal[0] : heuristicPlay(g, legal, true));
+    g = applyPlay(g, legal.length === 1 ? legal[0] : heuristicPlay(g, legal, smart));
   }
   return g;
 }
 
-function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number): Card {
+/**
+ * PIMC. `smart` = qualité de la politique de simulation :
+ *  - Expert : true (rollout « fort » : comptage, coupes, charge du partenaire) →
+ *    évaluations plus justes, meilleur choix de coup.
+ *  - Difficile : false (rollout basique, plus bruité) → recherche plus faible.
+ */
+function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number, smart: boolean): Card {
   const me = state.current;
   const myTeam = teamOf(me);
   const voids = inferVoids(state);
@@ -785,7 +827,7 @@ function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number):
     // Mêmes cartes échantillonnées pour tous les candidats (réduction de variance).
     for (let i = 0; i < legal.length; i++) {
       const after = applyPlay(world, legal[i]);
-      const end = after.phase === "playing" ? rollout(after) : after;
+      const end = after.phase === "playing" ? rollout(after, smart) : after;
       const r = end.lastResult;
       if (r) scores[i] += r.scores[myTeam] - r.scores[(1 - myTeam) as 0 | 1];
     }

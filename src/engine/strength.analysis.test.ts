@@ -65,6 +65,26 @@ function analyze(level: AiLevel, deals: number) {
   };
 }
 
+import { simulate } from "../training/simulation";
+
+describe.skip("MESURE APPROFONDIE (logs, lancer à la demande)", () => {
+  it("expert : calibration", () => {
+    const r = analyze("expert", 120);
+    // eslint-disable-next-line no-console
+    console.log("EXPERT", JSON.stringify(r));
+    expect(r.deals).toBeGreaterThan(0);
+  });
+  it("têtes de série : marges de victoire", () => {
+    const S = { games: 40 } as const;
+    const eh = simulate({ ...DEFAULT_SETTINGS }, { ...S, levelA: "expert", levelB: "hard" });
+    const hm = simulate({ ...DEFAULT_SETTINGS }, { ...S, levelA: "hard", levelB: "medium" });
+    const em = simulate({ ...DEFAULT_SETTINGS }, { ...S, levelA: "expert", levelB: "medium" });
+    // eslint-disable-next-line no-console
+    console.log("WINS expert/hard", eh.winsA, eh.winsB, "| hard/medium", hm.winsA, hm.winsB, "| expert/medium", em.winsA, em.winsB);
+    expect(eh.winsA + eh.winsB).toBe(40);
+  });
+});
+
 describe("calibration des enchères (force de l'IA)", () => {
   it("Difficile : enchérit ce qu'il peut faire (contrat moyen élevé, réussite saine)", () => {
     const r = analyze("hard", 200);
