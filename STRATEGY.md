@@ -52,6 +52,44 @@ rollout fort, = le coach). expert/medium ≈ 32-8, hard/medium ≈ 24-16.
   garder la bonne carte pour le 10 de der, défausse défensive optimale.
 - **Coinche/défense** : seuils de coinche affinés selon l'écoute des annonces (§5.21-5.22).
 
+## 🛠️ Spec d'implémentation prête (prochain cycle)
+
+> Chaque règle = où l'implémenter + condition concrète + comment la mesurer.
+> On garde uniquement ce qui améliore la mesure (têtes-de-série / calibration).
+
+### Enchères
+- **Signaux d'As (« 10/20 dans le jeu »)** — `aiBid`/`readAuction`.
+  - Quand le partenaire a ouvert et que je relance/soutiens, encoder le sens : une
+    relance « économique » (≈ +10/+20 sur sa couleur) ≈ « j'ai 1 ou 2 As de côté ».
+  - Côté évaluation : si le partenaire a signalé des As, revaloriser nos plis de
+    couleur (réduire le risque de coupe). MESURE : make-rate des contrats soutenus.
+- **90 fort** (Graux §5.4) — `aiBid`.
+  - Après un 80 du partenaire, avec V+9 d'atout OU 3 atouts dont le Valet + 1 As de
+    côté → annoncer **90** (et non 100). Distinguer 90-fort (force) du 90-pari.
+- **Système des clefs ≥110** (§5.7) — nouvelle fn `countKeys(hand, mode)`.
+  - Clefs = maîtres immédiats : V d'atout (1), 9 d'atout si V présent (1), chaque As
+    de côté (1), 10 de côté gardé par As (½). 110 = ~5 clefs, 120 = ~6, etc.
+  - Remplacer/affiner le seuil de `bestContractAuction` pour les hautes annonces.
+- **Bicolore par position** (§5.14.1-4) — affiner le bonus de forme déjà posé selon
+  partance à nous / au partenaire / 2e-4e position.
+
+### Jeu de la carte (priorité : améliorer `heuristicPlay`, c'est le rollout)
+> ⚠️ Discipline : mes tentatives « malines » passées ont DÉGRADÉ le jeu en mesure.
+> N'encoder une règle que si A/B (à bidding égal) la valide (> +3 sur 100 donnes).
+- **Tierce main forte / 2de main faible** : en 2e position sur une entame adverse,
+  fournir petit (sauf prise utile) ; en 3e, monter pour tenir le pli.
+- **10 de der** : au dernier pli, prioriser le gain du pli (vaut 10).
+- **Garde des maîtres** : ne pas défausser une carte qui devient maîtresse (compter).
+- **Couper utile** : couper seulement si le pli a des points OU pour prendre la main ;
+  sous-couper si on est déjà maître par le partenaire = gaspillage.
+- **Défense** : ne pas entamer atout (sauf raison) ; ouvrir l'As maître ou la couleur
+  appelée par le partenaire ; jouer la couleur courte pour faire couper le partenaire.
+
+### Méthodo de mesure d'une règle de jeu
+Réintroduire temporairement un flag `smart` dans `heuristicPlay`, pitter deux équipes
+(smart vs basique) **à bidding égal** (même `levelBias`) sur ≥150 donnes, garder la
+règle seulement si le delta de victoires est nettement positif et stable.
+
 ## 🧪 Méthode
 Boucle **étudier → encoder → mesurer → garder si ça améliore**. Harnais :
 `src/engine/strength.analysis.test.ts` (mesures en `describe.skip`, à activer à la
