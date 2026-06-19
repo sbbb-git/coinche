@@ -44,18 +44,20 @@ function estimateSuit(hand: Card[], trump: Suit): number {
   const has10 = trumps.some((c) => c.rank === "10");
 
   if (hasJ) est += 20;
-  if (has9) est += has9 && (hasJ || n >= 3) ? 14 : 9;
+  if (has9) est += has9 && (hasJ || n >= 3) ? 14 : 10;
   if (hasA) est += 11;
-  if (has10) est += n >= 3 ? 10 : 4;
-  // Contrôle apporté par la longueur d'atout.
-  est += Math.max(0, n - 2) * 6;
-  if (n >= 5) est += 8;
+  if (has10) est += n >= 3 ? 10 : 6;
+  // Contrôle apporté par la longueur d'atout (chaque atout au-delà de 2 fait
+  // tomber un atout adverse et sécurise les couleurs annexes).
+  est += Math.max(0, n - 2) * 9;
+  if (n >= 5) est += 14;
+  if (n >= 6) est += 10;
 
   // Belote.
   const hasK = trumps.some((c) => c.rank === "K");
   const hasQ = trumps.some((c) => c.rank === "Q");
   if (hasK && hasQ) est += 20;
-  else if (hasK || hasQ) est += 2;
+  else if (hasK || hasQ) est += 3;
 
   // Cartes maîtresses (et gardes) dans les couleurs annexes.
   for (const s of SUITS) {
@@ -64,18 +66,19 @@ function estimateSuit(hand: Card[], trump: Suit): number {
     const ace = suit.some((c) => c.rank === "A");
     const ten = suit.some((c) => c.rank === "10");
     const king = suit.some((c) => c.rank === "K");
-    if (ace) est += suit.length === 1 ? 11 : 9; // sec = très sûr
-    if (ten && ace) est += 8;
-    else if (ten && suit.length >= 2) est += 4;
+    if (ace) est += suit.length === 1 ? 13 : 11; // sec = très sûr
+    if (ten && ace) est += 9;
+    else if (ten && suit.length >= 2) est += 5;
     // Roi de côté : gardé il rapporte souvent, sec il tombe facilement.
-    if (king && !ace) est += suit.length >= 2 ? 4 : 1;
-    // Une couleur courte aide à couper.
-    if (suit.length === 0 && n >= 3) est += 6;
+    if (king && !ace) est += suit.length >= 2 ? 5 : 1;
+    // Une couleur courte aide à couper (d'autant plus avec beaucoup d'atouts).
+    if (suit.length === 0 && n >= 3) est += n >= 4 ? 12 : 8;
+    else if (suit.length === 1 && n >= 4) est += 4;
   }
   // Contribution attendue du partenaire : à la coinche on joue en équipe, le
-  // partenaire apporte en moyenne ~20 points. Sans cette allocation, l'IA
-  // sous-évalue et n'annonce que des 80 qu'elle réussit quasi toujours.
-  est += 18;
+  // partenaire apporte en moyenne ~25-30 points. Sans cette allocation, l'IA
+  // sous-évalue massivement (elle réalise ~140 mais n'annonce que ~90).
+  est += 28;
   return est;
 }
 
@@ -224,8 +227,11 @@ export function aiBid(state: GameState, player: number): BidDecision {
       : level === "medium"
         ? (rnd() - 0.55) * 16
         : 0;
+  // Les niveaux faibles jouent moins bien : ils doivent aussi enchérir un peu
+  // plus prudemment (sinon ils sur-annoncent par rapport à leur jeu et chutent).
+  const levelBias = level === "easy" ? -16 : level === "medium" ? -12 : 0;
   const aggro = (profile.aggressiveness - 0.5) * 24; // prudent baisse, offensif relève
-  const est = rawEst + noise + aggro;
+  const est = rawEst + noise + aggro + levelBias;
 
   // Coinche défensive.
   if (state.standing && teamOf(state.standing.player) !== teamOf(player)) {

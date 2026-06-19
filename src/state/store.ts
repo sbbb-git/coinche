@@ -219,8 +219,8 @@ export const useGame = create<Store>((set, get) => {
 
     askHint: () => {
       const g = get().game;
-      if (g.current !== HUMAN) return;
-      if (g.phase === "playing" && !get().overlayTrick) {
+      if (g.current !== HUMAN || get().overlayTrick) return;
+      if (g.phase === "playing") {
         const { best, reason } = coachPlay(g);
         set({ hint: { cardId: best.id, text: reason } });
       } else if (g.phase === "bidding") {
