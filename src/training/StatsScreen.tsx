@@ -23,7 +23,14 @@ export function StatsScreen() {
           </div>
           <p className="text-3xl font-bold tabular-nums">{stats.rating}</p>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"
+          role="progressbar"
+          aria-valuenow={Math.round(lvl.progress * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={lvl.max < 3000 ? "Progression vers le palier suivant" : "Niveau maximal"}
+        >
           <div className="h-full bg-yellow-400 transition-all" style={{ width: `${lvl.progress * 100}%` }} />
         </div>
         <p className="mt-1 text-right text-[11px] text-white/55">

@@ -29,8 +29,9 @@ export function AccountScreen() {
           id="pname"
           value={name}
           maxLength={16}
+          placeholder="Votre prénom"
           onChange={(e) => saveName(e.target.value)}
-          className="mt-1 w-full rounded-lg bg-white/90 px-3 py-2.5 font-semibold text-zinc-800"
+          className="mt-1 w-full rounded-lg bg-white/90 px-3 py-2.5 font-semibold text-zinc-800 placeholder:text-zinc-400"
         />
       </section>
 

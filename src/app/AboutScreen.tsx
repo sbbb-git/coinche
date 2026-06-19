@@ -31,7 +31,7 @@ export function AboutScreen() {
         <Row onClick={() => go("lessons")}>🎓 Apprendre à jouer</Row>
         <Row onClick={() => go("guides")}>📖 Guides de stratégie</Row>
         <Row onClick={() => go("legal")}>📄 Confidentialité · CGU · Mentions</Row>
-        <Row href="https://sbbb-git.github.io/coinche/">🌐 Site web</Row>
+        <Row href="https://sbbb-git.github.io/coinche/" external>🌐 Site web ↗</Row>
       </div>
 
       <p className="mt-6 text-center text-[11px] text-white/40">
@@ -53,16 +53,24 @@ function Row({
   children,
   onClick,
   href,
+  external,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   href?: string;
+  external?: boolean;
 }) {
   const cls =
     "flex min-h-11 w-full items-center rounded-xl bg-white/5 px-4 text-left text-sm font-semibold text-white/85 hover:bg-white/10";
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={external ? "Site web Coincheur (nouvel onglet)" : undefined}
+        className={cls}
+      >
         {children}
       </a>
     );

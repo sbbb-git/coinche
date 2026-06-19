@@ -30,7 +30,7 @@ export function ReviewMyGamesScreen() {
           <div className="flex flex-col gap-2">
             <p className="mb-1 text-sm text-white/70">Tes dernières donnes — touche pour revoir.</p>
             {history.map((rec, i) => (
-              <DealRow key={rec.ts} rec={rec} onClick={() => setSelected(i)} />
+              <DealRow key={`${rec.ts}-${i}`} rec={rec} onClick={() => setSelected(i)} />
             ))}
           </div>
         )}
@@ -42,19 +42,21 @@ export function ReviewMyGamesScreen() {
 }
 
 function DealRow({ rec, onClick }: { rec: DealRecord; onClick: () => void }) {
-  const review = useMemo(() => reviewDeal(rec), [rec]);
-  const total = review.points.length;
+  // Liste légère : on n'exécute PAS l'analyse coach (PIMC) ici — seulement le
+  // rejeu rapide pour les libellés. La review coach est calculée à l'ouverture du
+  // détail (sinon, monter 25 lignes gèlerait le thread avec des centaines de PIMC).
+  const full = useMemo(() => fullReplay(rec), [rec]);
   return (
     <button
       onClick={onClick}
       className="flex items-center justify-between rounded-xl bg-white/8 p-3 text-left ring-1 ring-white/10 hover:bg-white/12"
     >
       <span>
-        <span className="font-semibold">{review.contractLabel}</span>{" "}
-        <span className="text-sm text-white/60">· {review.resultLabel}</span>
+        <span className="font-semibold">{full.contractLabel}</span>{" "}
+        <span className="text-sm text-white/60">· {full.resultLabel}</span>
       </span>
-      <span className="text-sm text-white/70">
-        {total > 0 ? `${review.goodCount}/${total} ✓` : "aucun choix"}
+      <span className="text-sm tabular-nums text-white/70">
+        {full.scores[0]}-{full.scores[1]}
       </span>
     </button>
   );

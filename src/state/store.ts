@@ -53,10 +53,18 @@ interface Store {
 
 // Timers au niveau module (hors du state React) pour piloter les IA.
 let aiTimer: ReturnType<typeof setTimeout> | null = null;
+// Timer distinct pour la pause d'affichage d'un pli complet : évite qu'un
+// changement de partie/donne (startNewGame, continueDeal) laisse un callback
+// d'overlay s'exécuter sur le nouvel état (race condition).
+let overlayTimer: ReturnType<typeof setTimeout> | null = null;
 function clearAiTimer() {
   if (aiTimer) {
     clearTimeout(aiTimer);
     aiTimer = null;
+  }
+  if (overlayTimer) {
+    clearTimeout(overlayTimer);
+    overlayTimer = null;
   }
 }
 
@@ -133,7 +141,10 @@ export const useGame = create<Store>((set, get) => {
       const overlay: PlayedCard[] = [...game.trick, { card, player: game.current }];
       set({ overlayTrick: overlay, thinking: false });
       clearAiTimer();
-      aiTimer = setTimeout(() => {
+      overlayTimer = setTimeout(() => {
+        overlayTimer = null;
+        // Si la partie/donne a changé entre-temps, on n'applique pas l'ancien pli.
+        if (get().overlayTrick !== overlay) return;
         const next = applyPlay(get().game, card);
         set({ game: next, overlayTrick: null });
         if (next.phase === "dealScored" || next.phase === "gameOver") {

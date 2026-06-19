@@ -224,6 +224,7 @@ export function aiBid(state: GameState, player: number): BidDecision {
   const strong = level === "hard" || level === "expert";
   const hand = state.hands[player];
   const modes = availableModes(state.settings);
+  if (modes.length === 0) return { action: "pass" }; // garde : aucun mode autorisé
   // Choix du contrat À LA LUMIÈRE DES ANNONCES déjà entendues (cf. estimateWithAuction).
   const { mode, est: rawEst } = bestContractAuction(state, player, modes);
 
@@ -392,19 +393,18 @@ export function aiPlay(state: GameState, deterministic = false): Card {
   if (legal.length === 1) return legal[0];
   const level = state.settings.aiLevel;
   // Échelle de force RÉELLEMENT distincte :
-  //  Facile  = aléatoire ; Moyen = heuristique de base ;
-  //  Difficile = heuristique forte (comptage des cartes, cartes maîtresses) ;
-  //  Expert   = le SEUL à faire de la recherche (Monte-Carlo PIMC).
+  //  Facile = aléatoire ; Moyen = heuristique ;
+  //  Difficile = mini-PIMC (recherche légère, 8 sims) ;
+  //  Expert = PIMC profond (le coach), le seul avec beaucoup de simulations.
+  //  Le rollout PIMC utilise la politique BASIQUE (mesurée comme la plus forte).
   if (level === "easy") return legal[Math.floor(rnd() * legal.length)];
   if (level === "medium") return heuristicPlay(state, legal, false);
-  // Difficile : mini-PIMC (recherche légère) ; Expert : PIMC plus profond +
-  // politique de simulation améliorée ; déterministe (RNG seedé) pour le coach.
   const rng = deterministic ? mulberry32(hashState(state)) : Math.random;
   if (level === "hard") return expertPlay(state, legal, deterministic ? rng : Math.random, 8, false);
   const depth = { rapide: 14, normal: 24, fort: 40 }[state.settings.expertDepth] ?? 24;
-  // Le coach n'est pas contraint par le temps réel (calcul à la demande) : on lui
-  // donne plus de simulations pour un conseil aussi fiable que possible.
-  const samples = deterministic ? 48 : depth;
+  // Le coach n'est pas contraint par le temps réel, mais 48 sims gelaient le
+  // thread sur mobile (~300-800 ms) ; 32 = bon compromis fiabilité/réactivité.
+  const samples = deterministic ? 32 : depth;
   // Expert : PIMC. Le rollout utilise la politique BASIQUE — mesuré comme la plus
   // forte (les variantes « malines » se sont révélées contre-productives en jeu).
   return expertPlay(state, legal, rng, samples, false);
@@ -658,7 +658,8 @@ function hashState(state: GameState): number {
   }
   for (const c of state.hands[state.current]) add(c.id);
   for (const p of state.trick) add(p.card.id + p.player);
-  add(String(state.completedTricks.length));
+  // Contenu complet des plis terminés : seed vraiment unique par état distinct.
+  for (const t of state.completedTricks) for (const c of t.cards) add(c.id);
   return h >>> 0;
 }
 
@@ -791,7 +792,8 @@ function sampleWorld(
   const hands: Card[][] = [[], [], [], []];
   hands[me] = [...myHand];
   let idx = 0;
-  for (const p of others) for (let k = 0; k < need[p]; k++) hands[p].push(pool[idx++]);
+  for (const p of others)
+    for (let k = 0; k < need[p] && idx < pool.length; k++) hands[p].push(pool[idx++]);
   return hands;
 }
 
@@ -802,16 +804,17 @@ function rollout(state: GameState, smart: boolean): GameState {
   let guard = 0;
   while (g.phase === "playing" && guard++ < 40) {
     const legal = legalForCurrent(g);
+    if (legal.length === 0) break; // garde défensive (état incohérent)
     g = applyPlay(g, legal.length === 1 ? legal[0] : heuristicPlay(g, legal, smart));
   }
   return g;
 }
 
 /**
- * PIMC. `smart` = qualité de la politique de simulation :
- *  - Expert : true (rollout « fort » : comptage, coupes, charge du partenaire) →
- *    évaluations plus justes, meilleur choix de coup.
- *  - Difficile : false (rollout basique, plus bruité) → recherche plus faible.
+ * PIMC (Monte-Carlo à information imparfaite). `samples` = nombre de mondes
+ * échantillonnés (Difficile 8, Expert 24-48). Plus de simulations = recherche
+ * plus fine. `smart` = politique de rollout ; on passe `false` (politique basique,
+ * mesurée comme la plus forte) à tous les niveaux.
  */
 function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number, smart: boolean): Card {
   const me = state.current;

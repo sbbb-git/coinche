@@ -17,11 +17,15 @@ export type View =
 
 interface Nav {
   view: View;
+  prev: View; // écran précédent (historique à 1 niveau pour le bouton retour)
   go: (v: View) => void;
+  back: () => void;
 }
 
 export const useNav = create<Nav>((set) => ({
   // Premier lancement : on montre l'accueil de bienvenue (onboarding).
   view: storage.isOnboarded() ? "home" : "welcome",
-  go: (view) => set({ view }),
+  prev: "home",
+  go: (view) => set((s) => ({ view, prev: s.view })),
+  back: () => set((s) => ({ view: s.prev || "home", prev: "home" })),
 }));

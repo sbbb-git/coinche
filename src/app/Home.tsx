@@ -44,13 +44,19 @@ export function Home() {
         ))}
       </div>
 
-      <div className="shrink-0 pt-4 text-center text-[11px] text-white/40">
-        <p>100 % hors-ligne · vos données restent sur l'appareil</p>
-        <div className="mt-1 flex justify-center gap-3">
-          <button onClick={() => go("about")} className="underline hover:text-white/70">
+      <div className="shrink-0 pt-3 text-center">
+        <p className="text-[11px] text-white/55">100 % hors-ligne · vos données restent sur l'appareil</p>
+        <div className="mt-1 flex justify-center gap-1">
+          <button
+            onClick={() => go("about")}
+            className="flex min-h-11 items-center rounded-lg px-4 text-xs font-semibold text-white/70 hover:bg-white/10"
+          >
             À propos
           </button>
-          <button onClick={() => go("legal")} className="underline hover:text-white/70">
+          <button
+            onClick={() => go("legal")}
+            className="flex min-h-11 items-center rounded-lg px-4 text-xs font-semibold text-white/70 hover:bg-white/10"
+          >
             Confidentialité · CGU
           </button>
         </div>

@@ -10,8 +10,8 @@ export function ScreenShell({
   /** action du bouton retour ; par défaut, retour à l'accueil */
   onBack?: () => void;
 }) {
-  const go = useNav((s) => s.go);
-  const back = onBack ?? (() => go("home"));
+  const navBack = useNav((s) => s.back);
+  const back = onBack ?? navBack;
   return (
     <div className="safe-x mx-auto flex h-full w-full max-w-md flex-col">
       <header className="safe-top flex items-center gap-2 px-3 pt-2 pb-2">

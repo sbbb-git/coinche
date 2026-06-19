@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ScreenShell } from "./ScreenShell";
-import { useNav } from "./nav";
 
 // Pages légales — indispensables pour la publication sur l'App Store / Google Play
 // et pour les comptes. Textes FR génériques ; les champs [À COMPLÉTER] sont à
@@ -15,17 +14,18 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export function LegalScreen() {
-  const go = useNav((s) => s.go);
   const [tab, setTab] = useState<Tab>("confidentialite");
 
   return (
-    <ScreenShell title="Informations légales" onBack={() => go("home")}>
+    <ScreenShell title="Informations légales">
       <div role="tablist" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
             role="tab"
+            id={`legaltab-${t.id}`}
             aria-selected={tab === t.id}
+            aria-controls="legal-panel"
             onClick={() => setTab(t.id)}
             className={[
               "min-h-11 flex-1 rounded-md py-2 text-sm font-semibold transition",
@@ -37,7 +37,13 @@ export function LegalScreen() {
         ))}
       </div>
 
-      <div className="space-y-3 text-sm leading-relaxed text-white/85">
+      <div
+        key={tab}
+        id="legal-panel"
+        role="tabpanel"
+        aria-labelledby={`legaltab-${tab}`}
+        className="animate-pop space-y-3 text-sm leading-relaxed text-white/85"
+      >
         {tab === "confidentialite" && <Privacy />}
         {tab === "cgu" && <Cgu />}
         {tab === "mentions" && <Mentions />}
@@ -49,7 +55,7 @@ export function LegalScreen() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
-      <h2 className="mb-1 font-bold text-yellow-300">{title}</h2>
+      <h2 className="mb-1 font-bold text-white/90">{title}</h2>
       <div className="space-y-1.5">{children}</div>
     </section>
   );

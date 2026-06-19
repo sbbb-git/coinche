@@ -21,7 +21,7 @@ function Overlay({
   }, [onClose]);
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]"
       onClick={onClose ? () => onClose() : undefined}
     >
       <div
@@ -411,7 +411,7 @@ function Seg<T extends string>({
             onClick={() => onChange(id)}
             aria-pressed={value === id}
             className={[
-              "flex-1 rounded-lg px-2 py-2 text-sm font-semibold transition",
+              "min-h-11 flex-1 rounded-lg px-2 py-2 text-sm font-semibold transition",
               value === id ? "bg-yellow-400 text-emerald-950" : "bg-white/10 text-white hover:bg-white/20",
             ].join(" ")}
           >

@@ -21,7 +21,7 @@ export function PlayScreen() {
   }, [init, stop]);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-3xl flex-col overflow-y-auto">
+    <div className="safe-x mx-auto flex h-full w-full max-w-3xl flex-col overflow-y-auto">
       <ScorePanel onMenu={() => setMenu(true)} onHome={() => go("home")} />
       <Table />
       <CoinchePrompt />

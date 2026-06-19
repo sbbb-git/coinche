@@ -41,8 +41,8 @@ export function CoachBar() {
         )}
         <button
           onClick={() => setRecap((v) => !v)}
-          aria-pressed={recap}
           aria-expanded={recap}
+          aria-controls="bid-recap"
           className="inline-flex min-h-11 items-center rounded-full bg-white/10 px-4 text-xs font-semibold text-white/85 hover:bg-white/20"
         >
           📜 Enchères
@@ -64,7 +64,7 @@ export function CoachBar() {
           <button
             onClick={clearHint}
             aria-label="Fermer le conseil"
-            className="shrink-0 rounded px-1 text-white/60 hover:text-white"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
           >
             ✕
           </button>
@@ -79,7 +79,7 @@ export function CoachBar() {
 function BidRecap({ game }: { game: GameState }) {
   const names = game.settings.playerNames;
   return (
-    <div className="mx-auto mt-2 max-w-lg rounded-xl bg-black/40 p-2.5 ring-1 ring-white/10">
+    <div id="bid-recap" className="mx-auto mt-2 max-w-lg rounded-xl bg-black/40 p-2.5 ring-1 ring-white/10">
       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/45">Enchères</p>
       {game.bidHistory.length === 0 ? (
         <p className="text-sm text-white/50">Aucune annonce pour l'instant.</p>

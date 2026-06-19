@@ -35,7 +35,10 @@ export function WelcomeScreen() {
   return (
     <div className="safe-top safe-bottom mx-auto flex h-full w-full max-w-md flex-col px-6 py-6">
       <div className="flex justify-end">
-        <button onClick={skip} className="text-sm text-white/50 hover:text-white/80">
+        <button
+          onClick={skip}
+          className="flex min-h-11 items-center rounded-lg px-3 text-sm text-white/60 hover:bg-white/10 hover:text-white/90"
+        >
           Passer
         </button>
       </div>
@@ -61,16 +64,19 @@ export function WelcomeScreen() {
 
         {step === 1 && (
           <div className="animate-pop">
-            <h2 className="text-center text-2xl font-bold">Comment t'appelles-tu ?</h2>
+            <h2 id="welcome-name-label" className="text-center text-2xl font-bold">
+              Comment t'appelles-tu ?
+            </h2>
             <p className="mt-2 text-center text-sm text-white/70">Ton nom à la table.</p>
             <input
               autoFocus
               value={name}
               maxLength={16}
+              aria-labelledby="welcome-name-label"
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && setStep(2)}
               placeholder="Ton prénom"
-              className="mt-5 w-full rounded-xl bg-white/90 px-4 py-3 text-center text-lg font-semibold text-zinc-800"
+              className="mt-5 w-full rounded-xl bg-white/90 px-4 py-3 text-center text-lg font-semibold text-zinc-800 placeholder:text-zinc-400"
             />
           </div>
         )}
