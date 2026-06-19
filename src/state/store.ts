@@ -7,6 +7,7 @@ import {
   Settings,
   applyBid,
   applyCoinche,
+  canCoinche,
   applyPass,
   applyPlay,
   applySurcoinche,
@@ -184,8 +185,10 @@ export const useGame = create<Store>((set, get) => {
       if (!get().overlayTrick) scheduleAI();
     },
     coinche: () => {
-      if (get().game.current !== HUMAN) return;
-      set({ game: applyCoinche(get().game) });
+      // Coinche « à la volée » : autorisée même si ce n'est pas le tour de l'humain.
+      if (!canCoinche(get().game, HUMAN)) return;
+      clearAiTimer();
+      set({ game: applyCoinche(get().game, HUMAN) });
       scheduleAI();
     },
     surcoinche: () => {

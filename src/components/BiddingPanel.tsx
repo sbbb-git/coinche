@@ -109,6 +109,26 @@ export function BiddingPanel() {
   );
 }
 
+/** Coinche « à la volée » : visible pendant que les adversaires enchérissent. */
+export function CoinchePrompt() {
+  const game = useGame((s) => s.game);
+  const overlay = useGame((s) => s.overlayTrick);
+  const coinche = useGame((s) => s.coinche);
+  if (game.phase !== "bidding" || overlay) return null;
+  if (game.current === HUMAN) return null; // géré par le panneau normal
+  if (!canCoinche(game, HUMAN)) return null;
+  return (
+    <div className="pointer-events-none flex justify-center pb-1">
+      <button
+        onClick={coinche}
+        className="pointer-events-auto animate-pop rounded-full bg-orange-500 px-5 py-2 text-sm font-bold text-white shadow-lg hover:bg-orange-400"
+      >
+        ✊ Coincher !
+      </button>
+    </div>
+  );
+}
+
 function Panel({ children }: { children: React.ReactNode }) {
   return (
     <div className="animate-pop mx-auto mb-1 flex max-w-lg flex-col gap-2 rounded-xl bg-emerald-950/90 p-3 shadow-lg ring-1 ring-emerald-700">

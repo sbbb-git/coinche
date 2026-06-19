@@ -4,7 +4,7 @@ import { useNav } from "./nav";
 import { ScorePanel } from "../components/ScorePanel";
 import { Table } from "../components/Table";
 import { HandFan } from "../components/HandFan";
-import { BiddingPanel } from "../components/BiddingPanel";
+import { BiddingPanel, CoinchePrompt } from "../components/BiddingPanel";
 import { DealResultModal, GameOverModal, MenuSheet } from "../components/Modals";
 
 export function PlayScreen() {
@@ -23,6 +23,7 @@ export function PlayScreen() {
     <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
       <ScorePanel onMenu={() => setMenu(true)} onHome={() => go("home")} />
       <Table />
+      <CoinchePrompt />
       <BiddingPanel />
       <HandFan />
 

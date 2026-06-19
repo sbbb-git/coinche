@@ -373,10 +373,11 @@ export function applyBid(
   };
 }
 
-/** Coincher l'annonce en cours (un adversaire du preneur). */
-export function applyCoinche(state: GameState): GameState {
-  if (!canCoinche(state, state.current)) return state;
-  const history = [...state.bidHistory, { player: state.current, kind: "coinche" as const }];
+/** Coincher l'annonce en cours (un adversaire du preneur). La coinche est
+ *  possible « à la volée » : `player` peut différer du joueur dont c'est le tour. */
+export function applyCoinche(state: GameState, player = state.current): GameState {
+  if (!canCoinche(state, player)) return state;
+  const history = [...state.bidHistory, { player, kind: "coinche" as const }];
   // Après la coinche, on laisse au preneur l'occasion de surcoincher puis on joue.
   return {
     ...state,
