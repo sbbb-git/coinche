@@ -38,6 +38,8 @@ export interface Settings {
 
   // — IA —
   aiLevel: AiLevel;
+  /** profondeur de simulation de l'IA Expert (force ↔ rapidité) */
+  expertDepth: "rapide" | "normal" | "fort";
   profile: PlayProfile;
 
   // — Interface —
@@ -80,6 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
   beloteCountsToSucceed: true,
   beloteCountsToFail: true,
   aiLevel: "medium",
+  expertDepth: "normal",
   profile: DEFAULT_PROFILE,
   gameSpeed: "normal",
   sensHoraire: false,

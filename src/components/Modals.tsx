@@ -248,6 +248,18 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
               ]}
               onChange={(v) => upd({ aiLevel: v as AiLevel })}
             />
+            {draft.aiLevel === "expert" && (
+              <Seg
+                label="Force de l'Expert (simulation)"
+                value={draft.expertDepth}
+                options={[
+                  ["rapide", "Rapide"],
+                  ["normal", "Normal"],
+                  ["fort", "Fort"],
+                ]}
+                onChange={(v) => upd({ expertDepth: v as Settings["expertDepth"] })}
+              />
+            )}
             <Slider
               label="Style"
               left="Prudent"

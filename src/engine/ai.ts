@@ -182,14 +182,27 @@ export function aiBid(state: GameState, player: number): BidDecision {
   // On ne surenchérit pas son propre partenaire sans gain net.
   const minToBid = standingIsPartner ? standingVal + 20 : standingVal + 10;
 
+  // Capot : main qui domine vraiment (atout maître + couleurs annexes tenues).
+  if (level !== "easy" && !state.standing?.capot && capotWorthy(hand, mode)) {
+    return { action: "bid", value: 250, mode, capot: true };
+  }
+
   if (est >= 80 && target >= minToBid && !state.standing?.capot) {
-    // Capot si la main est exceptionnelle.
-    if (level !== "easy" && est >= 155 && rnd() < 0.5) {
-      return { action: "bid", value: 250, mode, capot: true };
-    }
     return { action: "bid", value: target, mode, capot: false };
   }
   return { action: "pass" };
+}
+
+/** Main qui justifie un capot : atout maître long + couleurs annexes tenues par un As. */
+function capotWorthy(hand: Card[], mode: TrumpMode): boolean {
+  if (mode === "NT" || mode === "AT") return false;
+  const trumps = hand.filter((c) => c.suit === mode);
+  const hasJ = trumps.some((c) => c.rank === "J");
+  const has9 = trumps.some((c) => c.rank === "9");
+  if (!hasJ || !has9 || trumps.length < 6) return false;
+  const sideSuits = SUITS.filter((s) => s !== mode && hand.some((c) => c.suit === s));
+  const heldBySAce = sideSuits.filter((s) => hand.some((c) => c.suit === s && c.rank === "A"));
+  return heldBySAce.length === sideSuits.length; // chaque couleur annexe a son As
 }
 
 function shouldCoinche(
@@ -201,12 +214,15 @@ function shouldCoinche(
   const level = state.settings.aiLevel;
   if (level === "easy") return false;
   const v = state.standing!.value;
-  if (state.standing!.capot) return strong && rnd() < 0.3;
-  // On coinche un contrat ambitieux qu'on pense pouvoir faire chuter.
+  if (state.standing!.capot) return strong && rnd() < 0.35;
+  // On coinche un contrat qu'on pense pouvoir faire chuter (défense forte).
+  // Seuils pilotés par l'agressivité : un profil offensif coinche plus large.
+  const aggroShift = (aggressiveness - 0.5) * 2; // -1..+1
+  const vThresh = 100 - aggroShift * 15; // prudent ~115, offensif ~85
+  const margin = (strong ? 6 : 16) - aggroShift * 8;
   const defenseEst = estimateForMode(state.hands[player], state.standing!.mode);
-  const margin = strong ? 0 : 15;
-  const proba = (strong ? 0.6 : 0.3) + (aggressiveness - 0.5) * 0.3;
-  return v >= 120 && defenseEst >= 162 - v + margin && rnd() < proba;
+  const proba = (strong ? 0.7 : 0.45) + aggroShift * 0.15;
+  return v >= vThresh && defenseEst >= 162 - v + margin && rnd() < proba;
 }
 
 // --- Choix d'une carte ------------------------------------------------------
@@ -220,7 +236,8 @@ export function aiPlay(state: GameState, deterministic = false): Card {
   if (level === "hard") return heuristicPlay(state, legal, true);
   // Expert : simulation Monte-Carlo (PIMC). Seedé => déterministe pour le coach.
   const rng = deterministic ? mulberry32(hashState(state)) : Math.random;
-  const samples = deterministic ? 24 : 16;
+  const depth = { rapide: 10, normal: 18, fort: 32 }[state.settings.expertDepth] ?? 18;
+  const samples = deterministic ? 28 : depth;
   return expertPlay(state, legal, rng, samples);
 }
 
@@ -535,13 +552,13 @@ function sampleWorld(
   return hands;
 }
 
-/** Joue la donne jusqu'au bout avec une politique gloutonne rapide. */
+/** Joue la donne jusqu'au bout avec une politique gloutonne (avec comptage). */
 function rollout(state: GameState): GameState {
   let g = state;
   let guard = 0;
   while (g.phase === "playing" && guard++ < 40) {
     const legal = legalForCurrent(g);
-    g = applyPlay(g, legal.length === 1 ? legal[0] : heuristicPlay(g, legal, false));
+    g = applyPlay(g, legal.length === 1 ? legal[0] : heuristicPlay(g, legal, true));
   }
   return g;
 }
