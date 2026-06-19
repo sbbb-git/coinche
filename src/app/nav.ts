@@ -1,6 +1,8 @@
 import { create } from "zustand";
+import { storage } from "../storage";
 
 export type View =
+  | "welcome"
   | "home"
   | "play"
   | "exercises"
@@ -17,6 +19,7 @@ interface Nav {
 }
 
 export const useNav = create<Nav>((set) => ({
-  view: "home",
+  // Premier lancement : on montre l'accueil de bienvenue (onboarding).
+  view: storage.isOnboarded() ? "home" : "welcome",
   go: (view) => set({ view }),
 }));

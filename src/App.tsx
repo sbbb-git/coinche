@@ -1,4 +1,5 @@
 import { useNav } from "./app/nav";
+import { WelcomeScreen } from "./app/WelcomeScreen";
 import { Home } from "./app/Home";
 import { PlayScreen } from "./app/PlayScreen";
 import { ExercisesScreen } from "./training/ExercisesScreen";
@@ -13,6 +14,8 @@ export default function App() {
   const view = useNav((s) => s.view);
 
   switch (view) {
+    case "welcome":
+      return <WelcomeScreen />;
     case "play":
       return <PlayScreen />;
     case "exercises":

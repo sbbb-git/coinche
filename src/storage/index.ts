@@ -46,6 +46,8 @@ export interface Storage {
   setLessonDone(id: string): void;
   loadProfile(): LocalProfile;
   saveProfile(p: LocalProfile): void;
+  isOnboarded(): boolean;
+  setOnboarded(): void;
 }
 
 export interface LocalProfile {
@@ -57,6 +59,7 @@ const STATS_KEY = "coincheur.stats.v1";
 const HISTORY_KEY = "coincheur.history.v1";
 const LESSONS_KEY = "coincheur.lessons.v1";
 const PROFILE_KEY = "coincheur.profile.v1";
+const ONBOARDED_KEY = "coincheur.onboarded.v1";
 const HISTORY_MAX = 25;
 
 class LocalStorage implements Storage {
@@ -175,6 +178,22 @@ class LocalStorage implements Storage {
   saveProfile(p: LocalProfile): void {
     try {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  isOnboarded(): boolean {
+    try {
+      return localStorage.getItem(ONBOARDED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  setOnboarded(): void {
+    try {
+      localStorage.setItem(ONBOARDED_KEY, "1");
     } catch {
       /* ignore */
     }
