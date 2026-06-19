@@ -57,15 +57,18 @@ function estimateSuit(hand: Card[], trump: Suit): number {
   if (hasK && hasQ) est += 20;
   else if (hasK || hasQ) est += 2;
 
-  // Cartes maîtresses dans les couleurs annexes.
+  // Cartes maîtresses (et gardes) dans les couleurs annexes.
   for (const s of SUITS) {
     if (s === trump) continue;
     const suit = hand.filter((c) => c.suit === s);
     const ace = suit.some((c) => c.rank === "A");
     const ten = suit.some((c) => c.rank === "10");
+    const king = suit.some((c) => c.rank === "K");
     if (ace) est += suit.length === 1 ? 11 : 9; // sec = très sûr
     if (ten && ace) est += 8;
     else if (ten && suit.length >= 2) est += 4;
+    // Roi de côté : gardé il rapporte souvent, sec il tombe facilement.
+    if (king && !ace) est += suit.length >= 2 ? 4 : 1;
     // Une couleur courte aide à couper.
     if (suit.length === 0 && n >= 3) est += 6;
   }
@@ -181,8 +184,8 @@ export function aiBid(state: GameState, player: number): BidDecision {
     return { action: "bid", value: 500, mode, capot: false, generale: true };
   }
 
-  // Valeur d'annonce visée (arrondie à la dizaine inférieure).
-  let target = Math.floor(est / 10) * 10;
+  // Valeur d'annonce visée (arrondie à la dizaine la plus proche).
+  let target = Math.round(est / 10) * 10;
   target = Math.max(80, Math.min(160, target));
 
   const standingVal = state.standing?.value ?? 0;

@@ -115,7 +115,7 @@ export function coachBid(state: GameState, player: number): BidAdvice {
     : false;
   const minToBid = standingIsPartner ? standingVal + 20 : standingVal + 10;
 
-  let target = Math.max(80, Math.min(160, Math.floor(est / 10) * 10));
+  let target = Math.max(80, Math.min(160, Math.round(est / 10) * 10));
 
   if (est >= 80 && target >= minToBid && !state.standing?.capot) {
     return {
