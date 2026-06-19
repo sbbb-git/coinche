@@ -58,6 +58,19 @@ describe("générateur d'exercices", () => {
     }
   });
 
+  it("enchères : propose parfois des annonces préalables (fausses enchères) bien formées", () => {
+    let withAuction = 0;
+    for (let i = 0; i < 40; i++) {
+      const ex = genBidExercise(S);
+      for (const l of ex.auction) {
+        expect(l.name.length).toBeGreaterThan(0);
+        expect(typeof l.value).toBe("string");
+      }
+      if (ex.auction.length > 0) withAuction++;
+    }
+    expect(withAuction).toBeGreaterThan(0); // au moins quelques scénarios avec enchères
+  });
+
   it("jeu : la réponse du coach est toujours une carte jouable", () => {
     for (let i = 0; i < 20; i++) {
       const ex = genPlayExercise(S);

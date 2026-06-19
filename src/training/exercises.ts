@@ -23,9 +23,18 @@ export type PlayFocus = "any" | "attack" | "defense";
 
 export type BidOption = { kind: "pass" } | { kind: "bid"; value: number; mode: TrumpMode };
 
+/** Une ligne d'enchère déjà prononcée, pour le rappel de séquence à l'écran. */
+export interface AuctionLine {
+  name: string;
+  value: string; // "80", "passe", "Capot", "coinche"…
+  mode: TrumpMode | null;
+  partner: boolean; // annonce du partenaire (siège 2) ?
+}
+
 export interface BidExercise {
   kind: "bid";
   hand: Card[];
+  auction: AuctionLine[]; // annonces faites avant ton tour (vide si tu ouvres)
   options: BidOption[];
   correctIndex: number;
   reason: string;
@@ -34,11 +43,45 @@ export interface BidExercise {
 
 const optKey = (o: BidOption) => (o.kind === "pass" ? "pass" : `${o.value}${o.mode}`);
 
+/** Met en place une séquence d'enchères : les autres joueurs parlent jusqu'à ce
+ *  que ce soit (enfin) au tour du siège 0 — parfois après un ou plusieurs
+ *  contrats adverses/partenaire (« fausses enchères »). */
+function setupBidScenario(settings: Settings): GameState {
+  // Les meneurs d'enchères jouent « difficile » : des annonces réalistes et variées.
+  const fillerSettings: Settings = { ...settings, aiLevel: "hard" };
+  let g = newGame(fillerSettings);
+  let guard = 0;
+  while (g.phase === "bidding" && g.current !== 0 && guard++ < 6) {
+    const d = aiBid(g, g.current);
+    if (d.action === "bid") g = applyBid(g, d.value, d.mode, d.capot, d.generale);
+    else if (d.action === "coinche") g = applyCoinche(g);
+    else if (d.action === "surcoinche") g = applySurcoinche(g);
+    else g = applyPass(g);
+  }
+  // On rend la main au profil de l'utilisateur (le coach évalue toujours en expert).
+  return { ...g, settings };
+}
+
+function auctionLines(g: GameState): AuctionLine[] {
+  return g.bidHistory.map((e) => {
+    const name = g.settings.playerNames[e.player];
+    const partner = e.player === 2;
+    if (e.kind === "pass") return { name, value: "passe", mode: null, partner };
+    if (e.kind === "coinche") return { name, value: "coinche", mode: null, partner };
+    if (e.kind === "surcoinche") return { name, value: "surcoinche", mode: null, partner };
+    const value = e.generale ? "Générale" : e.capot ? "Capot" : `${e.value}`;
+    return { name, value, mode: e.mode ?? null, partner };
+  });
+}
+
 export function genBidExercise(settings: Settings): BidExercise {
-  const g = newGame(settings);
+  const g = setupBidScenario(settings);
   const hand = g.hands[0];
   const advice = coachBid(g, 0);
   const estimates = handEstimates(hand, g);
+  // Plancher d'annonce légal : il faut dépasser l'enchère en cours.
+  const floor = g.standing ? g.standing.value + 10 : 80;
+  const capped = (v: number) => Math.min(160, v);
 
   const opts: BidOption[] = [];
   if (advice.action.action === "bid") {
@@ -46,15 +89,15 @@ export function genBidExercise(settings: Settings): BidExercise {
     const second = estimates.filter((e) => e.mode !== mode).sort((a, b) => b.est - a.est)[0];
     opts.push({ kind: "bid", value, mode }); // correct
     opts.push({ kind: "pass" }); // trop prudent
-    opts.push({ kind: "bid", value: Math.min(160, value + 20), mode }); // trop gourmand
+    opts.push({ kind: "bid", value: capped(value + 20), mode }); // trop gourmand
     if (second) opts.push({ kind: "bid", value, mode: second.mode }); // mauvaise couleur
   } else {
     const best = estimates.slice().sort((a, b) => b.est - a.est)[0];
     const second = estimates.filter((e) => e.mode !== best.mode).sort((a, b) => b.est - a.est)[0];
     opts.push({ kind: "pass" }); // correct
-    opts.push({ kind: "bid", value: 80, mode: best.mode }); // trop optimiste
-    opts.push({ kind: "bid", value: 90, mode: best.mode });
-    if (second) opts.push({ kind: "bid", value: 80, mode: second.mode });
+    opts.push({ kind: "bid", value: capped(floor), mode: best.mode }); // trop optimiste
+    opts.push({ kind: "bid", value: capped(floor + 10), mode: best.mode });
+    if (second) opts.push({ kind: "bid", value: capped(floor), mode: second.mode });
   }
 
   // Dédoublonne et complète à 4 options si besoin.
@@ -65,6 +108,7 @@ export function genBidExercise(settings: Settings): BidExercise {
   return {
     kind: "bid",
     hand,
+    auction: auctionLines(g),
     options: shuffled,
     correctIndex: shuffled.findIndex((o) => optKey(o) === correctKey),
     reason: advice.reason,

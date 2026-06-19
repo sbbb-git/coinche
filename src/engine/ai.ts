@@ -116,6 +116,72 @@ export function bestContract(hand: Card[], modes: TrumpMode[]): { mode: TrumpMod
   return best;
 }
 
+// --- Lecture des annonces ---------------------------------------------------
+
+/** Information tirée des enchères déjà prononcées, du point de vue d'un joueur. */
+export interface AuctionRead {
+  oppBestInSuit: Partial<Record<TrumpMode, number>>; // plus haute annonce adverse par couleur
+  oppBestAny: number; // plus haute annonce adverse, tous modes
+  partnerSuit: TrumpMode | null; // couleur annoncée par le partenaire (la plus récente)
+  partnerValue: number; // sa valeur
+}
+
+export function readAuction(state: GameState, player: number): AuctionRead {
+  const myTeam = teamOf(player);
+  const r: AuctionRead = { oppBestInSuit: {}, oppBestAny: 0, partnerSuit: null, partnerValue: 0 };
+  for (const e of state.bidHistory) {
+    if (e.kind !== "bid" || e.value == null || e.mode == null) continue;
+    if (e.capot || e.generale) continue; // annonces de structure, traitées à part
+    if (teamOf(e.player) !== myTeam) {
+      r.oppBestAny = Math.max(r.oppBestAny, e.value);
+      r.oppBestInSuit[e.mode] = Math.max(r.oppBestInSuit[e.mode] ?? 0, e.value);
+    } else if (e.player !== player) {
+      r.partnerSuit = e.mode;
+      r.partnerValue = Math.max(r.partnerValue, e.value);
+    }
+  }
+  return r;
+}
+
+/**
+ * Estimation d'une main pour un mode, CORRIGÉE par les annonces déjà entendues :
+ * - un adversaire a pris dans cette couleur ⇒ il tient les gros atouts (V/9) :
+ *   très mauvais choix d'atout pour nous, on dévalue fortement ;
+ * - des adversaires forts globalement ⇒ il reste moins de points pour notre camp ;
+ * - le partenaire a annoncé notre couleur ⇒ soutien, on revalorise.
+ * Sans annonce (début de parole), le résultat est identique à `estimateForMode`.
+ */
+export function estimateWithAuction(
+  hand: Card[],
+  mode: TrumpMode,
+  read: AuctionRead,
+): number {
+  let est = estimateForMode(hand, mode);
+  const oppInMode = read.oppBestInSuit[mode] ?? 0;
+  if (oppInMode > 0 && mode !== "NT" && mode !== "AT") {
+    est -= 22 + (oppInMode - 80) * 0.5; // ils ont les maîtres atouts de cette couleur
+  }
+  if (read.oppBestAny > 0) est -= 4 + (read.oppBestAny - 80) * 0.25;
+  if (read.partnerSuit && read.partnerSuit === mode) est += 8;
+  return est;
+}
+
+/** Meilleur contrat en tenant compte des annonces déjà entendues. */
+export function bestContractAuction(
+  state: GameState,
+  player: number,
+  modes: TrumpMode[],
+): { mode: TrumpMode; est: number; read: AuctionRead } {
+  const read = readAuction(state, player);
+  const hand = state.hands[player];
+  let best: { mode: TrumpMode; est: number } = { mode: modes[0], est: -Infinity };
+  for (const m of modes) {
+    const est = estimateWithAuction(hand, m, read);
+    if (est > best.est) best = { mode: m, est };
+  }
+  return { ...best, read };
+}
+
 // --- Décision d'enchère -----------------------------------------------------
 
 export function aiBid(state: GameState, player: number): BidDecision {
@@ -124,7 +190,8 @@ export function aiBid(state: GameState, player: number): BidDecision {
   const strong = level === "hard" || level === "expert";
   const hand = state.hands[player];
   const modes = availableModes(state.settings);
-  const { mode, est: rawEst } = bestContract(hand, modes);
+  // Choix du contrat À LA LUMIÈRE DES ANNONCES déjà entendues (cf. estimateWithAuction).
+  const { mode, est: rawEst } = bestContractAuction(state, player, modes);
 
   // Bruit selon le niveau. Biaisé vers le BAS pour les niveaux faibles : ils
   // évaluent mal et surtout sous-estiment / hésitent (ils ne doivent pas
@@ -526,12 +593,55 @@ function inferVoids(state: GameState): Record<number, Set<Suit>> {
   return voids;
 }
 
-/** Distribue les cartes inconnues aux autres joueurs (tailles + coupes respectées). */
+/** Indices d'enchères qui orientent le placement des cartes inconnues. */
+interface PlacementBias {
+  taker: number; // preneur du contrat
+  trump: Suit | null; // couleur d'atout (null si SA/TA)
+  bidSuit: Record<number, Set<Suit>>; // couleurs annoncées par chaque joueur
+}
+
+/** Reconstruit, depuis les enchères, qui a annoncé quoi (pour placer les cartes). */
+function placementBias(state: GameState): PlacementBias {
+  const bidSuit: Record<number, Set<Suit>> = { 0: new Set(), 1: new Set(), 2: new Set(), 3: new Set() };
+  for (const e of state.bidHistory) {
+    if (e.kind !== "bid" || e.mode == null) continue;
+    if (e.mode === "NT" || e.mode === "AT") continue;
+    bidSuit[e.player].add(e.mode);
+  }
+  const mode = state.contract?.mode;
+  const trump = mode && mode !== "NT" && mode !== "AT" ? (mode as Suit) : null;
+  return { taker: state.contract?.taker ?? -1, trump, bidSuit };
+}
+
+/** Biais de vraisemblance pour attribuer `card` au joueur `p` (annonces lues). */
+function cardBias(card: Card, p: number, b: PlacementBias): number {
+  let bias = 0;
+  if (b.trump && card.suit === b.trump) {
+    // Le preneur a annoncé l'atout : il tient très probablement V/9/As d'atout.
+    if (p === b.taker) {
+      if (card.rank === "J") bias += 16;
+      else if (card.rank === "9") bias += 10;
+      else if (card.rank === "A") bias += 5;
+      else bias += 2;
+    } else if (card.rank === "J" || card.rank === "9") {
+      bias -= 7; // un gros atout chez un défenseur est peu probable
+    }
+  }
+  // Une couleur annoncée par p ⇒ il y est fort (honneurs plus probables chez lui).
+  if (b.bidSuit[p]?.has(card.suit) && (card.rank === "A" || card.rank === "10" || card.rank === "K")) {
+    bias += 4;
+  }
+  return bias;
+}
+
+/** Distribue les cartes inconnues aux autres joueurs (tailles + coupes respectées,
+ *  placement orienté par les annonces lues dans les enchères). */
 function sampleWorld(
   state: GameState,
   me: number,
   voids: Record<number, Set<Suit>>,
   rng: Rng,
+  bias: PlacementBias,
 ): Card[][] {
   const myHand = state.hands[me];
   const seen = new Set<string>();
@@ -567,9 +677,19 @@ function sampleWorld(
         break;
       }
       const [card] = remaining.splice(pick, 1);
-      pickCands.sort((a, b) => left[b] - left[a]); // au joueur ayant le plus de place
-      hands[pickCands[0]].push(card);
-      left[pickCands[0]]--;
+      // Choix du joueur : la place disponible reste dominante (faisabilité du
+      // mélange), pondérée par la vraisemblance issue des annonces + un peu d'aléa.
+      let bestP = pickCands[0];
+      let bestScore = -Infinity;
+      for (const p of pickCands) {
+        const score = left[p] * 3 + cardBias(card, p, bias) + rng() * 2;
+        if (score > bestScore) {
+          bestScore = score;
+          bestP = p;
+        }
+      }
+      hands[bestP].push(card);
+      left[bestP]--;
     }
     if (ok && others.every((p) => left[p] === 0)) return hands;
   }
@@ -597,10 +717,11 @@ function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number):
   const me = state.current;
   const myTeam = teamOf(me);
   const voids = inferVoids(state);
+  const bias = placementBias(state);
   const scores = new Array(legal.length).fill(0);
 
   for (let s = 0; s < samples; s++) {
-    const sampled = sampleWorld(state, me, voids, rng);
+    const sampled = sampleWorld(state, me, voids, rng, bias);
     // dealtHands (mains initiales) = mains restantes échantillonnées + cartes déjà
     // jouées par chaque joueur, sinon la belote au décompte serait biaisée.
     const dealtHands = sampled.map((h) => [...h]);

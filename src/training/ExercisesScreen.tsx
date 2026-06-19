@@ -6,6 +6,7 @@ import { PlayingCard, suitColorClassDark } from "../components/Card";
 import { modeLabel } from "../components/Table";
 import { Card, TrumpMode } from "../engine/cards";
 import {
+  AuctionLine,
   BidExercise,
   BidOption,
   PlayExercise,
@@ -70,7 +71,10 @@ function BidTrainer() {
 
   return (
     <div>
-      <p className="mb-2 text-sm text-white/70">Votre main — quelle enchère ?</p>
+      {ex.auction.length > 0 && <AuctionRecap auction={ex.auction} fourColors={settings.fourColors} />}
+      <p className="mb-2 text-sm text-white/70">
+        {ex.auction.length > 0 ? "À vous de parler — quelle enchère ?" : "Vous ouvrez — quelle enchère ?"}
+      </p>
       <div className="mb-4 flex flex-wrap justify-center gap-1">
         {ex.hand.map((c) => (
           <PlayingCard key={c.id} card={c} size="md" />
@@ -104,6 +108,37 @@ function ModeSym({ mode, fourColors }: { mode: TrumpMode; fourColors: boolean })
   const m = modeLabel(mode);
   if (!m.suit) return <span>{m.text}</span>;
   return <span className={suitColorClassDark(m.suit, fourColors)}>{m.text}</span>;
+}
+
+/** Rappel de la séquence d'enchères déjà prononcée (fausses enchères). */
+function AuctionRecap({ auction, fourColors }: { auction: AuctionLine[]; fourColors: boolean }) {
+  return (
+    <div className="mb-3 rounded-lg bg-black/30 p-2.5">
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/45">
+        Enchères en cours
+      </p>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+        {auction.map((l, i) => (
+          <span key={i} className="tabular-nums">
+            <span className={l.partner ? "text-yellow-300" : "text-white/60"}>{l.name}</span>{" "}
+            {l.value === "passe" ? (
+              <span className="text-white/45">passe</span>
+            ) : (
+              <b>
+                {l.value}
+                {l.mode ? (
+                  <>
+                    {" "}
+                    <ModeSym mode={l.mode} fourColors={fourColors} />
+                  </>
+                ) : null}
+              </b>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function EstimateBar({

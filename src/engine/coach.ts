@@ -9,7 +9,7 @@ import {
   availableModes,
   legalForCurrent,
 } from "./game";
-import { aiPlay, bestContract, estimateForMode } from "./ai";
+import { aiPlay, bestContractAuction, estimateForMode, readAuction } from "./ai";
 import { beats, partnerIsWinning, winningIndex } from "./rules";
 import { teamOf } from "./scoring";
 import { SUIT_LABEL } from "./cards";
@@ -106,7 +106,10 @@ export interface BidAdvice {
 export function coachBid(state: GameState, player: number): BidAdvice {
   const hand = state.hands[player];
   const modes = availableModes(state.settings);
-  const { mode, est } = bestContract(hand, modes);
+  // Évaluation qui LIT les annonces déjà faites (dévalue la couleur prise par
+  // l'adversaire, tient compte d'un partenaire fort, etc.).
+  const { mode, est } = bestContractAuction(state, player, modes);
+  const read = readAuction(state, player);
   const estimate = Math.round(est);
 
   const standingVal = state.standing?.value ?? 0;
@@ -115,16 +118,44 @@ export function coachBid(state: GameState, player: number): BidAdvice {
     : false;
   const minToBid = standingIsPartner ? standingVal + 20 : standingVal + 10;
 
-  let target = Math.max(80, Math.min(160, Math.round(est / 10) * 10));
+  // Indices de lecture des enchères, ajoutés à l'explication.
+  const auctionHint = readHint(read, mode, standingIsPartner, state.standing?.value ?? 0);
 
-  if (est >= 80 && target >= minToBid && !state.standing?.capot) {
+  let target = Math.max(80, Math.min(160, Math.round(est / 10) * 10));
+  if (target < minToBid) target = minToBid; // pour annoncer il faut dépasser l'enchère en cours
+
+  // Convention « 100 fort » : le partenaire a ouvert à 80 dans une couleur, et on
+  // a Valet + 9 de cette couleur → on relance à 100.
+  if (
+    state.standing &&
+    !state.standing.capot &&
+    state.standing.value === 80 &&
+    standingIsPartner &&
+    (read.partnerSuit === "S" || read.partnerSuit === "H" || read.partnerSuit === "D" || read.partnerSuit === "C")
+  ) {
+    const tr = read.partnerSuit;
+    const hasJ = hand.some((c) => c.suit === tr && c.rank === "J");
+    const has9 = hand.some((c) => c.suit === tr && c.rank === "9");
+    if (hasJ && has9) {
+      return {
+        action: { action: "bid", value: 100, mode: tr },
+        estimate,
+        mode: tr,
+        reason:
+          `Ton partenaire a ouvert à 80 ${modeLabelText(tr)} et tu as le Valet ET le 9 de sa ` +
+          `couleur : relance à 100 (« 100 fort »), c'est un soutien décisif.`,
+      };
+    }
+  }
+
+  if (est >= 80 && target >= minToBid && target <= 160 && !state.standing?.capot) {
     return {
       action: { action: "bid", value: target, mode },
       estimate,
       mode,
       reason:
         `Ta main vaut ~${estimate} points à ${modeLabelText(mode)} : tu peux annoncer ` +
-        `${target}. ${strengthHint(hand, mode)}`,
+        `${target}. ${strengthHint(hand, mode)}${auctionHint}`,
     };
   }
   return {
@@ -132,9 +163,31 @@ export function coachBid(state: GameState, player: number): BidAdvice {
     estimate,
     mode,
     reason:
-      `Ta meilleure couleur (${modeLabelText(mode)}) ne vaut que ~${estimate} points : ` +
-      `c'est insuffisant pour annoncer 80, tu passes.`,
+      `Au mieux ta main ne vaut que ~${estimate} points (${modeLabelText(mode)})` +
+      `${auctionHint} : insuffisant pour ${state.standing ? "surenchérir" : "annoncer 80"}, tu passes.`,
   };
+}
+
+/** Phrase d'explication sur la lecture des annonces (vide si aucune annonce). */
+function readHint(
+  read: ReturnType<typeof readAuction>,
+  mode: TrumpMode,
+  standingIsPartner: boolean,
+  standingVal: number,
+): string {
+  const bits: string[] = [];
+  const oppInMode = read.oppBestInSuit[mode] ?? 0;
+  if (oppInMode > 0) {
+    bits.push(`un adversaire a déjà pris à ${modeLabelText(mode)} (il tient les gros atouts)`);
+  } else if (read.oppBestAny > 0) {
+    bits.push(`les adversaires ont annoncé jusqu'à ${read.oppBestAny} (moins de points pour ton camp)`);
+  }
+  if (standingIsPartner && standingVal > 0) {
+    bits.push(`c'est ton partenaire qui tient l'enchère à ${standingVal} : ne le surenchéris que si tu apportes vraiment`);
+  } else if (read.partnerSuit && read.partnerSuit === mode) {
+    bits.push(`ton partenaire soutient ${modeLabelText(mode)}`);
+  }
+  return bits.length ? ` À la lecture des enchères : ${bits.join(" ; ")}.` : "";
 }
 
 function modeLabelText(mode: TrumpMode): string {
