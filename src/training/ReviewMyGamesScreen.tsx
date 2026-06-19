@@ -100,7 +100,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
       role="tab"
       aria-selected={active}
       className={[
-        "flex-1 rounded-md py-2 text-sm font-semibold transition",
+        "min-h-11 flex-1 rounded-md py-2.5 text-sm font-semibold transition",
         active ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
       ].join(" ")}
     >
@@ -131,7 +131,7 @@ function ExportButton({ rec }: { rec: DealRecord }) {
   return (
     <button
       onClick={onExport}
-      className="shrink-0 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20"
+      className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-white/10 px-3 text-xs font-semibold hover:bg-white/20"
     >
       {done ? "✅ Copié !" : "📋 Exporter"}
     </button>
@@ -282,12 +282,23 @@ function PointView({ point }: { point: ReviewPoint }) {
                 <div
                   key={c.id}
                   className={[
-                    "rounded-lg",
+                    "relative rounded-lg",
                     isBest ? "ring-2 ring-green-400" : "",
                     isActual && !isBest ? "ring-2 ring-red-500" : "",
                   ].join(" ")}
                 >
                   <PlayingCard card={c} size="sm" />
+                  {/* Marqueur de forme (en plus de la couleur) pour les daltoniens. */}
+                  {isBest && (
+                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-green-500 text-[10px] font-bold text-white">
+                      ✓
+                    </span>
+                  )}
+                  {isActual && !isBest && (
+                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                      ✗
+                    </span>
+                  )}
                 </div>
               );
             })}

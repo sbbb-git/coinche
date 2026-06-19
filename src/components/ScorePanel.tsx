@@ -122,15 +122,22 @@ function DealProgress({
 
   return (
     <div className="mx-auto mt-1.5 max-w-md rounded-lg bg-black/30 px-3 py-1.5">
-      <div className="flex items-center justify-between text-[11px] text-white/70">
-        <span>
-          Manche · {teamName(takerTeam)} <span className="text-white/50">(preneur)</span>
+      <div className="flex items-center justify-between text-[11px]">
+        <span className="font-semibold uppercase tracking-wide text-white/85">
+          Manche · {teamName(takerTeam)} <span className="font-normal text-white/50">(preneur)</span>
         </span>
-        <span className="tabular-nums">
+        <span className="tabular-nums text-white/70">
           <b className={made ? "text-emerald-300" : "text-yellow-300"}>{taken}</b> / {target}
         </span>
       </div>
-      <div className="my-1 h-1.5 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="my-1 h-1.5 overflow-hidden rounded-full bg-white/10"
+        role="progressbar"
+        aria-valuenow={taken}
+        aria-valuemin={0}
+        aria-valuemax={target}
+        aria-label="Progression du preneur vers son contrat"
+      >
         <div
           className={`h-full transition-all ${made ? "bg-emerald-400" : "bg-yellow-400"}`}
           style={{ width: `${pct}%` }}

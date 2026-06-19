@@ -296,6 +296,7 @@ export function aiBid(state: GameState, player: number): BidDecision {
   // encore annoncé soi-même dans cette donne, et tant que l'enchère reste basse.
   const iHaveBid = state.bidHistory.some((e) => e.player === player && e.kind === "bid");
   if (
+    level !== "easy" &&
     state.standing &&
     !state.standing.capot &&
     !state.standing.generale &&

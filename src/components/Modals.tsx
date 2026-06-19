@@ -96,7 +96,7 @@ export function DealResultModal() {
 
       <button
         onClick={cont}
-        className="mt-5 w-full rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
+        className="mt-5 min-h-11 w-full rounded-xl bg-yellow-400 py-3 font-bold text-emerald-950 hover:bg-yellow-300"
       >
         Donne suivante
       </button>
@@ -380,9 +380,9 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
 
 function Row({ label, value, bold }: { label: string; value: string | number; bold?: boolean }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-white/70">{label}</span>
-      <span className={bold ? "font-bold tabular-nums" : "tabular-nums"}>{value}</span>
+    <div className="flex justify-between gap-2">
+      <span className="min-w-0 truncate text-white/70">{label}</span>
+      <span className={bold ? "shrink-0 font-bold tabular-nums" : "shrink-0 tabular-nums"}>{value}</span>
     </div>
   );
 }

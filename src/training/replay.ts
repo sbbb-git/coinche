@@ -108,12 +108,13 @@ export function fullReplay(rec: DealRecord): FullReplay {
 
   const mode = rec.contract?.mode ?? "S";
   const n = g.completedTricks.length;
+  const complete = n === 8; // 10 de der seulement si la donne est réellement terminée
   const tricks: ReplayTrick[] = g.completedTricks.map((t, i) => ({
     played: t.played.map((p) => ({ player: p.player, card: p.card })),
     winner: t.winner,
     team: t.winnerTeam,
     points: t.cards.reduce((s, c) => s + points(c, mode), 0),
-    lastDix: i === n - 1,
+    lastDix: complete && i === n - 1,
   }));
 
   const cumul: [number, number][] = [];

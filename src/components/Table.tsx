@@ -98,20 +98,22 @@ function TrickArea({
       <div className="relative w-full h-full">
         {trick.map((p) => {
           const isWinner = p.player === winnerPlayer;
+          // En cours : anneau blanc discret (« tient le pli »). Pli complet :
+          // anneau jaune marqué + agrandissement + badge nominatif (« remporte »).
+          const ringCls = isWinner
+            ? complete
+              ? "ring-2 ring-yellow-400 ring-offset-1 ring-offset-emerald-900 scale-110"
+              : "ring-2 ring-white/70"
+            : complete
+              ? "opacity-50 saturate-50"
+              : "";
           return (
             <div key={p.player} className={`absolute ${TRICK_POS[p.player]} animate-pop`}>
-              <div
-                className={[
-                  "relative rounded-lg transition",
-                  isWinner ? "ring-2 ring-yellow-400 ring-offset-1 ring-offset-emerald-900" : "",
-                  complete && !isWinner ? "opacity-50 saturate-50" : "",
-                  complete && isWinner ? "scale-110" : "",
-                ].join(" ")}
-              >
+              <div className={["relative rounded-lg transition", ringCls].join(" ")}>
                 <PlayingCard card={p.card} size="md" />
               </div>
               {complete && isWinner && (
-                <div className="absolute -top-5 left-1/2 -translate-x-1/2 animate-pop whitespace-nowrap rounded-full bg-yellow-400 px-2 py-0.5 text-[11px] font-bold text-emerald-950 shadow">
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 max-w-24 truncate animate-pop whitespace-nowrap rounded-full bg-yellow-400 px-2 py-0.5 text-[11px] font-bold text-emerald-950 shadow">
                   ✓ {names[p.player]}
                 </div>
               )}
