@@ -443,7 +443,12 @@ function hashState(state: GameState): number {
     }
   };
   add(String(state.current));
-  add(state.contract?.mode ?? "");
+  if (state.contract) {
+    add(state.contract.mode);
+    add(String(state.contract.value));
+    add(String(state.contract.taker));
+    add(String(state.contract.coinche));
+  }
   for (const c of state.hands[state.current]) add(c.id);
   for (const p of state.trick) add(p.card.id + p.player);
   add(String(state.completedTricks.length));
@@ -491,27 +496,33 @@ function sampleWorld(
   const need: Record<number, number> = {};
   for (const p of others) need[p] = state.hands[p].length;
 
-  for (let attempt = 0; attempt < 24; attempt++) {
-    // Place d'abord les cartes les plus contraintes (peu de joueurs éligibles).
-    const pool = shuffleRng(unknown, rng).sort(
-      (a, b) =>
-        others.filter((p) => !voids[p].has(a.suit)).length -
-        others.filter((p) => !voids[p].has(b.suit)).length,
-    );
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const remaining = shuffleRng(unknown, rng);
     const left = { ...need };
     const hands: Card[][] = [[], [], [], []];
     hands[me] = [...myHand];
     let ok = true;
-    for (const card of pool) {
-      const cands = others.filter((p) => left[p] > 0 && !voids[p].has(card.suit));
-      if (cands.length === 0) {
+    while (remaining.length > 0) {
+      // À chaque étape, place la carte la plus contrainte (moins de joueurs éligibles).
+      let pick = -1;
+      let pickCands: number[] = [];
+      let fewest = 99;
+      for (let i = 0; i < remaining.length; i++) {
+        const cands = others.filter((p) => left[p] > 0 && !voids[p].has(remaining[i].suit));
+        if (cands.length < fewest) {
+          fewest = cands.length;
+          pick = i;
+          pickCands = cands;
+        }
+      }
+      if (fewest === 0) {
         ok = false;
         break;
       }
-      // au joueur qui a le plus de place (équilibrage)
-      cands.sort((a, b) => left[b] - left[a]);
-      hands[cands[0]].push(card);
-      left[cands[0]]--;
+      const [card] = remaining.splice(pick, 1);
+      pickCands.sort((a, b) => left[b] - left[a]); // au joueur ayant le plus de place
+      hands[pickCands[0]].push(card);
+      left[pickCands[0]]--;
     }
     if (ok && others.every((p) => left[p] === 0)) return hands;
   }
