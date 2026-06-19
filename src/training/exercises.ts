@@ -97,7 +97,10 @@ function runBidding(g: GameState): GameState {
   return g;
 }
 
-export function genPlayExercise(settings: Settings): PlayExercise {
+export function genPlayExercise(userSettings: Settings): PlayExercise {
+  // Remplissage des IA en "hard" (rapide) même si l'utilisateur joue en Expert
+  // (l'Expert/PIMC est coûteux) ; le coach, lui, évalue toujours en expert.
+  const settings: Settings = { ...userSettings, aiLevel: "hard" };
   // À défaut d'un vrai choix, on garde le premier coup (même forcé) rencontré,
   // pour toujours renvoyer une situation valide (jamais de contrat nul).
   let fallback: PlayExercise | null = null;

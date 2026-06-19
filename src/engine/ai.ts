@@ -3,6 +3,7 @@
 import { Card, Suit, SUITS, TrumpMode, freshDeck, isTrump, points, strength } from "./cards";
 import {
   GameState,
+  applyPlay,
   availableModes,
   canBid,
   canCoinche,
@@ -210,13 +211,17 @@ function shouldCoinche(
 
 // --- Choix d'une carte ------------------------------------------------------
 
-export function aiPlay(state: GameState): Card {
+export function aiPlay(state: GameState, deterministic = false): Card {
   const legal = legalForCurrent(state);
   if (legal.length === 1) return legal[0];
   const level = state.settings.aiLevel;
   if (level === "easy") return legal[Math.floor(rnd() * legal.length)];
-  const hard = level === "hard" || level === "expert";
-  return heuristicPlay(state, legal, hard);
+  if (level === "medium") return heuristicPlay(state, legal, false);
+  if (level === "hard") return heuristicPlay(state, legal, true);
+  // Expert : simulation Monte-Carlo (PIMC). Seedé => déterministe pour le coach.
+  const rng = deterministic ? mulberry32(hashState(state)) : Math.random;
+  const samples = deterministic ? 24 : 16;
+  return expertPlay(state, legal, rng, samples);
 }
 
 function lowest(cards: Card[], mode: TrumpMode): Card {
@@ -412,4 +417,142 @@ function seenCards(state: GameState): Set<string> {
   for (const p of state.trick) seen.add(p.card.id);
   for (const c of state.hands[state.current]) seen.add(c.id);
   return seen;
+}
+
+// --- Niveau Expert : Monte-Carlo à information imparfaite (PIMC) -------------
+
+type Rng = () => number;
+
+function mulberry32(seed: number): Rng {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Empreinte stable d'un état (pour un coach déterministe). */
+function hashState(state: GameState): number {
+  let h = 2166136261;
+  const add = (s: string) => {
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+  };
+  add(String(state.current));
+  add(state.contract?.mode ?? "");
+  for (const c of state.hands[state.current]) add(c.id);
+  for (const p of state.trick) add(p.card.id + p.player);
+  add(String(state.completedTricks.length));
+  return h >>> 0;
+}
+
+function shuffleRng<T>(arr: T[], rng: Rng): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Coupes constatées : un joueur qui n'a pas fourni est void dans la couleur demandée. */
+function inferVoids(state: GameState): Record<number, Set<Suit>> {
+  const voids: Record<number, Set<Suit>> = { 0: new Set(), 1: new Set(), 2: new Set(), 3: new Set() };
+  const scan = (played: PlayedCard[]) => {
+    if (played.length === 0) return;
+    const led = played[0].card.suit;
+    for (let i = 1; i < played.length; i++) {
+      if (played[i].card.suit !== led) voids[played[i].player].add(led);
+    }
+  };
+  for (const t of state.completedTricks) scan(t.played);
+  scan(state.trick);
+  return voids;
+}
+
+/** Distribue les cartes inconnues aux autres joueurs (tailles + coupes respectées). */
+function sampleWorld(
+  state: GameState,
+  me: number,
+  voids: Record<number, Set<Suit>>,
+  rng: Rng,
+): Card[][] {
+  const myHand = state.hands[me];
+  const seen = new Set<string>();
+  for (const t of state.completedTricks) for (const c of t.cards) seen.add(c.id);
+  for (const p of state.trick) seen.add(p.card.id);
+  for (const c of myHand) seen.add(c.id);
+  const unknown = allCards().filter((c) => !seen.has(c.id));
+  const others = [0, 1, 2, 3].filter((p) => p !== me);
+  const need: Record<number, number> = {};
+  for (const p of others) need[p] = state.hands[p].length;
+
+  for (let attempt = 0; attempt < 24; attempt++) {
+    // Place d'abord les cartes les plus contraintes (peu de joueurs éligibles).
+    const pool = shuffleRng(unknown, rng).sort(
+      (a, b) =>
+        others.filter((p) => !voids[p].has(a.suit)).length -
+        others.filter((p) => !voids[p].has(b.suit)).length,
+    );
+    const left = { ...need };
+    const hands: Card[][] = [[], [], [], []];
+    hands[me] = [...myHand];
+    let ok = true;
+    for (const card of pool) {
+      const cands = others.filter((p) => left[p] > 0 && !voids[p].has(card.suit));
+      if (cands.length === 0) {
+        ok = false;
+        break;
+      }
+      // au joueur qui a le plus de place (équilibrage)
+      cands.sort((a, b) => left[b] - left[a]);
+      hands[cands[0]].push(card);
+      left[cands[0]]--;
+    }
+    if (ok && others.every((p) => left[p] === 0)) return hands;
+  }
+  // Repli : on ignore les coupes.
+  const pool = shuffleRng(unknown, rng);
+  const hands: Card[][] = [[], [], [], []];
+  hands[me] = [...myHand];
+  let idx = 0;
+  for (const p of others) for (let k = 0; k < need[p]; k++) hands[p].push(pool[idx++]);
+  return hands;
+}
+
+/** Joue la donne jusqu'au bout avec une politique gloutonne rapide. */
+function rollout(state: GameState): GameState {
+  let g = state;
+  let guard = 0;
+  while (g.phase === "playing" && guard++ < 40) {
+    const legal = legalForCurrent(g);
+    g = applyPlay(g, legal.length === 1 ? legal[0] : heuristicPlay(g, legal, false));
+  }
+  return g;
+}
+
+function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number): Card {
+  const me = state.current;
+  const myTeam = teamOf(me);
+  const voids = inferVoids(state);
+  const scores = new Array(legal.length).fill(0);
+
+  for (let s = 0; s < samples; s++) {
+    const world: GameState = { ...state, hands: sampleWorld(state, me, voids, rng) };
+    // Mêmes cartes échantillonnées pour tous les candidats (réduction de variance).
+    for (let i = 0; i < legal.length; i++) {
+      const after = applyPlay(world, legal[i]);
+      const end = after.phase === "playing" ? rollout(after) : after;
+      const r = end.lastResult;
+      if (r) scores[i] += r.scores[myTeam] - r.scores[(1 - myTeam) as 0 | 1];
+    }
+  }
+
+  let best = 0;
+  for (let i = 1; i < legal.length; i++) if (scores[i] > scores[best]) best = i;
+  return legal[best];
 }

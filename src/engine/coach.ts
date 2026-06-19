@@ -43,7 +43,7 @@ export interface PlayAdvice {
 
 export function coachPlay(state: GameState): PlayAdvice {
   const cs = asCoach(state);
-  const best = aiPlay(cs);
+  const best = aiPlay(cs, true); // déterministe : même conseil pour un même état
   return { best, reason: playReason(cs, best) };
 }
 
