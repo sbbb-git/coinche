@@ -1,4 +1,5 @@
 import { ScreenShell } from "../app/ScreenShell";
+import { TrainTabs } from "./TrainTabs";
 
 interface Guide {
   q: string; // situation
@@ -125,7 +126,8 @@ const SECTIONS: Section[] = [
 
 export function GuidesScreen() {
   return (
-    <ScreenShell title="Guides">
+    <ScreenShell title="S'entraîner">
+      <TrainTabs current="guides" />
       <p className="mb-3 text-sm text-white/70">
         Les réflexes essentiels, situation par situation. Enchères d'abord, puis jeu de la carte.
       </p>

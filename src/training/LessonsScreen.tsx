@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
+import { TrainTabs } from "./TrainTabs";
 import { useNav } from "../app/nav";
 import { storage } from "../storage";
 import { PlayingCard } from "../components/Card";
@@ -27,7 +28,8 @@ export function LessonsScreen() {
   }
 
   return (
-    <ScreenShell title="Leçons">
+    <ScreenShell title="S'entraîner">
+      <TrainTabs current="lessons" />
       <p className="mb-3 text-sm text-white/70">
         Un parcours progressif, des règles aux conventions. {done.length}/{LESSONS.length} terminées.
       </p>

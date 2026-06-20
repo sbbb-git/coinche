@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
+import { TrainTabs } from "./TrainTabs";
 import { useGame } from "../state/store";
 import { useStats } from "../state/stats";
 import { PlayingCard, suitColorClassDark } from "../components/Card";
@@ -21,6 +22,7 @@ export function ExercisesScreen() {
   const [kind, setKind] = useState<Kind>("bid");
   return (
     <ScreenShell title="S'entraîner">
+      <TrainTabs current="exercises" />
       <div role="tablist" aria-label="Type d'exercice" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
         <Tab active={kind === "bid"} onClick={() => setKind("bid")}>
           🂠 Enchères
