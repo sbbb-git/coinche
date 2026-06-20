@@ -47,11 +47,12 @@ describe("persistance locale", () => {
   });
 
   it("stats : aller-retour", () => {
-    storage.saveStats({ bid: { done: 3, correct: 2 }, play: { done: 1, correct: 1 }, streak: 2, bestStreak: 5, rating: 1340 });
+    storage.saveStats({ bid: { done: 3, correct: 2 }, play: { done: 1, correct: 1 }, streak: 2, bestStreak: 5, rating: 1340, ratingHistory: [800, 1340] });
     const s = storage.loadStats();
     expect(s.bid.done).toBe(3);
     expect(s.bestStreak).toBe(5);
     expect(s.rating).toBe(1340);
+    expect(s.ratingHistory).toEqual([800, 1340]);
   });
 
   it("profil local : aller-retour + défaut", () => {

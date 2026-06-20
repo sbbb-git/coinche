@@ -225,8 +225,10 @@ function DecisionsView({ review }: { review: DealReview }) {
   }
 
   const p = review.points[i];
+  const acc = Math.round((100 * review.goodCount) / review.points.length);
   return (
     <div>
+      <AccuracyBanner pct={acc} good={review.goodCount} total={review.points.length} />
       <div className="mb-2 flex items-center justify-between">
         <span className="rounded-full bg-black/40 px-3 py-1 text-sm font-semibold">
           {p.phase === "bid" ? "🂠 Enchère" : "🃏 Jeu"} · choix {i + 1}/{review.points.length}
@@ -254,6 +256,28 @@ function DecisionsView({ review }: { review: DealReview }) {
           Suivant →
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Bandeau de précision façon « Game Review » de Chess.com. */
+function AccuracyBanner({ pct, good, total }: { pct: number; good: number; total: number }) {
+  const { label, color } =
+    pct >= 90
+      ? { label: "Excellent", color: "text-green-400" }
+      : pct >= 75
+        ? { label: "Solide", color: "text-emerald-300" }
+        : pct >= 55
+          ? { label: "Correct", color: "text-yellow-300" }
+          : { label: "À retravailler", color: "text-orange-300" };
+  return (
+    <div className="mb-3 flex items-center justify-between rounded-2xl bg-gradient-to-br from-sky-900/70 to-emerald-900/60 p-4 ring-1 ring-white/10">
+      <div>
+        <p className="text-xs uppercase tracking-wide text-white/55">Précision de tes choix</p>
+        <p className={`text-lg font-bold ${color}`}>{label}</p>
+        <p className="text-xs text-white/55">{good}/{total} coups optimaux</p>
+      </div>
+      <div className={`text-4xl font-black tabular-nums ${color}`}>{pct}%</div>
     </div>
   );
 }
@@ -320,7 +344,7 @@ function PointView({ point }: { point: ReviewPoint }) {
       )}
 
       <div className="rounded-xl bg-emerald-900/70 p-3 ring-1 ring-emerald-700">
-        <p className="font-bold">{point.good ? "✅ Bon choix" : "❌ À revoir"}</p>
+        <p className="font-bold">{point.good ? "✅ Meilleur coup" : "⚠️ Imprécision"}</p>
         <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-lg bg-white/5 p-2">
             <div className="text-white/60">Tu as joué</div>

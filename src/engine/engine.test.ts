@@ -219,7 +219,7 @@ describe("décompte d'une donne", () => {
 
   it("belote à Tout-Atout : comptée uniquement si l'option est active", () => {
     const mk = () => ({
-      trickWinners: [1, 1, 1, 1, 1, 1, 1, 1],
+      trickWinners: [1, 1, 1, 1, 1, 1, 1, 1] as (0 | 1)[],
       tricks: [[], [], [], [], [], [], [], []] as Card[][],
       hands: [c(["S", "K"], ["S", "Q"]), [], [], []], // R+D de pique au siège 0
     });

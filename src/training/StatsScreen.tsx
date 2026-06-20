@@ -36,6 +36,7 @@ export function StatsScreen() {
         <p className="mt-1 text-right text-[11px] text-white/55">
           {lvl.max < 3000 ? `${lvl.max - stats.rating} pts avant le palier suivant` : "Niveau maximal"}
         </p>
+        {stats.ratingHistory.length >= 2 && <RatingCurve history={stats.ratingHistory} />}
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3">
@@ -89,6 +90,38 @@ export function StatsScreen() {
         </button>
       )}
     </ScreenShell>
+  );
+}
+
+/** Courbe d'évolution du niveau (façon graphe de rating Chess.com). */
+function RatingCurve({ history }: { history: number[] }) {
+  const W = 300;
+  const H = 56;
+  const pad = 4;
+  const min = Math.min(...history);
+  const max = Math.max(...history);
+  const span = Math.max(1, max - min);
+  const n = history.length;
+  const x = (i: number) => pad + (i * (W - 2 * pad)) / (n - 1);
+  const y = (v: number) => pad + (H - 2 * pad) * (1 - (v - min) / span);
+  const pts = history.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const up = history[n - 1] >= history[0];
+  const stroke = up ? "#4ade80" : "#f87171";
+  const area = `${pad},${H - pad} ${pts} ${(W - pad).toFixed(1)},${H - pad}`;
+  return (
+    <div className="mt-3">
+      <p className="mb-1 text-[11px] text-white/55">Évolution du niveau ({n} derniers)</p>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="h-14 w-full"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={`Courbe de progression, de ${history[0]} à ${history[n - 1]} points`}
+      >
+        <polygon points={area} fill={stroke} opacity={0.12} />
+        <polyline points={pts} fill="none" stroke={stroke} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+    </div>
   );
 }
 

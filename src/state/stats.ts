@@ -23,12 +23,15 @@ export const useStats = create<StatsStore>((set, get) => ({
   record: (kind, correct) => {
     const prev = get().stats;
     const streak = correct ? prev.streak + 1 : 0;
+    const rating = nextRating(prev.rating, correct);
     const next: TrainingStats = {
       bid: { ...prev.bid },
       play: { ...prev.play },
       streak,
       bestStreak: Math.max(prev.bestStreak, streak),
-      rating: nextRating(prev.rating, correct),
+      rating,
+      // Courbe de progression (façon Chess.com), bornée aux 60 derniers points.
+      ratingHistory: [...prev.ratingHistory, rating].slice(-60),
     };
     next[kind] = { done: prev[kind].done + 1, correct: prev[kind].correct + (correct ? 1 : 0) };
     storage.saveStats(next);
