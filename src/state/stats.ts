@@ -10,6 +10,15 @@ interface StatsStore {
 // Mise à jour du « niveau » façon Elo : on affronte un puzzle de difficulté fixe.
 // Un bon coup quand on est faible rapporte beaucoup ; une erreur quand on est fort
 // coûte cher. Bornes [100, 3000].
+function isoDay(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
 const PUZZLE_RATING = 1200;
 const K = 24;
 function nextRating(rating: number, correct: boolean): number {
@@ -24,6 +33,15 @@ export const useStats = create<StatsStore>((set, get) => ({
     const prev = get().stats;
     const streak = correct ? prev.streak + 1 : 0;
     const rating = nextRating(prev.rating, correct);
+    // Série de JOURS d'affilée (façon Chess.com) : +1 si nouveau jour consécutif,
+    // remise à 1 si un jour a été sauté.
+    const today = isoDay(new Date());
+    let dayStreak = prev.dayStreak;
+    let lastActive = prev.lastActive;
+    if (lastActive !== today) {
+      dayStreak = lastActive === isoDay(addDays(new Date(), -1)) ? prev.dayStreak + 1 : 1;
+      lastActive = today;
+    }
     const next: TrainingStats = {
       bid: { ...prev.bid },
       play: { ...prev.play },
@@ -32,6 +50,8 @@ export const useStats = create<StatsStore>((set, get) => ({
       rating,
       // Courbe de progression (façon Chess.com), bornée aux 60 derniers points.
       ratingHistory: [...prev.ratingHistory, rating].slice(-60),
+      dayStreak,
+      lastActive,
     };
     next[kind] = { done: prev[kind].done + 1, correct: prev[kind].correct + (correct ? 1 : 0) };
     storage.saveStats(next);

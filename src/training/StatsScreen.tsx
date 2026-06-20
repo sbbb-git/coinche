@@ -39,9 +39,10 @@ export function StatsScreen() {
         {stats.ratingHistory.length >= 2 && <RatingCurve history={stats.ratingHistory} />}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <Stat big label="Exercices faits" value={String(totalDone)} />
-        <Stat big label="Record de série" value={`🔥 ${stats.bestStreak}`} />
+      <div className="mt-3 grid grid-cols-3 gap-3">
+        <Stat big label="Exercices" value={String(totalDone)} />
+        <Stat big label="Jours d'affilée" value={`🔥 ${stats.dayStreak}`} />
+        <Stat big label="Record série" value={String(stats.bestStreak)} />
       </div>
 
       <Card title="🂠 Enchères">

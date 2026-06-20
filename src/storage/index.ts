@@ -28,6 +28,8 @@ export interface TrainingStats {
   bestStreak: number;
   rating: number; // niveau estimé façon Elo (départ 1000)
   ratingHistory: number[]; // historique du rating (courbe façon Chess.com)
+  dayStreak: number; // jours d'affilée avec au moins un exercice
+  lastActive: string; // dernier jour d'activité (AAAA-MM-JJ)
 }
 
 export const EMPTY_STATS: TrainingStats = {
@@ -37,6 +39,8 @@ export const EMPTY_STATS: TrainingStats = {
   bestStreak: 0,
   rating: 800, // on démarre « Débutant » et on progresse vers Amateur (1000+)
   ratingHistory: [],
+  dayStreak: 0,
+  lastActive: "",
 };
 
 export interface Storage {
@@ -104,6 +108,8 @@ class LocalStorage implements Storage {
         bestStreak: p.bestStreak ?? 0,
         rating: p.rating ?? EMPTY_STATS.rating,
         ratingHistory: Array.isArray(p.ratingHistory) ? p.ratingHistory.slice(-60) : [],
+        dayStreak: p.dayStreak ?? 0,
+        lastActive: p.lastActive ?? "",
       };
     } catch {
       return { ...EMPTY_STATS };

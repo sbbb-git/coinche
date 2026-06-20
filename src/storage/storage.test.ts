@@ -47,7 +47,7 @@ describe("persistance locale", () => {
   });
 
   it("stats : aller-retour", () => {
-    storage.saveStats({ bid: { done: 3, correct: 2 }, play: { done: 1, correct: 1 }, streak: 2, bestStreak: 5, rating: 1340, ratingHistory: [800, 1340] });
+    storage.saveStats({ bid: { done: 3, correct: 2 }, play: { done: 1, correct: 1 }, streak: 2, bestStreak: 5, rating: 1340, ratingHistory: [800, 1340], dayStreak: 4, lastActive: "2026-06-20" });
     const s = storage.loadStats();
     expect(s.bid.done).toBe(3);
     expect(s.bestStreak).toBe(5);
