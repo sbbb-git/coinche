@@ -1,6 +1,24 @@
 import { ScreenShell } from "./ScreenShell";
 import { useNav } from "./nav";
 import { APP_VERSION } from "../version";
+import { CONTACT_EMAIL, SITE_URL, storeUrl } from "../config";
+import { notify } from "../notify";
+
+function rateApp() {
+  const url = storeUrl();
+  if (url) window.open(url, "_blank", "noopener");
+  else notify.show("Merci 💛", "Bientôt sur les stores — ta note comptera !");
+}
+
+async function shareApp() {
+  const data = { title: "Coincheur", text: "Joue à la Coinche et progresse 🃏", url: SITE_URL };
+  try {
+    if (navigator.share) await navigator.share(data);
+    else await navigator.clipboard.writeText(`${data.text} ${SITE_URL}`);
+  } catch {
+    /* annulé */
+  }
+}
 
 export function AboutScreen() {
   const go = useNav((s) => s.go);
@@ -31,7 +49,20 @@ export function AboutScreen() {
         <Row onClick={() => go("lessons")}>🎓 Apprendre à jouer</Row>
         <Row onClick={() => go("guides")}>📖 Guides de stratégie</Row>
         <Row onClick={() => go("legal")}>📄 Confidentialité · CGU · Mentions</Row>
-        <Row href="https://sbbb-git.github.io/coinche/" external>🌐 Site web ↗</Row>
+        <Row href={SITE_URL} external>🌐 Site web ↗</Row>
+      </div>
+
+      <p className="mt-5 mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/45">
+        Soutenir l'app
+      </p>
+      <div className="space-y-2">
+        <Row onClick={rateApp}>⭐ Noter l'app</Row>
+        <Row onClick={shareApp}>📤 Partager Coincheur</Row>
+        {CONTACT_EMAIL && (
+          <Row href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Avis Coincheur")}`}>
+            ✉️ Nous écrire
+          </Row>
+        )}
       </div>
 
       <p className="mt-6 text-center text-[11px] text-white/40">

@@ -21,6 +21,7 @@ import { coachBid, coachPlay } from "../engine/coach";
 import { PlayedCard } from "../engine/rules";
 import { loadInitialSettings, storage } from "../storage";
 import { feedback } from "./feedback";
+import { review } from "../review";
 
 export const HUMAN = 0; // le joueur humain est toujours le siège 0 (en bas)
 
@@ -149,6 +150,7 @@ export const useGame = create<Store>((set, get) => {
         set({ game: next, overlayTrick: null });
         if (next.phase === "dealScored" || next.phase === "gameOver") {
           recordDeal(next);
+          if (next.phase === "gameOver") review.recordPlay(); // pour la demande de note
           const r = next.lastResult;
           if (r) (r.scores[0] >= r.scores[1] ? feedback.dealWon : feedback.dealLost)(prefs);
         } else {

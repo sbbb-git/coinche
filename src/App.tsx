@@ -14,6 +14,7 @@ import { AboutScreen } from "./app/AboutScreen";
 import { DailyScreen } from "./training/DailyScreen";
 import { InstallBanner } from "./components/InstallBanner";
 import { OfflineIndicator } from "./components/OfflineIndicator";
+import { RatePrompt } from "./components/RatePrompt";
 
 function CurrentView() {
   const view = useNav((s) => s.view);
@@ -59,6 +60,7 @@ export default function App() {
         <CurrentView />
       </div>
       <OfflineIndicator />
+      {view === "home" && <RatePrompt />}
     </div>
   );
 }

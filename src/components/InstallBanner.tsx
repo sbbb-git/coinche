@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
+import { APP_STORE_URL, PLAY_STORE_URL } from "../config";
 
 // Bannière « installer / télécharger l'app » affichée sur le web mobile (sauf
 // quand l'app tourne déjà en mode installé). Drive l'installation PWA, et
 // affichera les liens stores quand les apps natives seront publiées.
 
 const DISMISS_KEY = "coincheur.install.dismissed.v1";
-
-// Liens stores (à remplir quand les apps seront publiées).
-const APP_STORE_URL = ""; // ex: https://apps.apple.com/app/idXXXXXXXX
-const PLAY_STORE_URL = ""; // ex: https://play.google.com/store/apps/details?id=...
 
 interface BIPEvent extends Event {
   prompt: () => Promise<void>;
