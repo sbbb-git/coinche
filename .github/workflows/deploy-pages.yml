@@ -2,7 +2,7 @@ name: Déploiement GitHub Pages
 
 on:
   push:
-    branches: [claude/coinche-game-app-5es6j5, main]
+    branches: [main]
   workflow_dispatch:
 
 # Déploiement Pages NATIF (un seul run, plus de branche gh-pages ni de builder
