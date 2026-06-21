@@ -5,18 +5,20 @@ on:
     branches: [claude/coinche-game-app-5es6j5, main]
   workflow_dispatch:
 
-# Publication sur la branche gh-pages (méthode « Deploy from a branch »), qui ne
-# dépend PAS de l'environnement protégé github-pages : elle fonctionne donc
-# depuis n'importe quelle branche.
+# Déploiement Pages NATIF (un seul run, plus de branche gh-pages ni de builder
+# « pages-build-deployment » en double). `configure-pages` avec enablement bascule
+# automatiquement la source de Pages sur « GitHub Actions » (aucun réglage manuel).
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: pages-gh
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,12 +26,22 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - name: Configurer GitHub Pages (source = Actions)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - run: npm ci
       - run: npm run build
-      - name: Publier sur gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          # Évite que GitHub tente de traiter le site avec Jekyll.
-          enable_jekyll: false
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
