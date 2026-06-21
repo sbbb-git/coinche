@@ -11,6 +11,7 @@ import { StatsScreen } from "./training/StatsScreen";
 import { AccountScreen } from "./app/AccountScreen";
 import { LegalScreen } from "./app/LegalScreen";
 import { AboutScreen } from "./app/AboutScreen";
+import { DailyScreen } from "./training/DailyScreen";
 import { InstallBanner } from "./components/InstallBanner";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
@@ -40,6 +41,8 @@ function CurrentView() {
       return <LegalScreen />;
     case "about":
       return <AboutScreen />;
+    case "daily":
+      return <DailyScreen />;
     default:
       return <Home />;
   }

@@ -1,5 +1,6 @@
 import { useNav, View } from "./nav";
 import { storage } from "../storage";
+import { useDaily } from "../state/daily";
 
 const TILES: { view: View; emoji: string; title: string; desc: string }[] = [
   { view: "play", emoji: "🃏", title: "Jouer", desc: "Une partie contre 3 IA paramétrables" },
@@ -25,6 +26,7 @@ export function Home() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+        <DailyCard onClick={() => go("daily")} />
         {TILES.map((t) => (
           <button
             key={t.view}
@@ -60,5 +62,31 @@ export function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Carte « Défi du jour » mise en avant (rituel quotidien, façon puzzle). */
+function DailyCard({ onClick }: { onClick: () => void }) {
+  const daily = useDaily((s) => s.state);
+  const done = useDaily((s) => s.doneToday());
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-sky-600/80 to-emerald-600/80 p-4 text-left shadow ring-1 ring-white/15 transition hover:brightness-110 active:scale-[0.99]"
+    >
+      <span className="text-3xl" aria-hidden>
+        🗓️
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-lg font-bold">Défi du jour</span>
+        <span className="block text-sm text-white/85">
+          {done ? "Fait ✅ — reviens demain" : "La même donne pour tous. À toi de jouer !"}
+        </span>
+      </span>
+      <span className="shrink-0 text-right">
+        <span className="block text-xl font-black tabular-nums text-yellow-300">🔥 {daily.streak}</span>
+        <span className="block text-[10px] text-white/70">série</span>
+      </span>
+    </button>
   );
 }

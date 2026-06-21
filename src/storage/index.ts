@@ -43,6 +43,17 @@ export const EMPTY_STATS: TrainingStats = {
   lastActive: "",
 };
 
+/** Progression du « Défi du jour » (façon puzzle quotidien). */
+export interface DailyState {
+  day: string; // dernier jour joué (AAAA-MM-JJ)
+  done: boolean; // défi du jour terminé ?
+  success: boolean; // réussi ?
+  streak: number; // jours d'affilée où le défi a été fait
+  best: number; // record de série
+}
+
+export const EMPTY_DAILY: DailyState = { day: "", done: false, success: false, streak: 0, best: 0 };
+
 export interface Storage {
   loadSettings(): Settings | null;
   saveSettings(s: Settings): void;
@@ -54,6 +65,8 @@ export interface Storage {
   setLessonDone(id: string): void;
   loadProfile(): LocalProfile;
   saveProfile(p: LocalProfile): void;
+  loadDaily(): DailyState;
+  saveDaily(s: DailyState): void;
   isOnboarded(): boolean;
   setOnboarded(): void;
 }
@@ -67,6 +80,7 @@ const STATS_KEY = "coincheur.stats.v1";
 const HISTORY_KEY = "coincheur.history.v1";
 const LESSONS_KEY = "coincheur.lessons.v1";
 const PROFILE_KEY = "coincheur.profile.v1";
+const DAILY_KEY = "coincheur.daily.v1";
 const ONBOARDED_KEY = "coincheur.onboarded.v1";
 const HISTORY_MAX = 25;
 
@@ -190,6 +204,31 @@ class LocalStorage implements Storage {
   saveProfile(p: LocalProfile): void {
     try {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  loadDaily(): DailyState {
+    try {
+      const raw = localStorage.getItem(DAILY_KEY);
+      if (!raw) return { ...EMPTY_DAILY };
+      const p = JSON.parse(raw) as Partial<DailyState>;
+      return {
+        day: p.day ?? "",
+        done: !!p.done,
+        success: !!p.success,
+        streak: p.streak ?? 0,
+        best: p.best ?? 0,
+      };
+    } catch {
+      return { ...EMPTY_DAILY };
+    }
+  }
+
+  saveDaily(s: DailyState): void {
+    try {
+      localStorage.setItem(DAILY_KEY, JSON.stringify(s));
     } catch {
       /* ignore */
     }
