@@ -14,7 +14,8 @@ export type View =
   | "account"
   | "legal"
   | "about"
-  | "daily";
+  | "daily"
+  | "compteur";
 
 interface Nav {
   view: View;

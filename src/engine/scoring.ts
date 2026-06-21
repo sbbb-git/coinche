@@ -164,3 +164,81 @@ export function scoreDeal(
 
   return { cardPoints, belote, realized, made, scores, takerTeam };
 }
+
+// --- Comptage MANUEL (compteur pour parties avec de vraies cartes) -----------
+
+/** Saisie d'une donne au compteur manuel (sans connaître les cartes). */
+export interface ManualDeal {
+  takerTeam: Team; // équipe preneuse
+  value: number; // 80..160 (ignoré si capot/générale)
+  capot?: boolean;
+  generale?: boolean;
+  takerCardPoints: number; // points de cartes réalisés par le preneur (0..162, 10 de der inclus)
+  succeeded?: boolean; // pour capot/générale : réussi ou chuté
+  coinche?: 1 | 2 | 4;
+  beloteTeam?: Team | null; // équipe possédant la belote (20), sinon null
+}
+
+/** Score d'une donne saisie à la main, avec le MÊME barème que le moteur. */
+export function scoreManualDeal(
+  d: ManualDeal,
+  opts: ScoreOptions = DEFAULT_SCORE_OPTIONS,
+): { scores: [number, number]; made: boolean } {
+  const taker = d.takerTeam;
+  const def = (1 - taker) as Team;
+  const mult = d.coinche ?? 1;
+  const belote: [number, number] = [0, 0];
+  if (d.beloteTeam === 0 || d.beloteTeam === 1) belote[d.beloteTeam] = 20;
+
+  const cardPoints: [number, number] = [0, 0];
+  let value = d.value;
+  let attackWonAll = false;
+  let made = false;
+
+  if (d.generale) {
+    value = 500;
+    made = !!d.succeeded;
+    if (!made) cardPoints[def] = 162;
+  } else if (d.capot) {
+    value = 250;
+    made = !!d.succeeded;
+    if (made) {
+      attackWonAll = true;
+      cardPoints[taker] = 252;
+    } else {
+      cardPoints[def] = 162;
+    }
+  } else {
+    const tp = Math.max(0, Math.min(162, Math.round(d.takerCardPoints)));
+    cardPoints[taker] = tp;
+    cardPoints[def] = 162 - tp;
+    const attackForTest = tp + (opts.beloteCountsToSucceed ? belote[taker] : 0);
+    const defenseForTest = cardPoints[def] + (opts.beloteCountsToFail ? belote[def] : 0);
+    made =
+      attackForTest >= value &&
+      (opts.contractCanSucceedIfDefenseMore || attackForTest > defenseForTest);
+  }
+
+  const scores: [number, number] = [0, 0];
+  if (mult === 1) {
+    if (made) {
+      scores[taker] = cardPoints[taker] + value + belote[taker];
+      scores[def] = cardPoints[def] + belote[def];
+    } else {
+      scores[def] = 162 + value + belote[def];
+      scores[taker] = belote[taker];
+    }
+  } else {
+    const winner = made ? taker : def;
+    const loser = (1 - winner) as Team;
+    const base = winner === taker && attackWonAll ? 252 : 162;
+    scores[winner] = base + value * mult + belote[winner];
+    scores[loser] = belote[loser];
+  }
+
+  if (opts.roundToTen) {
+    scores[0] = Math.round(scores[0] / 10) * 10;
+    scores[1] = Math.round(scores[1] / 10) * 10;
+  }
+  return { scores, made };
+}

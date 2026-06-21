@@ -13,6 +13,7 @@ import { AccountScreen } from "./app/AccountScreen";
 import { LegalScreen } from "./app/LegalScreen";
 import { AboutScreen } from "./app/AboutScreen";
 import { DailyScreen } from "./training/DailyScreen";
+import { CompteurScreen } from "./training/CompteurScreen";
 import { InstallBanner } from "./components/InstallBanner";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { RatePrompt } from "./components/RatePrompt";
@@ -47,6 +48,8 @@ function CurrentView() {
       return <AboutScreen />;
     case "daily":
       return <DailyScreen />;
+    case "compteur":
+      return <CompteurScreen />;
     default:
       return <Home />;
   }

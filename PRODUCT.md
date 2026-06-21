@@ -7,6 +7,22 @@
 
 ---
 
+## 0. Veille concurrentielle (App Store FR)
+
+**Leader : « Coinche / Belote Contrée » d'Eryod Soft** — 4,09/5 sur 2 655 avis, gratuit.
+Analyse de 500 avis récents (plus durs : 123×1★) → ses 2 plus gros défauts :
+1. **Trop de publicités** (1ᵉʳ motif de 1★) : « injouable », « des pubs en boucle ».
+2. **IA / partenaire faibles** : « à quand une IA performante ? », « partenaire sans
+   répondant », « ordinateur tricheur », « distribution truquée ».
+Puis : règles/comptage contestés, bugs, multijoueur instable, abonnement.
+
+**Autre catégorie : « Compteur Belote Coinche »** (apps dédiées au score papier) →
+demande réelle pour un simple compteur de points (parties avec de vraies cartes).
+
+→ **Nos différenciateurs = leurs défauts** : **zéro pub**, **IA + coach forts et
+honnêtes**, **hors-ligne**, **entraînement**, + un **compteur** intégré. À mettre en
+avant sur la fiche store (« sans pub », « IA sérieuse »).
+
 ## 1. Notifications (rétention #1)
 
 **Objectif** : ramener le joueur (le nerf de la guerre, façon streak Duolingo/Chess.com).

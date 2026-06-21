@@ -54,6 +54,18 @@ export interface DailyState {
 
 export const EMPTY_DAILY: DailyState = { day: "", done: false, success: false, streak: 0, best: 0 };
 
+/** Compteur de points pour parties avec de vraies cartes. */
+export interface CounterDeal {
+  desc: string; // ex. "Nous · 90 ♠ · réussi"
+  scores: [number, number];
+}
+export interface CounterState {
+  names: [string, string];
+  target: number;
+  deals: CounterDeal[];
+}
+export const EMPTY_COUNTER: CounterState = { names: ["Nous", "Eux"], target: 1000, deals: [] };
+
 export interface Storage {
   loadSettings(): Settings | null;
   saveSettings(s: Settings): void;
@@ -69,6 +81,8 @@ export interface Storage {
   saveDaily(s: DailyState): void;
   loadGame(): GameState | null;
   saveGame(g: GameState): void;
+  loadCounter(): CounterState;
+  saveCounter(c: CounterState): void;
   isOnboarded(): boolean;
   setOnboarded(): void;
   /** Efface toutes les données locales (RGPD). */
@@ -86,6 +100,7 @@ const LESSONS_KEY = "coincheur.lessons.v1";
 const PROFILE_KEY = "coincheur.profile.v1";
 const DAILY_KEY = "coincheur.daily.v1";
 const GAME_KEY = "coincheur.game.v1";
+const COUNTER_KEY = "coincheur.counter.v1";
 const ONBOARDED_KEY = "coincheur.onboarded.v1";
 const HISTORY_MAX = 25;
 
@@ -265,6 +280,29 @@ class LocalStorage implements Storage {
   saveGame(g: GameState): void {
     try {
       localStorage.setItem(GAME_KEY, JSON.stringify(g));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  loadCounter(): CounterState {
+    try {
+      const raw = localStorage.getItem(COUNTER_KEY);
+      if (!raw) return { ...EMPTY_COUNTER, deals: [] };
+      const p = JSON.parse(raw) as Partial<CounterState>;
+      return {
+        names: Array.isArray(p.names) && p.names.length === 2 ? (p.names as [string, string]) : ["Nous", "Eux"],
+        target: typeof p.target === "number" ? p.target : 1000,
+        deals: Array.isArray(p.deals) ? p.deals.filter((d) => d && Array.isArray(d.scores)) : [],
+      };
+    } catch {
+      return { ...EMPTY_COUNTER, deals: [] };
+    }
+  }
+
+  saveCounter(c: CounterState): void {
+    try {
+      localStorage.setItem(COUNTER_KEY, JSON.stringify(c));
     } catch {
       /* ignore */
     }
