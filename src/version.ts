@@ -1,2 +1,3 @@
-// Version affichée dans « À propos ». À garder synchronisée avec package.json.
-export const APP_VERSION = "0.1.0";
+// Version affichée dans « À propos ». Injectée au build depuis package.json
+// (define `__APP_VERSION__` dans vite.config.ts) → toujours synchronisée.
+export const APP_VERSION = __APP_VERSION__;

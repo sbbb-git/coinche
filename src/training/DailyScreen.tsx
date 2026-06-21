@@ -7,7 +7,7 @@ import { Card } from "../engine/cards";
 import { useStats } from "../state/stats";
 import { useDaily } from "../state/daily";
 import { genDailyChallenge, isoDay } from "./daily";
-import { notify } from "../notify";
+import { notify, scheduleDailyReminder } from "../notify";
 
 const SITE = "https://sbbb-git.github.io/coinche/";
 
@@ -152,7 +152,10 @@ function Result({ success, reason, streak, keyDay }: { success: boolean; reason:
   const enableReminder = async () => {
     const ok = await notify.enable();
     setReminder(ok);
-    if (ok) notify.show("Rappels activés 🔔", "On te préviendra pour le défi du jour.");
+    if (ok) {
+      await scheduleDailyReminder(19); // rappel natif planifié (no-op sur le web)
+      notify.show("Rappels activés 🔔", "On te préviendra pour le défi du jour.");
+    }
   };
 
   return (

@@ -53,3 +53,33 @@ export const notify = {
     }
   },
 };
+
+/**
+ * Programme un rappel quotidien NATIF (« ta série t'attend ») — ne fonctionne
+ * qu'en build Capacitor. Sur le web, no-op (le navigateur ne peut pas planifier
+ * une notif quand l'app est fermée). L'import est dynamique et ignoré par Vite
+ * pour ne pas casser le build web tant que le plugin n'est pas installé.
+ */
+export async function scheduleDailyReminder(hour = 19): Promise<boolean> {
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  if (!cap?.isNativePlatform?.()) return false;
+  try {
+    const mod = "@capacitor/local-notifications";
+    const { LocalNotifications } = await import(/* @vite-ignore */ mod);
+    const perm = await LocalNotifications.requestPermissions();
+    if (perm.display !== "granted") return false;
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: 1001,
+          title: "🔥 Défi du jour",
+          body: "Ta série t'attend — une donne rapide ?",
+          schedule: { on: { hour, minute: 0 }, repeats: true },
+        },
+      ],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
