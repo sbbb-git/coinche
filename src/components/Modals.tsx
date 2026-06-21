@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useGame } from "../state/store";
 import { AiLevel, PlayProfile, Settings, winnerTeam } from "../engine/game";
+import { storage } from "../storage";
+import { shareResultImage } from "../share";
 
 function Overlay({
   children,
@@ -119,9 +121,15 @@ export function GameOverModal() {
       </p>
       <button
         onClick={() => startNewGame()}
-        className="mt-5 w-full rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
+        className="mt-5 min-h-11 w-full rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
       >
         Nouvelle partie
+      </button>
+      <button
+        onClick={() => shareResultImage({ won: youWon, scoreYou: game.scores[0], scoreThem: game.scores[1] })}
+        className="mt-2 min-h-11 w-full rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/85 hover:bg-white/20"
+      >
+        📤 Partager le résultat
       </button>
     </Overlay>
   );
@@ -141,6 +149,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
   const updateSettings = useGame((s) => s.updateSettings);
   const [draft, setDraft] = useState<Settings>(game.settings);
   const [tab, setTab] = useState<Tab>("interface");
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const upd = (p: Partial<Settings>) => setDraft({ ...draft, ...p });
   const updP = (p: Partial<PlayProfile>) => setDraft({ ...draft, profile: { ...draft.profile, ...p } });
@@ -377,6 +386,38 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
       <p className="mt-2 text-center text-[11px] text-white/50">
         « Appliquer » garde la partie en cours (effet dès la prochaine donne) · « Nouvelle partie » redistribue.
       </p>
+
+      <div className="mt-4 border-t border-white/10 pt-3">
+        {confirmClear ? (
+          <div className="rounded-xl bg-red-500/10 p-3 text-center ring-1 ring-red-500/30">
+            <p className="text-sm text-white/85">Effacer réglages, progression, parties et défis ? Irréversible.</p>
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() => setConfirmClear(false)}
+                className="min-h-11 flex-1 rounded-lg bg-white/10 text-sm font-semibold hover:bg-white/20"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  storage.clearAll();
+                  location.reload();
+                }}
+                className="min-h-11 flex-1 rounded-lg bg-red-500/90 text-sm font-bold text-white hover:bg-red-500"
+              >
+                Tout effacer
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmClear(true)}
+            className="min-h-11 w-full rounded-xl text-sm font-semibold text-red-300/80 hover:bg-red-500/10"
+          >
+            Effacer toutes mes données
+          </button>
+        )}
+      </div>
     </Overlay>
   );
 }

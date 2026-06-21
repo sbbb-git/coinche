@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNav } from "./app/nav";
 import { WelcomeScreen } from "./app/WelcomeScreen";
 import { Home } from "./app/Home";
@@ -15,6 +16,8 @@ import { DailyScreen } from "./training/DailyScreen";
 import { InstallBanner } from "./components/InstallBanner";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { RatePrompt } from "./components/RatePrompt";
+import { WhatsNew } from "./components/WhatsNew";
+import { unlockAudio } from "./state/feedback";
 
 function CurrentView() {
   const view = useNav((s) => s.view);
@@ -53,6 +56,14 @@ export default function App() {
   const view = useNav((s) => s.view);
   // Pas de bannière d'install pendant l'onboarding ni en pleine partie.
   const showInstall = view !== "welcome" && view !== "play";
+
+  // Débloque l'audio iOS au tout premier geste de l'utilisateur.
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    return () => window.removeEventListener("pointerdown", unlock);
+  }, []);
+
   return (
     <div className="flex h-full flex-col">
       {showInstall && <InstallBanner />}
@@ -61,6 +72,7 @@ export default function App() {
       </div>
       <OfflineIndicator />
       {view === "home" && <RatePrompt />}
+      <WhatsNew />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // Persistance abstraite. Implémentation locale (localStorage) pour l'instant ;
 // une implémentation cloud pourra la remplacer sans toucher au reste.
 
-import { BidEntry, DEFAULT_PROFILE, DEFAULT_SETTINGS, Settings } from "../engine/game";
+import { BidEntry, DEFAULT_PROFILE, DEFAULT_SETTINGS, GameState, Settings } from "../engine/game";
 import { Card } from "../engine/cards";
 import { Contract, ScoreBreakdown } from "../engine/scoring";
 
@@ -67,8 +67,12 @@ export interface Storage {
   saveProfile(p: LocalProfile): void;
   loadDaily(): DailyState;
   saveDaily(s: DailyState): void;
+  loadGame(): GameState | null;
+  saveGame(g: GameState): void;
   isOnboarded(): boolean;
   setOnboarded(): void;
+  /** Efface toutes les données locales (RGPD). */
+  clearAll(): void;
 }
 
 export interface LocalProfile {
@@ -81,6 +85,7 @@ const HISTORY_KEY = "coincheur.history.v1";
 const LESSONS_KEY = "coincheur.lessons.v1";
 const PROFILE_KEY = "coincheur.profile.v1";
 const DAILY_KEY = "coincheur.daily.v1";
+const GAME_KEY = "coincheur.game.v1";
 const ONBOARDED_KEY = "coincheur.onboarded.v1";
 const HISTORY_MAX = 25;
 
@@ -234,6 +239,40 @@ class LocalStorage implements Storage {
     }
   }
 
+  loadGame(): GameState | null {
+    try {
+      const raw = localStorage.getItem(GAME_KEY);
+      if (!raw) return null;
+      const g = JSON.parse(raw) as GameState;
+      // Validation minimale : structure plausible d'une partie.
+      if (!g || !Array.isArray(g.hands) || g.hands.length !== 4 || typeof g.phase !== "string") return null;
+      return g;
+    } catch {
+      return null;
+    }
+  }
+
+  saveGame(g: GameState): void {
+    try {
+      localStorage.setItem(GAME_KEY, JSON.stringify(g));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  clearAll(): void {
+    try {
+      const keys: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("coincheur.")) keys.push(k);
+      }
+      keys.forEach((k) => localStorage.removeItem(k));
+    } catch {
+      /* ignore */
+    }
+  }
+
   isOnboarded(): boolean {
     try {
       return localStorage.getItem(ONBOARDED_KEY) === "1";
@@ -256,4 +295,10 @@ export const storage: Storage = new LocalStorage();
 /** Réglages au démarrage : ceux sauvegardés, sinon les défauts. */
 export function loadInitialSettings(): Settings {
   return storage.loadSettings() ?? DEFAULT_SETTINGS;
+}
+
+/** Partie en cours à reprendre (si une donne n'était pas terminée), sinon null. */
+export function loadResumableGame(): GameState | null {
+  const g = storage.loadGame();
+  return g && g.phase !== "gameOver" ? g : null;
 }

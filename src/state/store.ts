@@ -19,7 +19,7 @@ import {
 import { aiBid, aiPlay } from "../engine/ai";
 import { coachBid, coachPlay } from "../engine/coach";
 import { PlayedCard } from "../engine/rules";
-import { loadInitialSettings, storage } from "../storage";
+import { loadInitialSettings, loadResumableGame, storage } from "../storage";
 import { feedback } from "./feedback";
 import { review } from "../review";
 
@@ -165,7 +165,8 @@ export const useGame = create<Store>((set, get) => {
   }
 
   return {
-    game: newGame(loadInitialSettings()),
+    // Reprise : on restaure la partie en cours si une donne n'était pas finie.
+    game: loadResumableGame() ?? newGame(loadInitialSettings()),
     thinking: false,
     overlayTrick: null,
     hint: null,
@@ -243,5 +244,15 @@ export const useGame = create<Store>((set, get) => {
     },
     clearHint: () => set({ hint: null }),
   };
+});
+
+// Sauvegarde de la partie en cours (reprise après fermeture). On n'écrit que
+// lorsque l'objet `game` change réellement (pas à chaque voyant « réflexion »).
+let lastSavedGame: GameState | null = null;
+useGame.subscribe((s) => {
+  if (s.game !== lastSavedGame) {
+    lastSavedGame = s.game;
+    storage.saveGame(s.game);
+  }
 });
 

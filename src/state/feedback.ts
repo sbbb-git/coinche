@@ -51,6 +51,12 @@ export interface FeedbackPrefs {
   haptics: boolean;
 }
 
+/** Débloque l'audio iOS : à appeler dans un geste utilisateur (1er tap). */
+export function unlockAudio() {
+  const ac = audio();
+  if (ac && ac.state === "suspended") void ac.resume();
+}
+
 export const feedback = {
   cardPlay(p: FeedbackPrefs) {
     if (p.sound) tone(420, 60, "triangle", 0.035);

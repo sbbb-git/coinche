@@ -1,0 +1,70 @@
+import { useEffect, useState } from "react";
+import { APP_VERSION } from "../version";
+
+// « Quoi de neuf » : affiché UNE fois aux utilisateurs qui reviennent après une
+// mise à jour (jamais au tout premier lancement).
+const SEEN_KEY = "coincheur.seenVersion.v1";
+
+const CHANGES: string[] = [
+  "🗓️ Défi du jour : la même donne pour tous, avec ta série.",
+  "📈 Courbe de progression et précision de tes parties (Game Review).",
+  "💡 Coach en direct amélioré + IA aux enchères mieux calibrée.",
+  "📴 Hors-ligne, installable, et reprise de la partie en cours.",
+];
+
+export function WhatsNew() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem(SEEN_KEY);
+      if (seen === null) {
+        localStorage.setItem(SEEN_KEY, APP_VERSION); // 1er lancement : pas de modale
+      } else if (seen !== APP_VERSION) {
+        setShow(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  if (!show) return null;
+  const close = () => {
+    try {
+      localStorage.setItem(SEEN_KEY, APP_VERSION);
+    } catch {
+      /* ignore */
+    }
+    setShow(false);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
+      onClick={close}
+      role="dialog"
+      aria-label="Quoi de neuf"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="animate-pop w-full max-w-sm rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700"
+      >
+        <p className="text-center text-lg font-black">✨ Quoi de neuf</p>
+        <p className="mb-3 text-center text-xs text-white/55">Version {APP_VERSION}</p>
+        <ul className="space-y-2 text-sm text-white/85">
+          {CHANGES.map((c, i) => (
+            <li key={i} className="rounded-lg bg-white/5 p-2">
+              {c}
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={close}
+          className="mt-4 min-h-11 w-full rounded-xl bg-yellow-400 font-bold text-emerald-950 hover:bg-yellow-300"
+        >
+          Super !
+        </button>
+      </div>
+    </div>
+  );
+}
