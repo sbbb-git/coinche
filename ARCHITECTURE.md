@@ -149,3 +149,47 @@ Activer les comptes = **bascule « collecte de données »** :
 - iOS : Sign in with Apple obligatoire + suppression de compte in-app + App Privacy
   à mettre à jour. Android : Data safety détaillé + URL de suppression de compte.
 - Voir `RELEASE_CHECKLIST.md` (section Comptes & Auth) et `SUBMISSION.md` (§4).
+
+## 8. Hébergement & passage à l'échelle (objectif 1000+ joueurs simultanés)
+
+**Point clé : le jeu en SOLO est 100% client.** Le moteur tourne sur l'appareil →
+**0 charge serveur**, même avec 1000 (ou 1 million) de joueurs en solo en même temps.
+Le serveur n'intervient QUE pour : comptes, sync, classements, défi du jour, multijoueur.
+Donc « 1000 joueurs simultanés » est une charge **modeste** une fois bien architecturé.
+
+### Front (statique)
+- Bundle statique servi par un **CDN** (aujourd'hui GitHub Pages ; recommandé à terme :
+  **Cloudflare Pages** ou Netlify/Vercel — CDN mondial, domaine custom, gratuit/peu cher).
+- Un CDN encaisse des millions de requêtes sans effort. Le **défi du jour** étant
+  identique pour tous, il est mis en cache au bord (edge) → 1 calcul, N lectures.
+
+### Backend (managé) — Supabase
+- **Postgres + Auth + Realtime + Edge Functions** managés. À 1000 utilisateurs actifs
+  faisant de la sync/lecture occasionnelle = quelques requêtes/seconde → trivial
+  (tier Pro ~25 $/mois largement suffisant).
+- **Pooling de connexions** (Supavisor) obligatoire : on ne tient pas 1000 connexions
+  Postgres directes ; le pooler multiplexe.
+- **Index** sur les colonnes filtrées/triées ; **classements en vues matérialisées**
+  rafraîchies périodiquement (pas recalculées à chaque lecture).
+- **RLS** pour l'isolation ; **Edge Functions** pour valider rating/scores (anti-triche).
+
+### Temps réel / multijoueur (P5) — le seul vrai sujet de charge
+- 1000 joueurs ≈ **250 tables de 4** → ~1000 websockets, quelques messages par pli.
+  Quelques **centaines de messages/seconde** au total : un seul nœud applicatif y suffit.
+- Deux options : **Supabase Realtime** (simple) ou un **serveur de jeu autoritaire**
+  léger (ex. Colyseus/Node sur **Fly.io** ou **Railway**) si la logique de salle est lourde.
+  Le serveur reste **arbitre** (le moteur `engine` valide les coups) → anti-triche.
+- Mise à l'échelle : **stateless** partout sauf les salles realtime ; sticky sessions
+  par salle ; on ajoute des nœuds derrière un load-balancer (scale horizontal).
+
+### Ordre de grandeur des coûts
+- Solo only (aujourd'hui) : **~0 €** (CDN gratuit).
+- 1000 actifs avec comptes/sync/classements : **quelques dizaines d'€/mois**.
+- Multijoueur 1000 simultanés : ajouter 1 petite instance realtime (**~10-30 €/mois**).
+
+### Plan de montée en charge
+Vertical d'abord (tier plus gros) → **réplicas en lecture** pour les classements →
+cache (CDN/Redis) sur les données chaudes → régionalisation si audience mondiale.
+Toujours : **rate-limiting** (login/sync/score) + validation serveur.
+
+> Revue dédiée : agent **`scalability-reviewer`** (à lancer dès l'arrivée du backend).
