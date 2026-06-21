@@ -8,8 +8,7 @@ import { useStats } from "../state/stats";
 import { useDaily } from "../state/daily";
 import { genDailyChallenge, isoDay } from "./daily";
 import { notify, scheduleDailyReminder } from "../notify";
-
-const SITE = "https://sbbb-git.github.io/coinche/";
+import { SITE_URL as SITE } from "../config";
 
 function prettyDate(key: string): string {
   try {
@@ -96,7 +95,7 @@ export function DailyScreen() {
 
       <p className="mb-1 text-center text-xs text-white/60">Pli en cours</p>
       <div className="mb-4 flex min-h-24 items-center justify-center gap-2">
-        {g.trick.length === 0 && <span className="text-sm text-white/50">Tu entames</span>}
+        {g.trick.length === 0 && <span className="text-sm text-white/60">Tu entames</span>}
         {g.trick.map((p) => (
           <div key={p.player} className="flex flex-col items-center gap-1">
             <PlayingCard card={p.card} size="sm" />
@@ -114,7 +113,11 @@ export function DailyScreen() {
           return (
             <div
               key={card.id}
-              className={["rounded-lg", m === "good" ? "ring-2 ring-green-400" : "", m === "bad" ? "ring-2 ring-red-500" : ""].join(" ")}
+              className={[
+                "relative rounded-lg",
+                m === "good" ? "ring-2 ring-green-400" : "",
+                m === "bad" ? "ring-2 ring-red-500" : "",
+              ].join(" ")}
             >
               <PlayingCard
                 card={card}
@@ -123,6 +126,17 @@ export function DailyScreen() {
                 dimmed={m === "off"}
                 onClick={() => choose(card)}
               />
+              {/* Marqueur de forme en plus de la couleur (daltoniens). */}
+              {m === "good" && (
+                <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-green-500 text-[10px] font-bold text-white">
+                  ✓
+                </span>
+              )}
+              {m === "bad" && (
+                <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  ✗
+                </span>
+              )}
             </div>
           );
         })}

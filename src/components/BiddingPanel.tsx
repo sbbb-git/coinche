@@ -32,7 +32,7 @@ export function BiddingPanel() {
   if (canSurcoinche(game, HUMAN)) {
     return (
       <Panel>
-        <p className="text-sm font-medium">Vous avez été coinché ! Confiant ?</p>
+        <p className="text-sm font-medium">Tu as été coinché ! Confiant ?</p>
         <div className="flex gap-2">
           <Btn primary onClick={surcoinche}>
             Surcoincher
@@ -55,7 +55,7 @@ export function BiddingPanel() {
   return (
     <Panel>
       <p className="text-sm font-medium">
-        {canStillAnnounce ? "À vous d'annoncer" : "Plus d'annonce possible"}
+        {canStillAnnounce ? "À toi d'annoncer" : "Plus d'annonce possible"}
       </p>
       {canStillAnnounce && (
         <div className="flex flex-col gap-2">

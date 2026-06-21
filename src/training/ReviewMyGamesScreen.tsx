@@ -83,37 +83,41 @@ function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="text-sm text-white/70">
           {full.contractLabel} · {full.resultLabel}{" "}
-          <span className="text-white/45">({full.scores[0]}-{full.scores[1]})</span>
+          <span className="text-white/60">({full.scores[0]}-{full.scores[1]})</span>
         </span>
         <ExportButton rec={rec} />
       </div>
 
       <div role="tablist" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
-        <TabBtn active={tab === "full"} onClick={() => setTab("full")}>
+        <TabBtn id="deal-tab-full" active={tab === "full"} onClick={() => setTab("full")}>
           🃏 Donne complète
         </TabBtn>
-        <TabBtn active={tab === "decisions"} onClick={() => setTab("decisions")}>
+        <TabBtn id="deal-tab-decisions" active={tab === "decisions"} onClick={() => setTab("decisions")}>
           🎯 Tes décisions
         </TabBtn>
       </div>
 
-      {tab === "full" ? (
-        <FullDealView full={full} rec={rec} />
-      ) : review ? (
-        <DecisionsView review={review} />
-      ) : (
-        <p className="mt-8 text-center text-sm text-white/60">⏳ Analyse du coach en cours…</p>
-      )}
+      <div role="tabpanel" id="deal-panel" aria-labelledby={`deal-tab-${tab}`}>
+        {tab === "full" ? (
+          <FullDealView full={full} rec={rec} />
+        ) : review ? (
+          <DecisionsView review={review} />
+        ) : (
+          <p className="mt-8 text-center text-sm text-white/60">⏳ Analyse du coach en cours…</p>
+        )}
+      </div>
     </ScreenShell>
   );
 }
 
-function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function TabBtn({ id, active, onClick, children }: { id?: string; active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
+      id={id}
       onClick={onClick}
       role="tab"
       aria-selected={active}
+      aria-controls="deal-panel"
       className={[
         "min-h-11 flex-1 rounded-md py-2.5 text-sm font-semibold transition",
         active ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
@@ -304,7 +308,7 @@ function PointView({ point }: { point: ReviewPoint }) {
         <>
           <p className="mb-1 text-center text-xs text-white/60">Pli en cours</p>
           <div className="mb-3 flex min-h-20 items-center justify-center gap-2">
-            {g.trick.length === 0 && <span className="text-sm text-white/50">Tu entamais</span>}
+            {g.trick.length === 0 && <span className="text-sm text-white/60">Tu entamais</span>}
             {g.trick.map((pc) => (
               <div key={pc.player} className="flex flex-col items-center gap-1">
                 <PlayingCard card={pc.card} size="sm" />

@@ -52,7 +52,7 @@ export function AboutScreen() {
         <Row href={SITE_URL} external>🌐 Site web ↗</Row>
       </div>
 
-      <p className="mt-5 mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/45">
+      <p className="mt-5 mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/60">
         Soutenir l'app
       </p>
       <div className="space-y-2">

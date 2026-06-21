@@ -31,7 +31,7 @@ export function AccountScreen() {
           id="pname"
           value={name}
           maxLength={16}
-          placeholder="Votre prénom"
+          placeholder="Ton prénom"
           onChange={(e) => setName(e.target.value)}
           onBlur={commitName}
           className="mt-1 w-full rounded-lg bg-white/90 px-3 py-2.5 font-semibold text-zinc-800 placeholder:text-zinc-400"

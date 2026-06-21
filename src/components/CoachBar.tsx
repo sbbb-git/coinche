@@ -57,11 +57,12 @@ export function CoachBar() {
         )}
       </div>
 
+      {/* Région live toujours montée pour annoncer le conseil / le calcul. */}
+      <div aria-live="polite" className="sr-only">
+        {hintLoading ? "Recherche du conseil…" : hint ? hint.text : ""}
+      </div>
       {hint && (
-        <div
-          aria-live="polite"
-          className="mx-auto mt-2 flex max-w-lg items-start gap-2 rounded-xl bg-sky-950/80 p-3 text-sm ring-1 ring-sky-600"
-        >
+        <div className="mx-auto mt-2 flex max-w-lg items-start gap-2 rounded-xl bg-sky-950/80 p-3 text-sm ring-1 ring-sky-600">
           <span aria-hidden>💡</span>
           <p className="min-w-0 flex-1 text-white/90">{hint.text}</p>
           <button
@@ -83,9 +84,9 @@ function BidRecap({ game }: { game: GameState }) {
   const names = game.settings.playerNames;
   return (
     <div id="bid-recap" className="mx-auto mt-2 max-w-lg rounded-xl bg-black/40 p-2.5 ring-1 ring-white/10">
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/45">Enchères</p>
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/60">Enchères</p>
       {game.bidHistory.length === 0 ? (
-        <p className="text-sm text-white/50">Aucune annonce pour l'instant.</p>
+        <p className="text-sm text-white/60">Aucune annonce pour l'instant.</p>
       ) : (
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
           {game.bidHistory.map((b, i) => {
@@ -95,7 +96,7 @@ function BidRecap({ game }: { game: GameState }) {
               <span key={i} className="tabular-nums">
                 <span className={isPartner ? "text-sky-300" : "text-white/60"}>{names[b.player]}</span>{" "}
                 {b.kind === "pass" ? (
-                  <span className="text-white/45">passe</span>
+                  <span className="text-white/60">passe</span>
                 ) : b.kind === "coinche" ? (
                   <b className="text-orange-300">coinche</b>
                 ) : b.kind === "surcoinche" ? (

@@ -73,24 +73,24 @@ export function DealResultModal() {
       </p>
 
       <div className="mt-4 space-y-1 text-sm">
-        <p className="mb-1 text-xs uppercase tracking-wide text-white/45">Dans les plis (+ 10 de der)</p>
+        <p className="mb-1 text-xs uppercase tracking-wide text-white/60">Dans les plis (+ 10 de der)</p>
         <Row label={`${teamName(takerTeam)} (preneur)`} value={r.cardPoints[takerTeam]} />
         <Row label={`${teamName(defTeam)} (défense)`} value={r.cardPoints[defTeam]} />
         {(r.belote[0] > 0 || r.belote[1] > 0) && (
           <>
-            <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/45">Belote (imprenable)</p>
+            <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/60">Belote (imprenable)</p>
             {r.belote[takerTeam] > 0 && <Row label={teamName(takerTeam)} value={`+${r.belote[takerTeam]}`} />}
             {r.belote[defTeam] > 0 && <Row label={teamName(defTeam)} value={`+${r.belote[defTeam]}`} />}
           </>
         )}
-        <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/45">Contrat</p>
+        <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/60">Contrat</p>
         <Row
           label={`Réalisé ${r.realized[takerTeam]} / ${c.capot || c.generale ? "tous les plis" : c.value} requis`}
           value={r.made ? "réussi" : "chute"}
         />
 
         <div className="my-2 h-px bg-white/10" />
-        <p className="mb-1 text-xs uppercase tracking-wide text-white/45">Points marqués (cette manche)</p>
+        <p className="mb-1 text-xs uppercase tracking-wide text-white/60">Points marqués (cette manche)</p>
         <Row label={teamName(0)} value={`+${r.scores[0]}`} bold />
         <Row label={teamName(1)} value={`+${r.scores[1]}`} bold />
         <div className="mt-1 flex justify-between text-xs text-white/55">
@@ -362,7 +362,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
               ]}
               onChange={(v) => updP({ jeuAuxAs: v === "as" })}
             />
-            <p className="-mt-1 px-1 text-[11px] text-white/45">
+            <p className="-mt-1 px-1 text-[11px] text-white/60">
               « Petit jeu » : on sécurise, on garde ses maîtres. « Aux as » : on sort les As
               d'attaque pour faire des plis francs.
             </p>
@@ -416,7 +416,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
           Nouvelle partie
         </button>
       </div>
-      <p className="mt-2 text-center text-[11px] text-white/50">
+      <p className="mt-2 text-center text-[11px] text-white/60">
         « Appliquer » garde la partie en cours (effet dès la prochaine donne) · « Nouvelle partie » redistribue.
       </p>
 

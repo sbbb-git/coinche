@@ -24,15 +24,17 @@ export function ExercisesScreen() {
     <ScreenShell title="S'entraîner">
       <TrainTabs current="exercises" />
       <div role="tablist" aria-label="Type d'exercice" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
-        <Tab active={kind === "bid"} onClick={() => setKind("bid")}>
+        <Tab id="exo-tab-bid" active={kind === "bid"} onClick={() => setKind("bid")}>
           🂠 Enchères
         </Tab>
-        <Tab active={kind === "play"} onClick={() => setKind("play")}>
+        <Tab id="exo-tab-play" active={kind === "play"} onClick={() => setKind("play")}>
           🃏 Jeu de la carte
         </Tab>
       </div>
       <StreakBar />
-      {kind === "bid" ? <BidTrainer /> : <PlayTrainer />}
+      <div role="tabpanel" id="exo-panel" aria-labelledby={`exo-tab-${kind}`}>
+        {kind === "bid" ? <BidTrainer /> : <PlayTrainer />}
+      </div>
     </ScreenShell>
   );
 }
@@ -75,7 +77,7 @@ function BidTrainer() {
     <div>
       {ex.auction.length > 0 && <AuctionRecap auction={ex.auction} fourColors={settings.fourColors} />}
       <p className="mb-2 text-sm text-white/70">
-        {ex.auction.length > 0 ? "À vous de parler — quelle enchère ?" : "Vous ouvrez — quelle enchère ?"}
+        {ex.auction.length > 0 ? "À toi de parler — quelle enchère ?" : "Tu ouvres — quelle enchère ?"}
       </p>
       <div className="mb-4 flex flex-wrap justify-center gap-1">
         {ex.hand.map((c) => (
@@ -116,7 +118,7 @@ function ModeSym({ mode, fourColors }: { mode: TrumpMode; fourColors: boolean })
 function AuctionRecap({ auction, fourColors }: { auction: AuctionLine[]; fourColors: boolean }) {
   return (
     <div className="mb-3 rounded-lg bg-black/30 p-2.5">
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/45">
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/60">
         Enchères en cours
       </p>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
@@ -124,7 +126,7 @@ function AuctionRecap({ auction, fourColors }: { auction: AuctionLine[]; fourCol
           <span key={i} className="tabular-nums">
             <span className={l.partner ? "text-yellow-300" : "text-white/60"}>{l.name}</span>{" "}
             {l.value === "passe" ? (
-              <span className="text-white/45">passe</span>
+              <span className="text-white/60">passe</span>
             ) : (
               <b>
                 {l.value}
@@ -153,7 +155,7 @@ function EstimateBar({
   const sorted = [...estimates].sort((a, b) => b.est - a.est);
   return (
     <div className="mt-3 rounded-lg bg-white/5 p-2 text-xs text-white/70">
-      <span className="text-white/50">Valeur estimée de ta main : </span>
+      <span className="text-white/60">Valeur estimée de ta main : </span>
       {sorted.map((e, i) => (
         <span key={e.mode} className="ml-1 tabular-nums">
           <ModeSym mode={e.mode} fourColors={fourColors} /> <b className="text-white/90">{e.est}</b>
@@ -217,16 +219,15 @@ function PlayTrainer() {
 
   return (
     <div>
-      <div className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1" role="tablist" aria-label="Thème">
+      <div className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1" role="group" aria-label="Thème">
         {([["any", "Tout"], ["attack", "Attaque"], ["defense", "Défense"]] as [PlayFocus, string][]).map(
           ([id, lbl]) => (
             <button
               key={id}
               onClick={() => setFocus(id)}
-              role="tab"
-              aria-selected={focus === id}
+              aria-pressed={focus === id}
               className={[
-                "flex-1 rounded-md py-1.5 text-xs font-semibold transition",
+                "min-h-11 flex-1 rounded-md py-1.5 text-xs font-semibold transition",
                 focus === id ? "bg-yellow-400 text-emerald-950" : "text-white/75 hover:bg-white/10",
               ].join(" ")}
             >
@@ -253,7 +254,7 @@ function PlayTrainer() {
 
       <p className="mb-1 text-center text-xs text-white/60">Pli en cours</p>
       <div className="mb-4 flex min-h-24 items-center justify-center gap-2">
-        {g.trick.length === 0 && <span className="text-sm text-white/50">Vous entamez</span>}
+        {g.trick.length === 0 && <span className="text-sm text-white/70">Tu entames</span>}
         {g.trick.map((p) => (
           <div key={p.player} className="flex flex-col items-center gap-1">
             <PlayingCard card={p.card} size="sm" />
@@ -263,7 +264,7 @@ function PlayTrainer() {
       </div>
 
       <p className="mb-2 text-center text-sm text-white/70">
-        Votre main — quelle carte jouer ?
+        Ta main — quelle carte jouer ?
       </p>
       <div className="flex flex-wrap justify-center gap-1">
         {g.hands[0].map((card) => {
@@ -272,7 +273,7 @@ function PlayTrainer() {
             <div
               key={card.id}
               className={[
-                "rounded-lg",
+                "relative rounded-lg",
                 st === "good" ? "ring-2 ring-green-400" : "",
                 st === "bad" ? "ring-2 ring-red-500" : "",
               ].join(" ")}
@@ -284,6 +285,16 @@ function PlayTrainer() {
                 dimmed={st === "off"}
                 onClick={() => choose(card)}
               />
+              {st === "good" && (
+                <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-green-500 text-[10px] font-bold text-white">
+                  ✓
+                </span>
+              )}
+              {st === "bad" && (
+                <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  ✗
+                </span>
+              )}
             </div>
           );
         })}
@@ -298,14 +309,16 @@ type CardMark = "playable" | "off" | "good" | "bad";
 
 // --- Composants partagés ----------------------------------------------------
 
-function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Tab({ id, active, onClick, children }: { id?: string; active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
+      id={id}
       onClick={onClick}
       role="tab"
       aria-selected={active}
+      aria-controls="exo-panel"
       className={[
-        "flex-1 rounded-md py-2 text-sm font-semibold transition",
+        "min-h-11 flex-1 rounded-md py-2 text-sm font-semibold transition",
         active ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
       ].join(" ")}
     >
@@ -332,7 +345,7 @@ function OptionBtn({
       : state === "bad"
         ? "bg-red-500/90 text-white"
         : state === "muted"
-          ? "bg-white/5 text-white/50"
+          ? "bg-white/5 text-white/60"
           : "bg-white/10 text-white hover:bg-white/20";
   return (
     <button

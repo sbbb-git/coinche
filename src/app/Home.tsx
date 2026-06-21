@@ -45,7 +45,7 @@ export function Home() {
       </div>
 
       <div className="shrink-0 pt-3 text-center">
-        <p className="text-[11px] text-white/55">100 % hors-ligne · vos données restent sur l'appareil</p>
+        <p className="text-[11px] text-white/55">100 % hors-ligne · tes données restent sur l'appareil</p>
         <div className="mt-1 flex justify-center gap-1">
           <button
             onClick={() => go("about")}

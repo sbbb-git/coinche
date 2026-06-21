@@ -124,7 +124,7 @@ function DealProgress({
     <div className="mx-auto mt-1.5 max-w-md rounded-lg bg-black/30 px-3 py-1.5">
       <div className="flex items-center justify-between text-[11px]">
         <span className="font-semibold uppercase tracking-wide text-white/85">
-          Manche · {teamName(takerTeam)} <span className="font-normal text-white/50">(preneur)</span>
+          Manche · {teamName(takerTeam)} <span className="font-normal text-white/60">(preneur)</span>
         </span>
         <span className="tabular-nums text-white/70">
           <b className={made ? "text-emerald-300" : "text-yellow-300"}>{taken}</b> / {target}

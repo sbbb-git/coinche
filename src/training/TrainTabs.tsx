@@ -10,13 +10,14 @@ const TABS: { view: View; label: string }[] = [
  *  « S'entraîner » (au lieu de 3 rubriques séparées sur l'accueil). */
 export function TrainTabs({ current }: { current: View }) {
   const go = useNav((s) => s.go);
+  // Chaque onglet NAVIGUE vers un écran distinct → c'est une navigation, pas un
+  // pattern tab/tabpanel (d'où `nav` + `aria-current` plutôt que role=tab).
   return (
-    <div role="tablist" aria-label="S'entraîner" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
+    <nav aria-label="S'entraîner" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
       {TABS.map((t) => (
         <button
           key={t.view}
-          role="tab"
-          aria-selected={current === t.view}
+          aria-current={current === t.view ? "page" : undefined}
           onClick={() => current !== t.view && go(t.view)}
           className={[
             "min-h-11 flex-1 rounded-md py-2 text-sm font-semibold transition",
@@ -26,6 +27,6 @@ export function TrainTabs({ current }: { current: View }) {
           {t.label}
         </button>
       ))}
-    </div>
+    </nav>
   );
 }
