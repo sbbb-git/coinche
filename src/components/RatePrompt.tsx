@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { review } from "../review";
 import { CONTACT_EMAIL, storeUrl } from "../config";
 import { notify } from "../notify";
+import { useFocusTrap } from "../app/useFocusTrap";
 
 type Step = "ask" | "love" | "meh";
 
@@ -10,6 +11,8 @@ type Step = "ask" | "love" | "meh";
 export function RatePrompt() {
   const [visible, setVisible] = useState(() => review.shouldAsk());
   const [step, setStep] = useState<Step>("ask");
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, visible);
   if (!visible) return null;
 
   const close = () => {
@@ -36,8 +39,14 @@ export function RatePrompt() {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-      <div className="animate-pop mx-auto max-w-md rounded-2xl bg-emerald-950 p-4 shadow-2xl ring-1 ring-emerald-700">
+    <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Évaluer l'app"
+        className="animate-pop mx-auto max-w-md rounded-2xl bg-emerald-950 p-4 shadow-2xl ring-1 ring-emerald-700"
+      >
         {step === "ask" && (
           <>
             <p className="text-center font-bold">Tu aimes Coincheur ? 🃏</p>
@@ -55,7 +64,10 @@ export function RatePrompt() {
                 😕 Bof
               </button>
             </div>
-            <button onClick={close} className="mt-2 w-full py-1 text-xs text-white/50 hover:text-white/80">
+            <button
+              onClick={close}
+              className="mt-1 flex min-h-11 w-full items-center justify-center text-xs text-white/55 hover:text-white/85"
+            >
               Plus tard
             </button>
           </>

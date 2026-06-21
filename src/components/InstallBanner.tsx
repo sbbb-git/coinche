@@ -54,12 +54,16 @@ export function InstallBanner() {
   };
 
   const install = async () => {
-    if (APP_STORE_URL && isIOS()) {
-      window.location.href = APP_STORE_URL;
+    // Sécurité : on ne suit que des URLs stores officielles (anti open-redirect).
+    const safe = (u: string, prefix: string) => (u.startsWith(prefix) ? u : "");
+    const appUrl = safe(APP_STORE_URL, "https://apps.apple.com/");
+    const playUrl = safe(PLAY_STORE_URL, "https://play.google.com/");
+    if (appUrl && isIOS()) {
+      window.location.href = appUrl;
       return;
     }
-    if (PLAY_STORE_URL && !isIOS()) {
-      window.location.href = PLAY_STORE_URL;
+    if (playUrl && !isIOS()) {
+      window.location.href = playUrl;
       return;
     }
     if (bip) {

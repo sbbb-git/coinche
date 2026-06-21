@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGame } from "../state/store";
 import { useNav } from "./nav";
+import { useFocusTrap } from "./useFocusTrap";
 import { ScorePanel } from "../components/ScorePanel";
 import { Table } from "../components/Table";
 import { HandFan } from "../components/HandFan";
@@ -25,6 +26,15 @@ export function PlayScreen() {
   const inProgress = phase === "playing" || phase === "bidding";
   const onHome = () => (inProgress ? setConfirmLeave(true) : go("home"));
 
+  const confirmRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(confirmRef, confirmLeave);
+  useEffect(() => {
+    if (!confirmLeave) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setConfirmLeave(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [confirmLeave]);
+
   return (
     <div className="safe-x mx-auto flex h-full w-full max-w-3xl flex-col overflow-y-auto">
       <ScorePanel onMenu={() => setMenu(true)} onHome={onHome} />
@@ -40,6 +50,10 @@ export function PlayScreen() {
       {confirmLeave && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={() => setConfirmLeave(false)}>
           <div
+            ref={confirmRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Quitter la partie ?"
             onClick={(e) => e.stopPropagation()}
             className="animate-pop w-full max-w-sm rounded-2xl bg-emerald-950 p-5 text-center shadow-2xl ring-1 ring-emerald-700"
           >

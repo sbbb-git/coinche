@@ -33,6 +33,8 @@ interface Store {
   overlayTrick: PlayedCard[] | null;
   /** conseil du coach en direct (carte suggérée + explication), à la demande */
   hint: { cardId: string | null; text: string } | null;
+  /** le coach calcule un conseil (PIMC) — pour désactiver le bouton + spinner */
+  hintLoading: boolean;
 
   /** démarre l'orchestration des IA pour la partie déjà en cours (à appeler au montage) */
   init: () => void;
@@ -170,6 +172,7 @@ export const useGame = create<Store>((set, get) => {
     thinking: false,
     overlayTrick: null,
     hint: null,
+    hintLoading: false,
 
     startNewGame: (settings) => {
       clearAiTimer();
@@ -233,14 +236,25 @@ export const useGame = create<Store>((set, get) => {
 
     askHint: () => {
       const g = get().game;
-      if (g.current !== HUMAN || get().overlayTrick) return;
-      if (g.phase === "playing") {
-        const { best, reason } = coachPlay(g);
-        set({ hint: { cardId: best.id, text: reason } });
-      } else if (g.phase === "bidding") {
-        const a = coachBid(g, HUMAN);
-        set({ hint: { cardId: null, text: a.reason } });
-      }
+      if (g.current !== HUMAN || get().overlayTrick || get().hintLoading) return;
+      // Calcul PIMC déféré : on laisse l'UI peindre l'état « … » avant de geler.
+      set({ hintLoading: true });
+      setTimeout(() => {
+        const gg = get().game;
+        if (gg.current !== HUMAN || get().overlayTrick) {
+          set({ hintLoading: false });
+          return;
+        }
+        if (gg.phase === "playing") {
+          const { best, reason } = coachPlay(gg);
+          set({ hint: { cardId: best.id, text: reason }, hintLoading: false });
+        } else if (gg.phase === "bidding") {
+          const a = coachBid(gg, HUMAN);
+          set({ hint: { cardId: null, text: a.reason }, hintLoading: false });
+        } else {
+          set({ hintLoading: false });
+        }
+      }, 0);
     },
     clearHint: () => set({ hint: null }),
   };

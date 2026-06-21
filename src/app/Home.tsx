@@ -25,7 +25,7 @@ export function Home() {
         </p>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-24">
         <DailyCard onClick={() => go("daily")} />
         {TILES.map((t) => (
           <button
@@ -72,6 +72,7 @@ function DailyCard({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
+      aria-label={`Défi du jour. ${done ? "Complété aujourd'hui." : "À jouer."} Série : ${daily.streak} jours.`}
       className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-sky-600/80 to-emerald-600/80 p-4 text-left shadow ring-1 ring-white/15 transition hover:brightness-110 active:scale-[0.99]"
     >
       <span className="text-3xl" aria-hidden>

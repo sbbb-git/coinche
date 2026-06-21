@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { useNav } from "../app/nav";
 import { PlayingCard } from "../components/Card";
@@ -68,8 +68,15 @@ type DetailTab = "full" | "decisions";
 
 function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
   const full = useMemo(() => fullReplay(rec), [rec]);
-  const review = useMemo(() => reviewDeal(rec), [rec]);
   const [tab, setTab] = useState<DetailTab>("full");
+  // L'analyse coach (PIMC) est LOURDE : on ne la calcule qu'à l'ouverture de
+  // l'onglet « Tes décisions », en différé, avec un état de chargement.
+  const [review, setReview] = useState<DealReview | null>(null);
+  useEffect(() => {
+    if (tab !== "decisions" || review) return;
+    const id = setTimeout(() => setReview(reviewDeal(rec)), 0);
+    return () => clearTimeout(id);
+  }, [tab, rec, review]);
 
   return (
     <ScreenShell title="Revoir la donne" onBack={onBack}>
@@ -90,7 +97,13 @@ function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
         </TabBtn>
       </div>
 
-      {tab === "full" ? <FullDealView full={full} rec={rec} /> : <DecisionsView review={review} />}
+      {tab === "full" ? (
+        <FullDealView full={full} rec={rec} />
+      ) : review ? (
+        <DecisionsView review={review} />
+      ) : (
+        <p className="mt-8 text-center text-sm text-white/60">⏳ Analyse du coach en cours…</p>
+      )}
     </ScreenShell>
   );
 }

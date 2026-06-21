@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { storage, DealRecord } from "./index";
+import { storage, loadResumableGame, DealRecord } from "./index";
 import { DEFAULT_SETTINGS } from "../engine/game";
 
 // localStorage en mémoire pour l'environnement de test (node).
@@ -10,6 +10,10 @@ function installLocalStorage() {
     setItem: (k: string, v: string) => store.set(k, String(v)),
     removeItem: (k: string) => store.delete(k),
     clear: () => store.clear(),
+    get length() {
+      return store.size;
+    },
+    key: (i: number) => Array.from(store.keys())[i] ?? null,
   };
 }
 
@@ -53,6 +57,35 @@ describe("persistance locale", () => {
     expect(s.bestStreak).toBe(5);
     expect(s.rating).toBe(1340);
     expect(s.ratingHistory).toEqual([800, 1340]);
+  });
+
+  it("partie : sauvegarde/restauration + refus des états corrompus", () => {
+    const newGame = (overrides: object) => ({
+      hands: [[], [], [], []],
+      trick: [],
+      completedTricks: [],
+      phase: "playing",
+      contract: { value: 80, mode: "S", taker: 0, capot: false, generale: false, coinche: 1 },
+      settings: DEFAULT_SETTINGS,
+      ...overrides,
+    });
+    // Valide → restaurée
+    storage.saveGame(newGame({}) as never);
+    expect(loadResumableGame()?.phase).toBe("playing");
+    // En jeu sans contrat → rejetée (anti-crash)
+    storage.saveGame(newGame({ contract: null }) as never);
+    expect(loadResumableGame()).toBeNull();
+    // Phase terminée → on ne reprend pas
+    storage.saveGame(newGame({ phase: "gameOver" }) as never);
+    expect(loadResumableGame()).toBeNull();
+  });
+
+  it("clearAll efface toutes les clés coincheur.*", () => {
+    storage.saveProfile({ name: "X" });
+    storage.setLessonDone("bases");
+    storage.clearAll();
+    expect(storage.loadProfile().name).toBe("Vous");
+    expect(storage.loadDoneLessons()).toEqual([]);
   });
 
   it("profil local : aller-retour + défaut", () => {

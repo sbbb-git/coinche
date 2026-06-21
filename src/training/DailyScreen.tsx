@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { PlayingCard } from "../components/Card";
 import { modeLabel } from "../components/Table";
@@ -71,7 +71,7 @@ export function DailyScreen() {
       <div className="mb-3 rounded-2xl bg-gradient-to-br from-sky-900/70 to-emerald-900/60 p-4 ring-1 ring-white/10">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-wide text-white/55">{prettyDate(key)}</p>
+            <p className="text-xs uppercase tracking-wide text-white/80">{prettyDate(key)}</p>
             <p className="text-lg font-bold">🗓️ Le défi du jour</p>
           </div>
           <div className="text-right">
@@ -136,6 +136,10 @@ export function DailyScreen() {
 function Result({ success, reason, streak, keyDay }: { success: boolean; reason: string; streak: number; keyDay: string }) {
   const [shared, setShared] = useState(false);
   const [reminder, setReminder] = useState(notify.optedIn());
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, []);
 
   const share = async () => {
     const text = `Coincheur — Défi du jour ${keyDay}\n${success ? "✅ trouvé" : "❌ manqué"} · série ${streak} 🔥\n${SITE}`;
@@ -159,7 +163,7 @@ function Result({ success, reason, streak, keyDay }: { success: boolean; reason:
   };
 
   return (
-    <div className="mt-4 rounded-xl bg-emerald-900/70 p-3 ring-1 ring-emerald-700">
+    <div ref={ref} aria-live="polite" className="mt-4 rounded-xl bg-emerald-900/70 p-3 ring-1 ring-emerald-700">
       <p className="font-bold">{success ? "✅ Bien joué !" : "❌ Pas le meilleur coup"}</p>
       <p className="mt-1 text-sm text-white/85">{reason}</p>
       <p className="mt-2 text-sm">

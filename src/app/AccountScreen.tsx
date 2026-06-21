@@ -10,9 +10,11 @@ export function AccountScreen() {
   const updateSettings = useGame((s) => s.updateSettings);
   const [name, setName] = useState(() => storage.loadProfile().name);
 
-  const saveName = (n: string) => {
-    setName(n);
-    const clean = n.trim() || "Vous";
+  // On ne persiste qu'au blur (sortie du champ) pour éviter de re-render toute la
+  // partie à chaque frappe.
+  const commitName = () => {
+    const clean = name.trim() || "Vous";
+    if (clean !== name) setName(clean);
     storage.saveProfile({ name: clean });
     const pn = game.settings.playerNames;
     updateSettings({ ...game.settings, playerNames: [clean, pn[1], pn[2], pn[3]] });
@@ -30,7 +32,8 @@ export function AccountScreen() {
           value={name}
           maxLength={16}
           placeholder="Votre prénom"
-          onChange={(e) => saveName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={commitName}
           className="mt-1 w-full rounded-lg bg-white/90 px-3 py-2.5 font-semibold text-zinc-800 placeholder:text-zinc-400"
         />
       </section>

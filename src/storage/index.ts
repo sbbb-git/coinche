@@ -244,9 +244,19 @@ class LocalStorage implements Storage {
       const raw = localStorage.getItem(GAME_KEY);
       if (!raw) return null;
       const g = JSON.parse(raw) as GameState;
-      // Validation minimale : structure plausible d'une partie.
-      if (!g || !Array.isArray(g.hands) || g.hands.length !== 4 || typeof g.phase !== "string") return null;
-      return g;
+      // Validation : structure plausible ET phase connue ; contrat présent en jeu.
+      const phases = ["bidding", "playing", "dealScored", "gameOver"];
+      if (!g || !Array.isArray(g.hands) || g.hands.length !== 4) return null;
+      if (!phases.includes(g.phase) || !Array.isArray(g.trick) || !Array.isArray(g.completedTricks)) return null;
+      if ((g.phase === "playing" || g.phase === "dealScored") && !g.contract) return null;
+      // Filet de défauts sur les réglages (comme loadSettings) : tolère l'ajout de champs.
+      const settings: Settings = {
+        ...DEFAULT_SETTINGS,
+        ...g.settings,
+        profile: { ...DEFAULT_PROFILE, ...(g.settings?.profile ?? {}) },
+        playerNames: g.settings?.playerNames ?? DEFAULT_SETTINGS.playerNames,
+      };
+      return { ...g, settings };
     } catch {
       return null;
     }
@@ -297,8 +307,9 @@ export function loadInitialSettings(): Settings {
   return storage.loadSettings() ?? DEFAULT_SETTINGS;
 }
 
-/** Partie en cours à reprendre (si une donne n'était pas terminée), sinon null. */
+/** Partie en cours à reprendre : uniquement en pleine donne (enchères ou jeu).
+ *  En « score de donne » ou « fin de partie », on repart proprement. */
 export function loadResumableGame(): GameState | null {
   const g = storage.loadGame();
-  return g && g.phase !== "gameOver" ? g : null;
+  return g && (g.phase === "bidding" || g.phase === "playing") ? g : null;
 }

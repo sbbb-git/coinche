@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGame } from "../state/store";
+import { useNav } from "../app/nav";
+import { useFocusTrap } from "../app/useFocusTrap";
 import { AiLevel, PlayProfile, Settings, winnerTeam } from "../engine/game";
 import { storage } from "../storage";
 import { shareResultImage } from "../share";
@@ -15,6 +17,8 @@ function Overlay({
   onClose?: () => void;
   label?: string;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef);
   useEffect(() => {
     if (!onClose) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -27,6 +31,7 @@ function Overlay({
       onClick={onClose ? () => onClose() : undefined}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={label}
@@ -109,9 +114,21 @@ export function DealResultModal() {
 export function GameOverModal() {
   const game = useGame((s) => s.game);
   const startNewGame = useGame((s) => s.startNewGame);
+  const go = useNav((s) => s.go);
+  const [sharing, setSharing] = useState(false);
   if (game.phase !== "gameOver") return null;
   const w = winnerTeam(game);
   const youWon = w === 0;
+
+  const share = async () => {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      await shareResultImage({ won: youWon, scoreYou: game.scores[0], scoreThem: game.scores[1] });
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <Overlay label="Fin de partie">
@@ -125,12 +142,21 @@ export function GameOverModal() {
       >
         Nouvelle partie
       </button>
-      <button
-        onClick={() => shareResultImage({ won: youWon, scoreYou: game.scores[0], scoreThem: game.scores[1] })}
-        className="mt-2 min-h-11 w-full rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/85 hover:bg-white/20"
-      >
-        📤 Partager le résultat
-      </button>
+      <div className="mt-2 flex gap-2">
+        <button
+          onClick={() => go("home")}
+          className="min-h-11 flex-1 rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/85 hover:bg-white/20"
+        >
+          Accueil
+        </button>
+        <button
+          onClick={share}
+          disabled={sharing}
+          className="min-h-11 flex-1 rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/85 hover:bg-white/20 disabled:opacity-50"
+        >
+          {sharing ? "…" : "📤 Partager"}
+        </button>
+      </div>
     </Overlay>
   );
 }
@@ -171,11 +197,13 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         {TABS.map((t) => (
           <button
             key={t.id}
+            id={`settab-${t.id}`}
             onClick={() => setTab(t.id)}
             role="tab"
             aria-selected={tab === t.id}
+            aria-controls="settings-panel"
             className={[
-              "flex-1 rounded-md py-2.5 text-sm font-semibold transition",
+              "min-w-0 flex-1 truncate rounded-md py-2.5 text-sm font-semibold transition",
               tab === t.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
             ].join(" ")}
           >
@@ -184,7 +212,12 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         ))}
       </div>
 
-      <div className="mt-3 max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+      <div
+        id="settings-panel"
+        role="tabpanel"
+        aria-labelledby={`settab-${tab}`}
+        className="mt-3 max-h-[55vh] space-y-3 overflow-y-auto pr-1"
+      >
         {tab === "interface" && (
           <>
             <Seg
@@ -412,7 +445,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         ) : (
           <button
             onClick={() => setConfirmClear(true)}
-            className="min-h-11 w-full rounded-xl text-sm font-semibold text-red-300/80 hover:bg-red-500/10"
+            className="min-h-11 w-full rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10"
           >
             Effacer toutes mes données
           </button>

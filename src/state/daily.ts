@@ -3,9 +3,11 @@ import { DailyState, storage } from "../storage";
 import { isoDay } from "../training/daily";
 
 function yesterdayOf(key: string): string {
-  const d = new Date(key);
-  d.setDate(d.getDate() - 1);
-  return isoDay(d);
+  // Parse en heure LOCALE (et non UTC) pour rester cohérent avec isoDay().
+  const [y, m, d] = key.split("-").map(Number);
+  const date = new Date(y, (m || 1) - 1, d || 1);
+  date.setDate(date.getDate() - 1);
+  return isoDay(date);
 }
 
 interface DailyStore {

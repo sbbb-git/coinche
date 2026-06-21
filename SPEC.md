@@ -49,8 +49,10 @@ coach Graux), absent ou minimal ailleurs.
   - Tout Atout : V14 9-9 A6 10-5 R3 D1 (suit = 38, total 152).
 - **162 pts/donne** (152 + **10 de der**). **Belote** (R+D d'atout) = 20.
 - Jeu : fournir, **couper**, **monter à l'atout**, droit de **pisser**.
-- Barème : contrat réussi = `contrat + points réalisés` ; chute = défense `160 + contrat` ;
-  coinche ×2 / surcoinche ×4 sur l'enjeu `(contrat + 160)` ; **capot 250**, capot beloté 270, générale 200.
+- Barème (conforme au code/tests) : contrat réussi = `contrat + points réalisés` ;
+  chute = défense `162 + contrat` (252 si la défense capote) ; coinche ×2 / surcoinche ×4
+  appliqués à l'enjeu `(contrat + 162)` ; **capot annoncé 250** (réalisé : 162 +90 bonus
+  = 252, + contrat) ; **générale 500**.
 
 ### Variantes (toggles)
 - **Mode d'enchères** : **Coinche** (chiffrée 80→160, défaut) / **Contrée** (annonce couleur, contrat 82).

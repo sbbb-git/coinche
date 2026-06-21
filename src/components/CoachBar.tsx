@@ -11,6 +11,7 @@ export function CoachBar() {
   const game = useGame((s) => s.game);
   const overlay = useGame((s) => s.overlayTrick);
   const hint = useGame((s) => s.hint);
+  const hintLoading = useGame((s) => s.hintLoading);
   const askHint = useGame((s) => s.askHint);
   const clearHint = useGame((s) => s.clearHint);
   const [recap, setRecap] = useState(false);
@@ -34,9 +35,11 @@ export function CoachBar() {
         {myTurn && (
           <button
             onClick={askHint}
-            className="inline-flex min-h-11 items-center rounded-full bg-sky-500/90 px-4 text-sm font-bold text-white shadow hover:bg-sky-400"
+            disabled={hintLoading}
+            aria-busy={hintLoading}
+            className="inline-flex min-h-11 items-center rounded-full bg-sky-500/90 px-4 text-sm font-bold text-white shadow hover:bg-sky-400 disabled:opacity-70"
           >
-            💡 Conseil
+            {hintLoading ? "💡 …" : "💡 Conseil"}
           </button>
         )}
         <button

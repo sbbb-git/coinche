@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { APP_VERSION } from "../version";
+import { useFocusTrap } from "../app/useFocusTrap";
 
 // « Quoi de neuf » : affiché UNE fois aux utilisateurs qui reviennent après une
 // mise à jour (jamais au tout premier lancement).
@@ -28,6 +29,8 @@ export function WhatsNew() {
     }
   }, []);
 
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, show);
   if (!show) return null;
   const close = () => {
     try {
@@ -40,14 +43,16 @@ export function WhatsNew() {
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]"
       onClick={close}
-      role="dialog"
-      aria-label="Quoi de neuf"
     >
       <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Quoi de neuf"
         onClick={(e) => e.stopPropagation()}
-        className="animate-pop w-full max-w-sm rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700"
+        className="animate-pop max-h-[88dvh] w-full max-w-sm overflow-y-auto rounded-2xl bg-emerald-950 p-5 shadow-2xl ring-1 ring-emerald-700"
       >
         <p className="text-center text-lg font-black">✨ Quoi de neuf</p>
         <p className="mb-3 text-center text-xs text-white/55">Version {APP_VERSION}</p>

@@ -26,7 +26,7 @@ export function AboutScreen() {
     <ScreenShell title="À propos">
       <div className="text-center">
         <div className="mx-auto mb-2 grid h-16 w-16 place-items-center rounded-2xl bg-white/10 text-4xl">
-          🂡
+          🃏
         </div>
         <h2 className="text-2xl font-black">
           Coin<span className="text-yellow-400">cheur</span>
@@ -74,7 +74,7 @@ export function AboutScreen() {
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-lg bg-white/5 py-2 font-semibold text-white/70 ring-1 ring-white/10">
+    <div className="rounded-lg bg-white/5 py-2 font-semibold text-white/85 ring-1 ring-white/10">
       {children}
     </div>
   );

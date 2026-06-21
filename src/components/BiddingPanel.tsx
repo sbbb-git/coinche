@@ -178,7 +178,7 @@ function Btn({
       onClick={onClick}
       disabled={disabled}
       className={[
-        "px-4 py-2.5 rounded-lg text-sm font-semibold shadow transition",
+        "min-h-11 px-4 py-2.5 rounded-lg text-sm font-semibold shadow transition",
         disabled
           ? "bg-white/20 text-white/40 cursor-not-allowed"
           : warn
