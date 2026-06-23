@@ -59,10 +59,16 @@ export function playReason(state: GameState, card: Card): string {
       return "Tu as été coinché : on ne part JAMAIS à l'atout (le coincheur en a). Tu encaisses d'abord tes maîtres dans les couleurs.";
     }
     if (isTrump(card, mode) && iAmTaker) {
-      return "Tu es preneur : tu tires l'atout pour faire tomber ceux des adversaires.";
+      const high = card.rank === "J" || card.rank === "9";
+      return high
+        ? "Tu es preneur : tu tires un gros atout pour faire tomber ceux des adversaires."
+        : "Tu es preneur : tu tires l'atout pour vider les adversaires avant d'encaisser tes couleurs.";
     }
     if (card.rank === "A" && !isTrump(card, mode)) {
       return "Tu entames de ton As maître : un pli sûr, et tu gardes la main.";
+    }
+    if (!iAmTaker) {
+      return "En défense : tu entames petit, sans ouvrir l'atout ni lâcher tes As — tu laisses le preneur se découvrir.";
     }
     return "Tu entames petit dans une couleur, sans gâcher tes cartes fortes.";
   }
@@ -72,16 +78,15 @@ export function playReason(state: GameState, card: Card): string {
   const master = trick[wIdx].card;
   const partnerMaster = partnerIsWinning(trick, me, mode);
   const isLast = trick.length === 3; // dernier à jouer => prise garantie
-  const pos = trick.length === 1 ? "2ᵉ" : trick.length === 2 ? "3ᵉ" : "dernier";
 
   if (partnerMaster) {
     const charge = card.rank === "A" || card.rank === "10" || (isTrump(card, mode) && (card.rank === "J" || card.rank === "9"));
     if (charge) {
       return isLast
-        ? "Ton partenaire remporte le pli : tu le « charges » au maximum de points."
+        ? "Ton partenaire remporte le pli : tu le « charges » au maximum de points (As, 10…)."
         : "Ton partenaire tient le pli : tu le « charges » de points (un adversaire joue encore, mais le risque est faible).";
     }
-    return "Ton partenaire tient le pli : tu te défausses sans gâcher de carte forte.";
+    return "Ton partenaire tient le pli : pas de gros points à donner ici, tu te défausses petit en gardant tes maîtres.";
   }
 
   const wins = beats(card, master, led, mode);
@@ -90,8 +95,10 @@ export function playReason(state: GameState, card: Card): string {
   if (wins && isTrump(card, mode) && led !== mode && mode !== "AT") {
     return isLast
       ? "Tu coupes pour remporter le pli que l'adversaire tenait."
-      : `Tu coupes pour prendre le pli — tu n'es que ${pos}, mais c'est le bon moment.`;
+      : "Tu coupes pour rafler ce pli à l'adversaire (et tu mets juste assez d'atout).";
   }
+
+  const pos = trick.length === 1 ? "2ᵉ" : "3ᵉ";
 
   if (wins) {
     if (isLast) {
@@ -110,16 +117,35 @@ export function playReason(state: GameState, card: Card): string {
   }
 
   if (isTrump(card, mode) && led !== mode && mode !== "AT" && mode !== "NT") {
-    return "Tu es obligé de mettre de l'atout (tu n'as pas la couleur demandée).";
+    // On met de l'atout sans dépasser le maître : soit on n'a pas assez gros,
+    // soit on choisit de ne pas surcouper trop haut.
+    return "Tu es obligé de fournir de l'atout (tu n'as pas la couleur demandée), mais le maître reste devant : tu mets le plus petit.";
   }
-  // On ne prend pas : duck/défausse. A-t-on volontairement gardé une maîtresse ?
-  const duckedMaster = state.hands[me].some(
-    (c) => c.suit === led && !isTrump(c, mode) && (c.rank === "A" || c.rank === "10"),
-  );
-  if (duckedMaster && card.suit === led) {
-    return "Tu laisses filer ce petit pli et tu GARDES ton As/10 pour un pli qui compte.";
+
+  // On ne prend pas : duck / défausse. Plusieurs cas distincts à expliquer.
+  const followingSuit = card.suit === led && !isTrump(card, mode);
+  if (followingSuit) {
+    // On fournit la couleur demandée sans pouvoir (ou vouloir) prendre.
+    const duckedMaster = state.hands[me].some(
+      (c) => c.suit === led && (c.rank === "A" || c.rank === "10"),
+    );
+    if (duckedMaster) {
+      return "Tu laisses filer ce petit pli et tu GARDES ton As/10 de la couleur pour un pli qui comptera vraiment.";
+    }
+    return "Tu fournis la couleur demandée avec ta plus petite carte : impossible de prendre, autant économiser.";
   }
-  return "Tu ne peux pas prendre : tu te défausses d'une petite carte, en gardant tes cartes utiles.";
+
+  // Défausse hors couleur (et sans couper). Pourquoi ne pas couper ?
+  const hasTrump = state.hands[me].some((c) => isTrump(c, mode));
+  const trickHasPoints = trick.some((t) => t.card.rank === "A" || t.card.rank === "10");
+  if (hasTrump && mode !== "NT") {
+    // On a de l'atout mais on garde : le pli ne vaut pas qu'on dépense un atout.
+    return trickHasPoints
+      ? "Tu ne peux pas suivre et le maître est déjà adverse : ici tu préfères garder tes atouts plutôt que de couper un pli risqué."
+      : "Tu te défausses sans couper : ce petit pli ne vaut pas un atout, tu gardes tes coupes pour les gros plis.";
+  }
+  // Pas d'atout (ou Sans-Atout) : pure défausse.
+  return "Tu ne peux ni suivre ni couper : tu te débarrasses d'une carte inutile en gardant tes maîtresses.";
 }
 
 // --- Phase d'enchères -------------------------------------------------------
