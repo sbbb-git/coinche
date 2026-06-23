@@ -2,7 +2,7 @@
 // review et les exercices). Distingue la phase d'enchères de la phase de jeu.
 // Réutilise le moteur d'évaluation de l'IA, en mode "expert".
 
-import { Card, TrumpMode, isTrump } from "./cards";
+import { Card, TrumpMode, isTrump, strength } from "./cards";
 import {
   GameState,
   PlayProfile,
@@ -48,7 +48,7 @@ export function coachPlay(state: GameState): PlayAdvice {
   return { best, reason: playReason(cs, best) };
 }
 
-function playReason(state: GameState, card: Card): string {
+export function playReason(state: GameState, card: Card): string {
   const mode = state.contract!.mode;
   const trick = state.trick;
   const me = state.current;
@@ -71,26 +71,55 @@ function playReason(state: GameState, card: Card): string {
   const wIdx = winningIndex(trick, mode);
   const master = trick[wIdx].card;
   const partnerMaster = partnerIsWinning(trick, me, mode);
+  const isLast = trick.length === 3; // dernier à jouer => prise garantie
+  const pos = trick.length === 1 ? "2ᵉ" : trick.length === 2 ? "3ᵉ" : "dernier";
 
   if (partnerMaster) {
-    if (card.rank === "A" || card.rank === "10" || (isTrump(card, mode) && card.rank === "J")) {
-      return "Ton partenaire tient le pli : tu le « charges » en lui donnant un maximum de points.";
+    const charge = card.rank === "A" || card.rank === "10" || (isTrump(card, mode) && (card.rank === "J" || card.rank === "9"));
+    if (charge) {
+      return isLast
+        ? "Ton partenaire remporte le pli : tu le « charges » au maximum de points."
+        : "Ton partenaire tient le pli : tu le « charges » de points (un adversaire joue encore, mais le risque est faible).";
     }
-    return "Ton partenaire est maître : tu te défausses sans gâcher de carte forte.";
+    return "Ton partenaire tient le pli : tu te défausses sans gâcher de carte forte.";
   }
 
   const wins = beats(card, master, led, mode);
+
+  // Coupe (atout sur une autre couleur).
+  if (wins && isTrump(card, mode) && led !== mode && mode !== "AT") {
+    return isLast
+      ? "Tu coupes pour remporter le pli que l'adversaire tenait."
+      : `Tu coupes pour prendre le pli — tu n'es que ${pos}, mais c'est le bon moment.`;
+  }
+
   if (wins) {
-    if (isTrump(card, mode) && led !== mode && mode !== "AT") {
-      return "Tu coupes pour remporter le pli que l'adversaire tenait.";
+    if (isLast) {
+      return "Dernier à jouer : tu remportes le pli avec la plus petite carte qui suffit.";
     }
-    return "Tu prends le pli avec une carte juste assez forte pour gagner.";
+    // Pas le dernier : as-tu gardé une carte PLUS FORTE de la même couleur ?
+    const sameKind = (c: Card) => isTrump(c, mode) === isTrump(card, mode) && c.suit === card.suit;
+    const keptStronger = state.hands[me].some((c) => sameKind(c) && strength(c, mode) > strength(card, mode));
+    if (keptStronger) {
+      return (
+        `Tu n'es que ${pos} à jouer : tu poses ta plus petite carte qui passe et tu GARDES ta ` +
+        `maîtresse — le preneur joue après toi et pourrait la couper ou la surmonter (« deuxième main basse »).`
+      );
+    }
+    return `Tu prends, mais prudence : tu n'es que ${pos}, le preneur joue encore après toi.`;
   }
 
   if (isTrump(card, mode) && led !== mode && mode !== "AT" && mode !== "NT") {
     return "Tu es obligé de mettre de l'atout (tu n'as pas la couleur demandée).";
   }
-  return "Tu ne peux pas prendre : tu te défausses d'une petite carte sans valeur.";
+  // On ne prend pas : duck/défausse. A-t-on volontairement gardé une maîtresse ?
+  const duckedMaster = state.hands[me].some(
+    (c) => c.suit === led && !isTrump(c, mode) && (c.rank === "A" || c.rank === "10"),
+  );
+  if (duckedMaster && card.suit === led) {
+    return "Tu laisses filer ce petit pli et tu GARDES ton As/10 pour un pli qui compte.";
+  }
+  return "Tu ne peux pas prendre : tu te défausses d'une petite carte, en gardant tes cartes utiles.";
 }
 
 // --- Phase d'enchères -------------------------------------------------------

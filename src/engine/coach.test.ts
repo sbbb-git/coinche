@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeCard } from "./cards";
 import { DEFAULT_SETTINGS, dealStateFrom, legalForCurrent } from "./game";
-import { coachBid, coachPlay, isPlayDecision } from "./coach";
+import { coachBid, coachPlay, isPlayDecision, playReason } from "./coach";
 import { aiBid } from "./ai";
 
 function stateWithHand(hand: ReturnType<typeof makeCard>[]) {
@@ -168,5 +168,24 @@ describe("coach — jeu", () => {
       const legalIds = legalForCurrent(playing).map((c) => c.id);
       expect(legalIds).toContain(best.id);
     }
+  });
+
+  it("défense 2ᵉ main : explique « garde ton As » et NE prétend PAS gagner le pli", () => {
+    // Reproduit la capture : contrat 90 ♦, preneur Est (3, équipe adverse).
+    // Ouest (1) entame 7♣. Toi (0) es 2ᵉ ; tu as A♣ et 8♣. Le bon coup = 8♣.
+    const hand = [makeCard("C", "A"), makeCard("C", "8"), makeCard("S", "A"), makeCard("S", "K")];
+    const g = dealStateFrom(DEFAULT_SETTINGS, 3, [hand, [], [], []]);
+    const playing = {
+      ...g,
+      phase: "playing" as const,
+      contract: { value: 90, mode: "D" as const, taker: 3, capot: false, generale: false, coinche: 1 as const },
+      current: 0,
+      trick: [{ card: makeCard("C", "7"), player: 1 }],
+    };
+    const reason = playReason(playing, makeCard("C", "8"));
+    expect(reason.toLowerCase()).toContain("deuxième main basse");
+    expect(reason).not.toContain("juste assez forte pour gagner");
+    // Et jouer l'As ici n'est PAS présenté comme « deuxième main basse ».
+    expect(playReason(playing, makeCard("C", "A"))).not.toContain("deuxième main basse");
   });
 });
