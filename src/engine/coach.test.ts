@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { makeCard } from "./cards";
-import { DEFAULT_SETTINGS, dealStateFrom, legalForCurrent } from "./game";
+import {
+  DEFAULT_SETTINGS,
+  GameState,
+  applyBid,
+  applyPass,
+  applyPlay,
+  dealStateFrom,
+  legalForCurrent,
+  newGame,
+  nextDeal,
+} from "./game";
 import { coachBid, coachPlay, isPlayDecision, playReason } from "./coach";
-import { aiBid } from "./ai";
+import { aiBid, aiPlay } from "./ai";
 
 function stateWithHand(hand: ReturnType<typeof makeCard>[]) {
   return dealStateFrom(DEFAULT_SETTINGS, 3, [hand, [], [], []]);
@@ -187,5 +197,34 @@ describe("coach — jeu", () => {
     expect(reason).not.toContain("juste assez forte pour gagner");
     // Et jouer l'As ici n'est PAS présenté comme « deuxième main basse ».
     expect(playReason(playing, makeCard("C", "A"))).not.toContain("deuxième main basse");
+  });
+
+  it("le conseil en jeu est scénarisé et chiffré (probabilités issues du Monte-Carlo)", () => {
+    // On joue une vraie partie jusqu'à une décision en cours de pli, puis on
+    // vérifie que le conseil du coach mentionne des % réels et le coup recommandé.
+    const settings = { ...DEFAULT_SETTINGS, aiLevel: "medium" as const };
+    let g: GameState = newGame(settings);
+    let advice: ReturnType<typeof coachPlay> | null = null;
+    let guard = 0;
+    while (!advice && guard++ < 4000) {
+      if (g.phase === "bidding") {
+        const d = aiBid(g, g.current);
+        g = d.action === "bid" ? applyBid(g, d.value, d.mode, d.capot, d.generale) : applyPass(g);
+      } else if (g.phase === "playing") {
+        if (legalForCurrent(g).length >= 2 && g.trick.length >= 1) advice = coachPlay(g);
+        else g = applyPlay(g, aiPlay(g));
+      } else if (g.phase === "dealScored") {
+        g = nextDeal(g);
+      } else {
+        g = newGame(settings);
+      }
+    }
+    expect(advice).not.toBeNull();
+    const reason = advice!.reason;
+    // Contient au moins un pourcentage et plusieurs lignes (concept + chiffres).
+    expect(reason).toMatch(/\d+%/);
+    expect(reason.split("\n").length).toBeGreaterThanOrEqual(2);
+    // Le coup recommandé est légal (cohérence carte affichée ↔ explication).
+    expect(legalForCurrent(g).map((c) => c.id)).toContain(advice!.best.id);
   });
 });

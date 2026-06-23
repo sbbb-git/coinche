@@ -64,7 +64,7 @@ export function CoachBar() {
       {hint && (
         <div className="mx-auto mt-2 flex max-w-lg items-start gap-2 rounded-xl bg-sky-950/80 p-3 text-sm ring-1 ring-sky-600">
           <span aria-hidden>💡</span>
-          <p className="min-w-0 flex-1 text-white/90">{hint.text}</p>
+          <p className="min-w-0 flex-1 whitespace-pre-line text-white/90">{hint.text}</p>
           <button
             onClick={clearHint}
             aria-label="Fermer le conseil"

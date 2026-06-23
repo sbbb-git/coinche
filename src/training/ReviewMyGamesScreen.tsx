@@ -372,7 +372,7 @@ function PointView({ point }: { point: ReviewPoint }) {
             <div className="text-lg font-bold text-yellow-300">{point.best}</div>
           </div>
         </div>
-        <p className="mt-2 text-sm text-white/80">{point.reason}</p>
+        <p className="mt-2 whitespace-pre-line text-sm text-white/80">{point.reason}</p>
       </div>
     </div>
   );

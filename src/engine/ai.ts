@@ -844,3 +844,85 @@ function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number, 
   for (let i = 1; i < legal.length; i++) if (scores[i] > scores[best]) best = i;
   return legal[best];
 }
+
+// --- Analyse probabiliste pour le COACH (scénarios chiffrés) ----------------
+
+/** Statistiques Monte-Carlo d'un coup candidat, mesurées sur les mondes simulés. */
+export interface PlayOutcome {
+  card: Card;
+  /** Différentiel de score final moyen sur la donne (mon camp − adverse). */
+  scoreDiff: number;
+  /** Probabilité que MON camp remporte LE PLI EN COURS (0..1). */
+  trickWinPct: number;
+  /** Points moyens que ce pli rapporte à mon camp (0 si on le perd). */
+  trickPtsForUs: number;
+  /** Probabilité que mon camp remporte la donne (score final ≥ adverse). */
+  dealWinPct: number;
+}
+
+export interface PlayAnalysis {
+  best: Card;
+  outcomes: PlayOutcome[]; // triés du meilleur au pire (par scoreDiff)
+  samples: number;
+}
+
+/**
+ * Comme `expertPlay`, mais retient pour CHAQUE carte des statistiques lisibles par
+ * un humain (probabilité de gagner le pli, points moyens, issue de la donne). Le
+ * meilleur coup retourné est IDENTIQUE à celui d'`aiPlay` déterministe (même seed,
+ * même nombre de mondes), pour que le conseil affiché colle au coup recommandé.
+ */
+export function analyzePlay(state: GameState, deterministic = true): PlayAnalysis {
+  const legal = legalForCurrent(state);
+  const me = state.current;
+  const myTeam = teamOf(me);
+  const oppTeam = (1 - myTeam) as 0 | 1;
+  const mode = state.contract!.mode;
+  const voids = inferVoids(state);
+  const bias = placementBias(state);
+  const samples = 32; // identique au coach déterministe d'aiPlay
+  const rng: Rng = deterministic ? mulberry32(hashState(state)) : Math.random;
+  // Le pli en cours portera cet indice une fois terminé.
+  const trickIdx = state.completedTricks.length;
+
+  const acc = legal.map((c) => ({ card: c, scoreSum: 0, trickWins: 0, trickPts: 0, dealWins: 0 }));
+
+  for (let s = 0; s < samples; s++) {
+    const sampled = sampleWorld(state, me, voids, rng, bias);
+    const dealtHands = sampled.map((h) => [...h]);
+    for (const t of state.completedTricks) for (const pc of t.played) dealtHands[pc.player].push(pc.card);
+    for (const pc of state.trick) dealtHands[pc.player].push(pc.card);
+    const world: GameState = { ...state, hands: sampled, dealtHands };
+    for (let i = 0; i < legal.length; i++) {
+      const after = applyPlay(world, legal[i]);
+      const end = after.phase === "playing" ? rollout(after, false) : after;
+      const r = end.lastResult;
+      if (r) {
+        acc[i].scoreSum += r.scores[myTeam] - r.scores[oppTeam];
+        if (r.scores[myTeam] >= r.scores[oppTeam]) acc[i].dealWins++;
+      }
+      const ct = end.completedTricks[trickIdx];
+      if (ct && ct.winnerTeam === myTeam) {
+        acc[i].trickWins++;
+        acc[i].trickPts += ct.cards.reduce((sum, c) => sum + points(c, mode), 0);
+      }
+    }
+  }
+
+  // Meilleur coup : argmax du différentiel (même règle que expertPlay, 1er en cas d'égalité).
+  let bestIdx = 0;
+  for (let i = 1; i < legal.length; i++) if (acc[i].scoreSum > acc[bestIdx].scoreSum) bestIdx = i;
+  const best = legal[bestIdx];
+
+  const outcomes: PlayOutcome[] = acc
+    .map((a) => ({
+      card: a.card,
+      scoreDiff: a.scoreSum / samples,
+      trickWinPct: a.trickWins / samples,
+      trickPtsForUs: a.trickPts / samples,
+      dealWinPct: a.dealWins / samples,
+    }))
+    .sort((x, y) => y.scoreDiff - x.scoreDiff);
+
+  return { best, outcomes, samples };
+}

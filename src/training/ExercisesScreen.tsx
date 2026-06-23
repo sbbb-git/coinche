@@ -378,7 +378,7 @@ function Feedback({ ok, reason, onNext }: { ok: boolean; reason: string; onNext:
       ].join(" ")}
     >
       <p className="font-bold">{ok ? "✅ Bien vu !" : "❌ Pas le meilleur choix"}</p>
-      <p className="mt-1 text-sm text-white/80">{reason}</p>
+      <p className="mt-1 whitespace-pre-line text-sm text-white/80">{reason}</p>
       <button
         onClick={onNext}
         className="mt-3 w-full rounded-lg bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"

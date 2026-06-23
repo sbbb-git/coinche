@@ -2,7 +2,7 @@
 // review et les exercices). Distingue la phase d'enchères de la phase de jeu.
 // Réutilise le moteur d'évaluation de l'IA, en mode "expert".
 
-import { Card, TrumpMode, isTrump, strength } from "./cards";
+import { Card, TrumpMode, isTrump, strength, points, RANK_LABEL, SUIT_SYMBOL } from "./cards";
 import {
   GameState,
   PlayProfile,
@@ -10,7 +10,14 @@ import {
   canBid,
   legalForCurrent,
 } from "./game";
-import { aiPlay, bestContractAuction, estimateForMode, partnerSupportRaise, readAuction } from "./ai";
+import {
+  PlayOutcome,
+  analyzePlay,
+  bestContractAuction,
+  estimateForMode,
+  partnerSupportRaise,
+  readAuction,
+} from "./ai";
 import { beats, partnerIsWinning, winningIndex } from "./rules";
 import { teamOf } from "./scoring";
 import { SUIT_LABEL } from "./cards";
@@ -44,8 +51,78 @@ export interface PlayAdvice {
 
 export function coachPlay(state: GameState): PlayAdvice {
   const cs = asCoach(state);
-  const best = aiPlay(cs, true); // déterministe : même conseil pour un même état
-  return { best, reason: playReason(cs, best) };
+  // Analyse Monte-Carlo : le meilleur coup ET ses statistiques (déterministe).
+  const { best, outcomes } = analyzePlay(cs, true);
+  const reason = outcomes.length >= 2 ? playNarrative(cs, best, outcomes) : playReason(cs, best);
+  return { best, reason };
+}
+
+// --- Récit chiffré du coup (façon « analyse » d'échecs) ---------------------
+
+/** Libellé court d'une carte : « A♣ », « V♠ »… */
+function cardLabel(c: Card): string {
+  return `${RANK_LABEL[c.rank]}${SUIT_SYMBOL[c.suit]}`;
+}
+
+/** Arrondi à 5 % près : ~32 simulations ne justifient pas plus de précision. */
+function pct(x: number): number {
+  return Math.round(x * 20) * 5;
+}
+
+/** Le coup « tape-à-l'œil » qu'un débutant jouerait à la place du meilleur : celui
+ *  qui rafle le pli le plus souvent, sinon la plus grosse carte. */
+function pickTempting(best: Card, outcomes: PlayOutcome[], mode: TrumpMode): PlayOutcome | null {
+  const others = outcomes.filter((o) => o.card.id !== best.id);
+  if (others.length === 0) return null;
+  return [...others].sort(
+    (a, b) => b.trickWinPct - a.trickWinPct || points(b.card, mode) - points(a.card, mode),
+  )[0];
+}
+
+/**
+ * Explication scénarisée et chiffrée. Trois temps : le POURQUOI (concept), les
+ * CHIFFRES du coup recommandé tirés des simulations (probabilité de gagner le pli /
+ * la donne, points moyens), puis le SCÉNARIO comparé au coup tentant mais inférieur
+ * (« si tu jouais X… »). Tous les nombres viennent du Monte-Carlo : aucun inventé.
+ */
+function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[]): string {
+  const mode = state.contract!.mode;
+  const bestO = outcomes.find((o) => o.card.id === best.id) ?? outcomes[0];
+  const lines: string[] = [playReason(state, best)];
+
+  // Ligne 2 : les chiffres du coup recommandé.
+  let chiffres: string;
+  if (bestO.trickWinPct >= 0.5) {
+    chiffres = `${cardLabel(best)} : ton camp remporte ce pli ${pct(bestO.trickWinPct)}% du temps`;
+    if (bestO.trickPtsForUs >= 1) chiffres += ` (~${Math.round(bestO.trickPtsForUs)} pts encaissés)`;
+    chiffres += `, `;
+  } else {
+    chiffres = `${cardLabel(best)} : ce pli ne te revient que ${pct(bestO.trickWinPct)}% du temps (tu gardes tes cartes utiles), `;
+  }
+  chiffres += `et ton camp ressort gagnant de la donne dans ~${pct(bestO.dealWinPct)}% des simulations.`;
+  lines.push(chiffres);
+
+  // Ligne 3 : le scénario du coup tentant mais inférieur (« si tu jouais X… »).
+  const alt = pickTempting(best, outcomes, mode);
+  if (alt) {
+    const delta = bestO.scoreDiff - alt.scoreDiff;
+    if (delta >= 4) {
+      if (alt.trickWinPct > bestO.trickWinPct + 0.15) {
+        // Tentant car il rafle le pli plus souvent — mais coûte sur la donne.
+        lines.push(
+          `Tu pourrais rafler ce pli avec ${cardLabel(alt.card)} (${pct(alt.trickWinPct)}%), mais ton camp ` +
+            `finirait ~${Math.round(delta)} points plus bas : cette carte rapporte davantage plus tard.`,
+        );
+      } else {
+        // Même issue sur ce pli : la différence vient de la carte gâchée.
+        lines.push(
+          `Évite ${cardLabel(alt.card)} ici : ce pli se jouerait pareil, mais en la dépensant maintenant ` +
+            `ton camp finirait ~${Math.round(delta)} points plus bas. Garde-la pour un pli que tu peux rafler.`,
+        );
+      }
+    }
+  }
+  return lines.join("\n");
 }
 
 export function playReason(state: GameState, card: Card): string {
@@ -80,7 +157,7 @@ export function playReason(state: GameState, card: Card): string {
   const isLast = trick.length === 3; // dernier à jouer => prise garantie
 
   if (partnerMaster) {
-    const charge = card.rank === "A" || card.rank === "10" || (isTrump(card, mode) && (card.rank === "J" || card.rank === "9"));
+    const charge = points(card, mode) >= 4; // A/10/R (et V/9 d'atout) = points à donner
     if (charge) {
       return isLast
         ? "Ton partenaire remporte le pli : tu le « charges » au maximum de points (As, 10…)."
