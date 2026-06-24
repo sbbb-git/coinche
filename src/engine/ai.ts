@@ -869,8 +869,10 @@ export interface PlayAnalysis {
 /**
  * Comme `expertPlay`, mais retient pour CHAQUE carte des statistiques lisibles par
  * un humain (probabilité de gagner le pli, points moyens, issue de la donne). Le
- * meilleur coup retourné est IDENTIQUE à celui d'`aiPlay` déterministe (même seed,
- * même nombre de mondes), pour que le conseil affiché colle au coup recommandé.
+ * meilleur coup retourné est IDENTIQUE à celui d'`aiPlay` déterministe EN MODE EXPERT
+ * (même seed, mêmes 32 mondes) — le coach force toujours ce mode (cf. asCoach), donc
+ * la carte affichée colle au coup recommandé. (En « hard », aiPlay n'utilise que 8
+ * mondes : ne pas comparer analyzePlay à ce niveau.)
  */
 export function analyzePlay(state: GameState, deterministic = true): PlayAnalysis {
   const legal = legalForCurrent(state);
@@ -899,12 +901,14 @@ export function analyzePlay(state: GameState, deterministic = true): PlayAnalysi
       const r = end.lastResult;
       if (r) {
         acc[i].scoreSum += r.scores[myTeam] - r.scores[oppTeam];
-        if (r.scores[myTeam] >= r.scores[oppTeam]) acc[i].dealWins++;
+        if (r.scores[myTeam] > r.scores[oppTeam]) acc[i].dealWins++;
       }
       const ct = end.completedTricks[trickIdx];
       if (ct && ct.winnerTeam === myTeam) {
         acc[i].trickWins++;
-        acc[i].trickPts += ct.cards.reduce((sum, c) => sum + points(c, mode), 0);
+        // Points du pli, + les 10 « de der » s'il s'agit du dernier pli de la donne.
+        const isLastTrick = trickIdx === 7;
+        acc[i].trickPts += ct.cards.reduce((sum, c) => sum + points(c, mode), 0) + (isLastTrick ? 10 : 0);
       }
     }
   }

@@ -212,6 +212,11 @@ export function playReason(state: GameState, card: Card): string {
     return "Tu fournis la couleur demandée avec ta plus petite carte : impossible de prendre, autant économiser.";
   }
 
+  // En Tout Atout, tout est atout : on ne « coupe » pas, on se défausse simplement.
+  if (mode === "AT") {
+    return "Tu ne peux pas suivre la couleur demandée : tu te défausses de ta plus petite carte en gardant tes maîtres.";
+  }
+
   // Défausse hors couleur (et sans couper). Pourquoi ne pas couper ?
   const hasTrump = state.hands[me].some((c) => isTrump(c, mode));
   const trickHasPoints = trick.some((t) => t.card.rank === "A" || t.card.rank === "10");
