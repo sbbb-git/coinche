@@ -4,6 +4,28 @@
 > Il reste surtout de l'administratif et 2 infos. Suis l'ordre ci-dessous.
 > Détails techniques dans : `STORE.md`, `SUBMISSION.md`, `STORE_LISTING.md`, `PUBLISHING_ASSETS.md`.
 
+## Conformité stores — état (revue du 2026-06-24)
+
+**Verdict actuel : NO-GO tant que les 2 bloquants 🔴 ne sont pas levés.**
+
+Déjà corrigé par moi :
+- ✅ Icône App Store régénérée **sans transparence** (rejet Apple garanti évité).
+- ✅ Mot-clé « tarot » retiré (risque de rejet/recatégorisation).
+- ✅ Classification d'âge clarifiée 4+/PEGI 3 (plus d'ambiguïté « 18+ »).
+- ✅ `capacitor.config.json` pré-configuré : description de permission notifications
+  (iOS) + splash screen (évite l'écran blanc = signe d'app non finie).
+- ✅ Date précise dans la politique de confidentialité.
+
+Reste 🔴 (bloquants) :
+- [ ] **Mentions d'éditeur** : remplacer les `[À COMPLÉTER]` (nom + email) → me donner
+  les 2 infos (Étape 1) et je câble les 4 emplacements d'un coup.
+- [ ] **Packaging natif** (Capacitor sur Mac) — Étape 4.
+
+Reste 🟠 (à faire au packaging) :
+- [ ] Activer **1 feature native** (haptique au jeu d'une carte / à la victoire, ou
+  Game Center) pour écarter le risque Apple « simple site web emballé » (règle 4.2).
+- [ ] Captures d'écran (Étape 5).
+
 ## Étape 0 — Vérifier le site en ligne (5 min)
 - [ ] Ouvre **https://sbbb-git.github.io/coinche/** sur ton iPhone et ton ordi.
 - [ ] Installe-la (iPhone : Safari → Partager → « Sur l'écran d'accueil »).

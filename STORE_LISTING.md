@@ -35,7 +35,7 @@ te fait monter en niveau, donne après donne.
 
 ## Mots-clés (iOS, 100 car., séparés par des virgules)
 ```
-coinche,belote,contrée,belote contrée,cartes,jeu de cartes,tarot,atout,capot,coach,entrainement
+coinche,belote,contrée,belote contrée,cartes,jeu de cartes,atout,capot,coach,entrainement
 ```
 
 ## Notes de version (1.0)

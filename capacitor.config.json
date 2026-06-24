@@ -3,5 +3,19 @@
   "appName": "Coincheur",
   "webDir": "dist",
   "bundledWebRuntime": false,
-  "backgroundColor": "#0b3d28"
+  "backgroundColor": "#0b3d28",
+  "ios": {
+    "contentInset": "always",
+    "infoPlist": {
+      "NSUserNotificationsUsageDescription": "Pour te rappeler le défi du jour et tes parties en cours. Aucune donnée n'est collectée."
+    }
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "backgroundColor": "#0b3d28",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    }
+  }
 }

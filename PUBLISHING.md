@@ -45,8 +45,8 @@ npm run build && npx cap sync
 - `npx cap open ios` → dans Xcode : régler le Bundle ID, l'équipe de signature,
   l'icône et le launch screen, puis Archive → distribuer vers App Store Connect.
 - Remplir la fiche (captures, description, confidentialité), soumettre à la review.
-- Catégorie « Jeux / Cartes ». Si l'app simule des jeux d'argent, prévoir la
-  classification d'âge adéquate (l'app de référence est en 18+).
+- Catégorie « Jeux / Cartes ». Classification **4+ / PEGI 3** : aucun argent réel,
+  aucune mise, aucune monnaie virtuelle (cf. `SUBMISSION.md`).
 
 ### Android (Google Play)
 
