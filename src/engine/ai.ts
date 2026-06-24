@@ -883,9 +883,10 @@ export function analyzePlay(state: GameState, deterministic = true): PlayAnalysi
   const mode = state.contract!.mode;
   const voids = inferVoids(state);
   const bias = placementBias(state);
-  // Nombre de mondes échantillonnés indexé sur le réglage de profondeur Expert,
-  // pour que « Conseil » ne soit pas plus lourd que le jeu choisi par l'utilisateur.
-  const samples = { rapide: 20, normal: 28, fort: 40 }[state.settings.expertDepth] ?? 28;
+  // Coach (déterministe) : 32 mondes, IDENTIQUES à aiPlay expert déterministe →
+  // le coup conseillé est exactement celui que joue l'IA la plus forte. En analyse
+  // non déterministe, on suit la profondeur choisie (perf temps réel).
+  const samples = deterministic ? 32 : ({ rapide: 14, normal: 24, fort: 40 }[state.settings.expertDepth] ?? 24);
   const rng: Rng = deterministic ? mulberry32(hashState(state)) : Math.random;
   // Le pli en cours portera cet indice une fois terminé.
   const trickIdx = state.completedTricks.length;
