@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { PlayingCard } from "../components/Card";
+import { CoachText } from "../components/CoachText";
 import { modeLabel } from "../components/Table";
 import { suitColorClassDark } from "../components/Card";
 import { Card } from "../engine/cards";
@@ -179,7 +180,7 @@ function Result({ success, reason, streak, keyDay }: { success: boolean; reason:
   return (
     <div ref={ref} aria-live="polite" className="mt-4 rounded-xl bg-emerald-900/70 p-3 ring-1 ring-emerald-700">
       <p className="font-bold">{success ? "✅ Bien joué !" : "❌ Pas le meilleur coup"}</p>
-      <p className="mt-1 whitespace-pre-line text-sm text-white/85">{reason}</p>
+      <CoachText text={reason} className="mt-1 block text-sm leading-relaxed text-white/85" />
       <p className="mt-2 text-sm">
         Série : <b className="text-yellow-300">🔥 {streak}</b> — reviens demain pour la prolonger !
       </p>

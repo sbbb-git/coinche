@@ -4,6 +4,7 @@ import { isTrump } from "../engine/cards";
 import { modeLabel } from "./Table";
 import { suitColorClassDark } from "./Card";
 import { GameState } from "../engine/game";
+import { CoachText } from "./CoachText";
 
 /** Barre d'aide en jeu : conseil du coach à la demande, rappel des enchères et
  *  (optionnel) comptage des atouts tombés. */
@@ -59,16 +60,16 @@ export function CoachBar() {
 
       {/* Région live toujours montée pour annoncer le conseil / le calcul. */}
       <div aria-live="polite" className="sr-only">
-        {hintLoading ? "Recherche du conseil…" : hint ? hint.text : ""}
+        {hintLoading ? "Recherche du conseil…" : hint ? hint.text.replace(/\*\*/g, "") : ""}
       </div>
       {hint && (
-        <div className="mx-auto mt-2 flex max-w-lg items-start gap-2 rounded-xl bg-sky-950/80 p-3 text-sm ring-1 ring-sky-600">
+        <div className="mx-auto mt-2 flex max-w-lg items-start gap-2 rounded-xl border-l-2 border-sky-400 bg-sky-950/85 p-3 text-sm ring-1 ring-sky-600">
           <span aria-hidden>💡</span>
-          <p className="min-w-0 flex-1 whitespace-pre-line text-white/90">{hint.text}</p>
+          <CoachText text={hint.text} className="min-w-0 flex-1 max-h-44 overflow-y-auto leading-relaxed text-white/90" />
           <button
             onClick={clearHint}
             aria-label="Fermer le conseil"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
           >
             ✕
           </button>

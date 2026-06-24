@@ -90,34 +90,34 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[]): s
   const bestO = outcomes.find((o) => o.card.id === best.id) ?? outcomes[0];
   const lines: string[] = [playReason(state, best)];
 
-  // Ligne 2 : les chiffres du coup recommandé.
-  let chiffres: string;
+  // Ligne 2 : les chiffres du coup recommandé (compacts, % mis en valeur).
+  const pts = bestO.trickPtsForUs >= 1 ? ` (~${Math.round(bestO.trickPtsForUs)} pts)` : "";
   if (bestO.trickWinPct >= 0.5) {
-    chiffres = `${cardLabel(best)} : ton camp remporte ce pli ${pct(bestO.trickWinPct)}% du temps`;
-    if (bestO.trickPtsForUs >= 1) chiffres += ` (~${Math.round(bestO.trickPtsForUs)} pts encaissés)`;
-    chiffres += `, `;
+    lines.push(
+      `**${cardLabel(best)}** — tu remportes ce pli **${pct(bestO.trickWinPct)}%** du temps${pts} · ` +
+        `ton camp gagne la donne **~${pct(bestO.dealWinPct)}%**.`,
+    );
   } else {
-    chiffres = `${cardLabel(best)} : ce pli ne te revient que ${pct(bestO.trickWinPct)}% du temps (tu gardes tes cartes utiles), `;
+    lines.push(
+      `**${cardLabel(best)}** — tu laisses filer ce pli (**${pct(bestO.trickWinPct)}%**) pour garder tes cartes · ` +
+        `ton camp gagne la donne **~${pct(bestO.dealWinPct)}%**.`,
+    );
   }
-  chiffres += `et ton camp ressort gagnant de la donne dans ~${pct(bestO.dealWinPct)}% des simulations.`;
-  lines.push(chiffres);
 
-  // Ligne 3 : le scénario du coup tentant mais inférieur (« si tu jouais X… »).
+  // Ligne 3 : le scénario du coup tentant mais inférieur.
   const alt = pickTempting(best, outcomes, mode);
   if (alt) {
     const delta = bestO.scoreDiff - alt.scoreDiff;
     if (delta >= 4) {
       if (alt.trickWinPct > bestO.trickWinPct + 0.15) {
-        // Tentant car il rafle le pli plus souvent — mais coûte sur la donne.
         lines.push(
-          `Tu pourrais rafler ce pli avec ${cardLabel(alt.card)} (${pct(alt.trickWinPct)}%), mais ton camp ` +
-            `finirait ~${Math.round(delta)} points plus bas : cette carte rapporte davantage plus tard.`,
+          `vs **${cardLabel(alt.card)}** : prendrait ce pli (**${pct(alt.trickWinPct)}%**) mais ton camp finirait ` +
+            `**~${Math.round(delta)} pts** plus bas — garde-la, elle vaut plus tard.`,
         );
       } else {
-        // Même issue sur ce pli : la différence vient de la carte gâchée.
         lines.push(
-          `Évite ${cardLabel(alt.card)} ici : ce pli se jouerait pareil, mais en la dépensant maintenant ` +
-            `ton camp finirait ~${Math.round(delta)} points plus bas. Garde-la pour un pli que tu peux rafler.`,
+          `vs **${cardLabel(alt.card)}** : même pli, mais **~${Math.round(delta)} pts** de moins pour ton camp — ` +
+            `garde-la pour un pli que tu peux rafler.`,
         );
       }
     }

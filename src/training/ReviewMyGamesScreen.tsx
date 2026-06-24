@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { useNav } from "../app/nav";
 import { PlayingCard } from "../components/Card";
+import { CoachText } from "../components/CoachText";
 import { storage, DealRecord } from "../storage";
 import { DealReview, FullReplay, ReviewPoint, exportDealText, fullReplay, reviewDeal } from "./replay";
 
@@ -372,7 +373,7 @@ function PointView({ point }: { point: ReviewPoint }) {
             <div className="text-lg font-bold text-yellow-300">{point.best}</div>
           </div>
         </div>
-        <p className="mt-2 whitespace-pre-line text-sm text-white/80">{point.reason}</p>
+        <CoachText text={point.reason} className="mt-2 block text-sm leading-relaxed text-white/85" />
       </div>
     </div>
   );
