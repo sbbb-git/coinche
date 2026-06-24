@@ -17,7 +17,7 @@ import {
   speedMs,
 } from "../engine/game";
 import { aiBid, aiPlay } from "../engine/ai";
-import { coachBid, coachPlay } from "../engine/coach";
+import { coachBid, coachPlay, isPlayDecision } from "../engine/coach";
 import { PlayedCard } from "../engine/rules";
 import { loadInitialSettings, loadResumableGame, storage } from "../storage";
 import { feedback } from "./feedback";
@@ -60,6 +60,9 @@ let aiTimer: ReturnType<typeof setTimeout> | null = null;
 // changement de partie/donne (startNewGame, continueDeal) laisse un callback
 // d'overlay s'exécuter sur le nouvel état (race condition).
 let overlayTimer: ReturnType<typeof setTimeout> | null = null;
+// Timer du calcul de conseil (PIMC déféré) : annulé si la partie/donne change
+// pour ne pas afficher un conseil parasite ni rester bloqué en « réflexion ».
+let hintTimer: ReturnType<typeof setTimeout> | null = null;
 function clearAiTimer() {
   if (aiTimer) {
     clearTimeout(aiTimer);
@@ -68,6 +71,10 @@ function clearAiTimer() {
   if (overlayTimer) {
     clearTimeout(overlayTimer);
     overlayTimer = null;
+  }
+  if (hintTimer) {
+    clearTimeout(hintTimer);
+    hintTimer = null;
   }
 }
 
@@ -178,7 +185,7 @@ export const useGame = create<Store>((set, get) => {
       clearAiTimer();
       const s = settings ?? get().game.settings;
       storage.saveSettings(s); // persiste les réglages choisis
-      set({ game: newGame(s), overlayTrick: null, hint: null });
+      set({ game: newGame(s), overlayTrick: null, hint: null, hintLoading: false });
       scheduleAI();
     },
 
@@ -230,16 +237,23 @@ export const useGame = create<Store>((set, get) => {
 
     continueDeal: () => {
       clearAiTimer();
-      set({ game: engineNextDeal(get().game), overlayTrick: null, hint: null });
+      set({ game: engineNextDeal(get().game), overlayTrick: null, hint: null, hintLoading: false });
       scheduleAI();
     },
 
     askHint: () => {
       const g = get().game;
       if (g.current !== HUMAN || get().overlayTrick || get().hintLoading) return;
+      // Coup forcé (une seule carte jouable) : pas de PIMC, réponse immédiate.
+      if (g.phase === "playing" && !isPlayDecision(g)) {
+        const only = legalForCurrent(g)[0];
+        set({ hint: { cardId: only?.id ?? null, text: "Tu n'as qu'une seule carte jouable ici." } });
+        return;
+      }
       // Calcul PIMC déféré : on laisse l'UI peindre l'état « … » avant de geler.
       set({ hintLoading: true });
-      setTimeout(() => {
+      hintTimer = setTimeout(() => {
+        hintTimer = null;
         const gg = get().game;
         if (gg.current !== HUMAN || get().overlayTrick) {
           set({ hintLoading: false });

@@ -142,6 +142,7 @@ function DealForm({
   const [coinche, setCoinche] = useState<1 | 2 | 4>(1);
   const [belote, setBelote] = useState<Team | null>(null);
   const [succeeded, setSucceeded] = useState(true);
+  const [defenseWonAll, setDefenseWonAll] = useState(false);
 
   const ml = modeLabel(mode);
   const valid = special !== "none" || points !== "";
@@ -155,6 +156,7 @@ function DealForm({
       generale: special === "generale",
       takerCardPoints: takerPts,
       succeeded,
+      defenseWonAll: special === "capot" && !succeeded && defenseWonAll,
       coinche,
       beloteTeam: belote,
     });
@@ -233,6 +235,16 @@ function DealForm({
       {special !== "none" && (
         <Field label="Résultat">
           <Seg options={[[true, "Réussi"], [false, "Chuté"]]} value={succeeded} onChange={(v) => setSucceeded(v as boolean)} />
+        </Field>
+      )}
+
+      {special === "capot" && !succeeded && (
+        <Field label="La défense a-t-elle tout pris ?">
+          <Seg
+            options={[[false, "Non"], [true, "Oui (capot pour elle)"]]}
+            value={defenseWonAll}
+            onChange={(v) => setDefenseWonAll(v as boolean)}
+          />
         </Field>
       )}
 

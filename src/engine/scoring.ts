@@ -175,6 +175,7 @@ export interface ManualDeal {
   generale?: boolean;
   takerCardPoints: number; // points de cartes réalisés par le preneur (0..162, 10 de der inclus)
   succeeded?: boolean; // pour capot/générale : réussi ou chuté
+  defenseWonAll?: boolean; // capot chuté : la défense a-t-elle raflé les 8 plis (capot défensif) ?
   coinche?: 1 | 2 | 4;
   beloteTeam?: Team | null; // équipe possédant la belote (20), sinon null
 }
@@ -192,7 +193,8 @@ export function scoreManualDeal(
 
   const cardPoints: [number, number] = [0, 0];
   let value = d.value;
-  let attackWonAll = false;
+  // La défense rafle les 8 plis face à un capot chuté = capot DÉFENSIF (base 252).
+  const defenseCapot = !!d.capot && !d.succeeded && !!d.defenseWonAll;
   let made = false;
 
   if (d.generale) {
@@ -203,10 +205,9 @@ export function scoreManualDeal(
     value = 250;
     made = !!d.succeeded;
     if (made) {
-      attackWonAll = true;
       cardPoints[taker] = 252;
     } else {
-      cardPoints[def] = 162;
+      cardPoints[def] = defenseCapot ? 252 : 162;
     }
   } else {
     const tp = Math.max(0, Math.min(162, Math.round(d.takerCardPoints)));
@@ -225,13 +226,16 @@ export function scoreManualDeal(
       scores[taker] = cardPoints[taker] + value + belote[taker];
       scores[def] = cardPoints[def] + belote[def];
     } else {
-      scores[def] = 162 + value + belote[def];
+      // Contrat chuté : la défense encaisse 162 (ou 252 si capot défensif) + le contrat.
+      scores[def] = (defenseCapot ? 252 : 162) + value + belote[def];
       scores[taker] = belote[taker];
     }
   } else {
     const winner = made ? taker : def;
     const loser = (1 - winner) as Team;
-    const base = winner === taker && attackWonAll ? 252 : 162;
+    // Base réalisée du gagnant : 252 si capot abouti par lui (attaque réussie ou défense raflant tout).
+    const winnerCapot = winner === taker ? !!d.capot && made : defenseCapot;
+    const base = winnerCapot ? 252 : 162;
     scores[winner] = base + value * mult + belote[winner];
     scores[loser] = belote[loser];
   }

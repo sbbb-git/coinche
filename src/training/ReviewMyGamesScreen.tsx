@@ -4,7 +4,7 @@ import { useNav } from "../app/nav";
 import { PlayingCard } from "../components/Card";
 import { CoachText } from "../components/CoachText";
 import { storage, DealRecord } from "../storage";
-import { DealReview, FullReplay, ReviewPoint, exportDealText, fullReplay, reviewDeal } from "./replay";
+import { DealReview, FullReplay, ReviewPoint, exportDealText, fullReplay, reviewDealAsync } from "./replay";
 
 export function ReviewMyGamesScreen() {
   const history = useMemo(() => storage.loadHistory(), []);
@@ -75,8 +75,13 @@ function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
   const [review, setReview] = useState<DealReview | null>(null);
   useEffect(() => {
     if (tab !== "decisions" || review) return;
-    const id = setTimeout(() => setReview(reviewDeal(rec)), 0);
-    return () => clearTimeout(id);
+    let alive = true;
+    reviewDealAsync(rec).then((r) => {
+      if (alive) setReview(r);
+    });
+    return () => {
+      alive = false;
+    };
   }, [tab, rec, review]);
 
   return (

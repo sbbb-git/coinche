@@ -239,3 +239,75 @@ export function reviewDeal(rec: DealRecord): DealReview {
     goodCount: points.filter((p) => p.good).length,
   };
 }
+
+/** Rend la main au navigateur entre deux calculs lourds (anti-gel). */
+function yieldToMain(): Promise<void> {
+  return new Promise((r) => setTimeout(r, 0));
+}
+
+/**
+ * Version ASYNCHRONE de `reviewDeal` : identique au résultat, mais rend la main
+ * au thread entre chaque analyse coach (PIMC) coûteuse, pour ne pas geler l'UI
+ * sur mobile. Le résultat est strictement le même (même coach déterministe).
+ */
+export async function reviewDealAsync(rec: DealRecord): Promise<DealReview> {
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    ...rec.settings,
+    profile: { ...DEFAULT_PROFILE, ...(rec.settings?.profile ?? {}) },
+  };
+  let g = dealStateFrom(settings, rec.dealer, rec.dealtHands);
+  const points: ReviewPoint[] = [];
+
+  for (const b of rec.bids) {
+    if (g.phase === "bidding" && g.current === 0 && b.player === 0 && (b.kind === "bid" || b.kind === "pass")) {
+      const adv = coachBid(g, 0);
+      const best =
+        adv.action.action === "pass" ? "Passer" : `${adv.action.value} ${modeText(adv.action.mode)}`;
+      const good =
+        adv.action.action === "pass"
+          ? b.kind === "pass"
+          : b.kind === "bid" && b.value === adv.action.value && b.mode === adv.action.mode;
+      points.push({ phase: "bid", snapshot: g, actual: bidEntryLabel(b), best, good, reason: adv.reason });
+    }
+    g = applyEntry(g, b);
+  }
+
+  for (const pl of rec.plays) {
+    if (g.phase !== "playing") break;
+    if (g.current === 0 && isPlayDecision(g)) {
+      await yieldToMain(); // libère le thread avant le calcul PIMC
+      const { best, reason } = coachPlay(g);
+      const actualCard = g.hands[0].find((c) => c.id === pl.cardId);
+      points.push({
+        phase: "play",
+        snapshot: g,
+        actual: actualCard ? cardLabel(actualCard) : pl.cardId,
+        best: cardLabel(best),
+        good: pl.cardId === best.id,
+        reason,
+        actualCardId: pl.cardId,
+        bestCardId: best.id,
+      });
+    }
+    const card = g.hands[g.current].find((c) => c.id === pl.cardId);
+    if (!card) break;
+    const prev = g;
+    g = applyPlay(g, card);
+    if (g === prev) break;
+  }
+
+  const c = rec.contract;
+  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "—";
+  const made = rec.result?.made;
+  const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
+
+  return {
+    points,
+    contractLabel,
+    resultLabel,
+    bidCount: points.filter((p) => p.phase === "bid").length,
+    playCount: points.filter((p) => p.phase === "play").length,
+    goodCount: points.filter((p) => p.good).length,
+  };
+}

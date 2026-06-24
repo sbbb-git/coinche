@@ -876,13 +876,16 @@ export interface PlayAnalysis {
  */
 export function analyzePlay(state: GameState, deterministic = true): PlayAnalysis {
   const legal = legalForCurrent(state);
+  if (legal.length === 0) throw new Error("analyzePlay: aucun coup légal");
   const me = state.current;
   const myTeam = teamOf(me);
   const oppTeam = (1 - myTeam) as 0 | 1;
   const mode = state.contract!.mode;
   const voids = inferVoids(state);
   const bias = placementBias(state);
-  const samples = 32; // identique au coach déterministe d'aiPlay
+  // Nombre de mondes échantillonnés indexé sur le réglage de profondeur Expert,
+  // pour que « Conseil » ne soit pas plus lourd que le jeu choisi par l'utilisateur.
+  const samples = { rapide: 20, normal: 28, fort: 40 }[state.settings.expertDepth] ?? 28;
   const rng: Rng = deterministic ? mulberry32(hashState(state)) : Math.random;
   // Le pli en cours portera cet indice une fois terminé.
   const trickIdx = state.completedTricks.length;
