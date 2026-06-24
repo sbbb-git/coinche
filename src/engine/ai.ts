@@ -819,6 +819,7 @@ function rollout(state: GameState, smart: boolean): GameState {
 function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number, smart: boolean): Card {
   const me = state.current;
   const myTeam = teamOf(me);
+  const mode = state.contract!.mode;
   const voids = inferVoids(state);
   const bias = placementBias(state);
   const scores = new Array(legal.length).fill(0);
@@ -840,9 +841,28 @@ function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number, 
     }
   }
 
+  return legal[pickBestIndex(legal, scores, mode, samples)];
+}
+
+/**
+ * Indice du meilleur coup : score maximal, et à QUASI-ÉGALITÉ (écart moyen < 1 pt)
+ * la carte la MOINS chère — on ne gâche jamais une grosse carte quand une petite
+ * fait le même travail (« plus petite carte qui gagne »). `eps = samples` ⇒ tolérance
+ * d'~1 point de moyenne. Utilisé à l'identique par l'IA experte et le coach.
+ */
+function pickBestIndex(legal: Card[], scoreSum: number[], mode: TrumpMode, eps: number): number {
   let best = 0;
-  for (let i = 1; i < legal.length; i++) if (scores[i] > scores[best]) best = i;
-  return legal[best];
+  for (let i = 1; i < legal.length; i++) {
+    const d = scoreSum[i] - scoreSum[best];
+    if (d > eps) {
+      best = i;
+    } else if (d >= -eps) {
+      const a = legal[i], b = legal[best];
+      const pa = points(a, mode), pb = points(b, mode);
+      if (pa < pb || (pa === pb && strength(a, mode) < strength(b, mode))) best = i;
+    }
+  }
+  return best;
 }
 
 // --- Analyse probabiliste pour le COACH (scénarios chiffrés) ----------------
@@ -917,9 +937,9 @@ export function analyzePlay(state: GameState, deterministic = true): PlayAnalysi
     }
   }
 
-  // Meilleur coup : argmax du différentiel (même règle que expertPlay, 1er en cas d'égalité).
-  let bestIdx = 0;
-  for (let i = 1; i < legal.length; i++) if (acc[i].scoreSum > acc[bestIdx].scoreSum) bestIdx = i;
+  // Meilleur coup : même sélection que expertPlay (score max, cheap-tie-break) →
+  // best ≡ coup de l'IA experte déterministe.
+  const bestIdx = pickBestIndex(legal, acc.map((a) => a.scoreSum), mode, samples);
   const best = legal[bestIdx];
 
   const outcomes: PlayOutcome[] = acc

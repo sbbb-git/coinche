@@ -109,14 +109,17 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[]): s
   if (alt) {
     const delta = bestO.scoreDiff - alt.scoreDiff;
     if (delta >= 4) {
+      // Écart en points : au-delà d'une donne (~160), on ne montre pas un nombre
+      // peu crédible mais une formule qualitative (le coup fait basculer la donne).
+      const cost = delta >= 120 ? "**ferait probablement basculer la donne**" : `**~${Math.round(delta)} pts** plus bas`;
       if (alt.trickWinPct > bestO.trickWinPct + 0.15) {
         lines.push(
-          `vs **${cardLabel(alt.card)}** : prendrait ce pli (**${pct(alt.trickWinPct)}%**) mais ton camp finirait ` +
-            `**~${Math.round(delta)} pts** plus bas — garde-la, elle vaut plus tard.`,
+          `vs **${cardLabel(alt.card)}** : prendrait ce pli (**${pct(alt.trickWinPct)}%**) mais ton camp finirait ${cost} — ` +
+            `garde-la, elle vaut plus tard.`,
         );
       } else {
         lines.push(
-          `vs **${cardLabel(alt.card)}** : même pli, mais **~${Math.round(delta)} pts** de moins pour ton camp — ` +
+          `vs **${cardLabel(alt.card)}** : même pli, mais ton camp finirait ${cost} — ` +
             `garde-la pour un pli que tu peux rafler.`,
         );
       }
