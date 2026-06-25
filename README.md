@@ -2,7 +2,7 @@
 
 App de **Coinche** (belote contrée) pour **jouer contre des IA paramétrables** et
 **progresser** façon Chess.com : exercices, review de parties, leçons, stats.
-PWA installable sur iPhone, 100 % hors-ligne, sans pub, vos données restent sur l'appareil.
+PWA installable sur iPhone/Android, jouable 100 % hors-ligne.
 
 ## Fonctionnalités
 

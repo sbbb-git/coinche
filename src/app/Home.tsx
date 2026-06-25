@@ -1,6 +1,7 @@
 import { useNav, View } from "./nav";
 import { storage } from "../storage";
 import { useDaily } from "../state/daily";
+import { AdSlot } from "../components/AdSlot";
 
 const TILES: { view: View; emoji: string; title: string; desc: string }[] = [
   { view: "play", emoji: "🃏", title: "Jouer", desc: "Une partie contre 3 IA paramétrables" },
@@ -45,8 +46,10 @@ export function Home() {
         ))}
       </div>
 
+      <AdSlot placement="home" className="mt-2 shrink-0" />
+
       <div className="shrink-0 pt-3 text-center">
-        <p className="text-[11px] text-white/55">100 % hors-ligne · tes données restent sur l'appareil</p>
+        <p className="text-[11px] text-white/55">100 % jouable hors-ligne</p>
         <div className="mt-1 flex justify-center gap-1">
           <button
             onClick={() => go("about")}

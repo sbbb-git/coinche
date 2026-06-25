@@ -40,9 +40,9 @@ export function AboutScreen() {
       </p>
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-        <Badge>📴 100 % hors-ligne</Badge>
-        <Badge>🚫 Sans publicité</Badge>
-        <Badge>🔒 Sans collecte</Badge>
+        <Badge>📴 Jouable hors-ligne</Badge>
+        <Badge>💡 Coach intégré</Badge>
+        <Badge>🎯 Entraînement</Badge>
       </div>
 
       <div className="mt-4 space-y-2">

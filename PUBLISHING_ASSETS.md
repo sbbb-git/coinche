@@ -25,7 +25,7 @@ Apple et Google exigent des captures. Comment faire simplement :
 
 | # | Écran | Légende à ajouter en haut |
 |---|-------|---------------------------|
-| 1 | Une partie en cours (table) | « Joue à la Coinche, sans pub » |
+| 1 | Une partie en cours (table) | « Joue à la Coinche contre une IA sérieuse » |
 | 2 | Coach en direct (bulle 💡) | « Un coach qui t'explique chaque coup » |
 | 3 | Mes parties → précision % | « Analyse tes parties (façon game review) » |
 | 4 | Progression (courbe + niveau) | « Progresse : niveau, série, courbe » |

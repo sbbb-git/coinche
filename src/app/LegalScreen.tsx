@@ -90,7 +90,7 @@ function Privacy() {
       <Section title="Tes droits (RGPD)">
         <p>
           Tu peux accéder à tes données, les corriger ou les supprimer à tout moment. Pour toute
-          demande : <b>[À COMPLÉTER : email de contact]</b>.
+          demande : <b>contact@coincheur.fr</b>.
         </p>
       </Section>
     </>
@@ -136,9 +136,9 @@ function Mentions() {
     <>
       <Section title="Éditeur">
         <p>
-          Coincheur — <b>[À COMPLÉTER : nom / raison sociale]</b>.
+          Coincheur.
           <br />
-          Contact : <b>[À COMPLÉTER : email]</b>.
+          Contact : <b>contact@coincheur.fr</b>.
         </p>
       </Section>
       <Section title="Hébergement">

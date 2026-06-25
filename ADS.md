@@ -1,7 +1,9 @@
 # Mettre des pubs sur l'app — guide (à terme)
 
-> Décision : pubs **plus tard**, en mode freemium. Rien d'activé aujourd'hui
-> (`entitlements.ts` : `adsEnabled = false`, `premium = true`). Voici le « comment ».
+> Décision : **on met des pubs** (modèle gratuit + pub, avec un futur achat « Retirer
+> les pubs »). Côté code c'est **prêt** : `entitlements.ts` (`adsEnabled = true`,
+> `premium = false`, `showAds()`) + composant `<AdSlot>` placé sur l'accueil. Le **réseau
+> pub réel (AdMob)** se branche au packaging natif. Voici le « comment ».
 
 ## En une phrase
 On s'inscrit à une **régie publicitaire** (réseau de pub), on installe son **SDK**,
@@ -51,6 +53,9 @@ et du **premium**, pas de la bannière. À 1000 joueurs actifs/jour, on parle de
 € à quelques dizaines d'€/jour selon l'engagement — d'où l'importance de la rétention.
 
 ## 6. Ce qui est déjà prêt côté code
-- `src/state/entitlements.ts` : `premium` / `adsEnabled` / `canUse`.
-- Le jour J : créer un composant `<AdBanner>` (no-op si `!adsEnabled`), brancher le SDK,
-  ajouter l'achat premium. **Aucune refonte** — on « allume l'interrupteur ».
+- `src/state/entitlements.ts` : `premium` / `adsEnabled` / `showAds()` (gratuit + pub par défaut).
+- `src/components/AdSlot.tsx` : emplacement pub réutilisable (`<AdSlot placement="…">`),
+  rendu uniquement si `showAds()` ; en prod il n'affiche RIEN tant que le SDK n'est pas
+  branché (pas de faux encart), visible en dev pour valider la mise en page. Déjà posé sur l'accueil.
+- Le jour J (packaging) : `npm i @capacitor-community/admob`, brancher le SDK dans `AdSlot`,
+  ajouter l'achat « Retirer les pubs » (→ `premium = true`). **Aucune refonte.**

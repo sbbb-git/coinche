@@ -9,7 +9,7 @@
 - **Nom court (Android)** : Coincheur
 
 ## Description courte (Google Play, 80 car. max)
-> Coinche contre des IA, coach en direct et entraînement. 100% hors-ligne, sans pub.
+> Coinche vs IA, coach qui explique chaque coup, exercices & analyse. Jouable hors-ligne.
 
 ## Description longue
 ```
@@ -18,7 +18,7 @@ Coincheur, c'est la Coinche (belote contrée) pensée pour PROGRESSER, pas seule
 🃏 JOUER
 • Parties contre 3 IA paramétrables (du débutant à l'expert).
 • Enchères complètes : couleur, Sans-Atout, Tout-Atout, capot, générale, coinche/surcoinche.
-• 100% hors-ligne, sans publicité, sans collecte de données.
+• Jouable 100% hors-ligne, où que tu sois.
 
 🧠 UN VRAI COACH
 • Conseil en direct pendant la partie : quelle carte jouer, et POURQUOI.
@@ -49,8 +49,9 @@ parties, niveau et défi du jour. 100% hors-ligne.
 - Android : Jeux › Cartes
 
 ## Confidentialité / âge
-- Politique : https://<domaine>/privacy.html · CGU : https://<domaine>/terms.html
-- Âge : 4+ / PEGI 3 · Données collectées : **aucune** (v1 locale). Voir `SUBMISSION.md`.
+- Politique : https://coincheur.fr/privacy.html · CGU : https://coincheur.fr/terms.html
+- Âge : 4+ / PEGI 3 (aucun jeu d'argent réel). Données : le jeu est local ; **pubs à venir**
+  (AdMob) → déclarer la collecte pub le moment venu. Voir `SUBMISSION.md`.
 
 ## Visuels à produire (hors-code)
 - [ ] Icône 1024×1024 (sans coins arrondis, sans transparence pour iOS).

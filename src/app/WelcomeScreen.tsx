@@ -57,7 +57,7 @@ export function WelcomeScreen() {
               <li>🎴 Parties contre des IA paramétrables</li>
               <li>🎯 Exercices d'enchères et de jeu, avec correction</li>
               <li>🔍 Analyse de tes parties façon coach</li>
-              <li>📵 100 % hors-ligne, sans pub</li>
+              <li>📵 100 % jouable hors-ligne</li>
             </ul>
           </div>
         )}

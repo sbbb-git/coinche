@@ -1,8 +1,14 @@
-# Questions de soumission — réponses prêtes (v1 : 100% local, sans compte ni pub, 4+)
+# Questions de soumission — réponses prêtes (build v1 local, sans compte, 4+)
 
-> Périmètre v1 validé : **aucune collecte de données, aucun réseau, aucune pub, aucun
-> compte**. C'est le profil le PLUS simple à faire passer en revue. Copie-colle ces
-> réponses. Champs à personnaliser : **[À COMPLÉTER]**.
+> Ces réponses valent pour une **build sans pubs activées** (le jeu est 100% local).
+> Éditeur : **Coincheur** · contact : **contact@coincheur.fr**.
+>
+> ⚠️ **Dès l'activation des pubs (AdMob, au packaging)** ce profil change :
+> - App Privacy / Data Safety : déclarer la **collecte publicitaire** (identifiants
+>   d'appareil, données d'usage) — l'app n'est plus « aucune donnée ».
+> - Ajouter le **consentement** : CMP/UMP (RGPD UE) + ATT (iOS).
+> - **Filtrer le contenu des pubs** (pas de jeu d'argent/contenu adulte) pour rester **4+/PEGI 3**.
+> - Retirer toute mention « sans pub ».
 
 ## 0. À personnaliser avant soumission
 - Éditeur (nom/raison sociale) : **[À COMPLÉTER]**

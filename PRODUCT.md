@@ -19,9 +19,11 @@ Puis : règles/comptage contestés, bugs, multijoueur instable, abonnement.
 **Autre catégorie : « Compteur Belote Coinche »** (apps dédiées au score papier) →
 demande réelle pour un simple compteur de points (parties avec de vraies cartes).
 
-→ **Nos différenciateurs = leurs défauts** : **zéro pub**, **IA + coach forts et
-honnêtes**, **hors-ligne**, **entraînement**, + un **compteur** intégré. À mettre en
-avant sur la fiche store (« sans pub », « IA sérieuse »).
+→ **Nos différenciateurs = leurs défauts** : **un coach qui explique chaque coup**
+(% réels), **IA forte et honnête** (leur partenaire est critiqué), **entraînement**
+façon Chess.com, **hors-ligne**, + un **compteur** intégré. À mettre en avant sur la
+fiche store (« coach qui explique chaque coup », « IA sérieuse »). Pubs discrètes
+(rewarded/interstitiel espacé), jamais en pleine donne.
 
 ## 1. Notifications (rétention #1)
 
