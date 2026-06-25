@@ -65,6 +65,8 @@ describe("générateur d'exercices", () => {
     const ideal = { action: "bid" as const, value: 120, mode: "H" as const };
     expect(gradeBid({ kind: "bid", value: 120, mode: "H" }, ideal).stars).toBe(3);
     expect(gradeBid({ kind: "bid", value: 110, mode: "H" }, ideal).stars).toBe(2);
+    expect(gradeBid({ kind: "bid", value: 90, mode: "H" }, ideal).stars).toBe(1); // bonne couleur, trop bas
+    expect(gradeBid({ kind: "bid", value: 120, mode: "S" }, ideal).stars).toBe(1); // mauvaise couleur
     expect(gradeBid({ kind: "pass" }, ideal).stars).toBe(1);
     // Idéal passer : passer = 3⭐, annoncer = trop optimiste.
     expect(gradeBid({ kind: "pass" }, { action: "pass" }).stars).toBe(3);

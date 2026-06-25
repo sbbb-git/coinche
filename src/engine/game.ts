@@ -19,7 +19,7 @@ export interface PlayProfile {
 }
 
 export interface Settings {
-  //, Jeu (règles) -
+  // Jeu (règles)
   targetScore: number; // 1000 / 1500 / 2000
   allowNT: boolean; // autoriser Sans Atout
   allowAT: boolean; // autoriser Tout Atout
@@ -31,19 +31,19 @@ export interface Settings {
   pisserObligatoire: boolean; // obligation de mettre de l'atout si on ne peut surcouper
   coincheEndsGame: boolean; // "la coinche fait gagner la partie"
 
-  //, Comptage des points -
+  // Comptage des points
   roundToTen: boolean; // arrondir les scores à la dizaine
   contractCanSucceedIfDefenseMore: boolean; // sinon il faut faire > la défense
   beloteCountsToSucceed: boolean; // la belote compte pour réussir un contrat
   beloteCountsToFail: boolean; // la belote compte pour faire chuter un contrat
 
-  //, IA -
+  // IA
   aiLevel: AiLevel;
   /** profondeur de simulation de l'IA Expert (force ↔ rapidité) */
   expertDepth: "rapide" | "normal" | "fort";
   profile: PlayProfile;
 
-  //, Interface -
+  // Interface
   gameSpeed: "lent" | "normal" | "rapide";
   sensHoraire: boolean; // sens de jeu (false = anti-horaire, défaut app)
   cardSort: "asc" | "desc"; // ordre d'affichage de la main

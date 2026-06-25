@@ -7,7 +7,6 @@ export type View =
   | "play"
   | "exercises"
   | "mygames"
-  | "review"
   | "lessons"
   | "guides"
   | "stats"

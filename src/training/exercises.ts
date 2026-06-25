@@ -50,7 +50,7 @@ function modeText(mode: TrumpMode): string {
 }
 
 export interface BidGrade {
-  stars: 0 | 1 | 2 | 3;
+  stars: 1 | 2 | 3;
   title: string;
 }
 
@@ -94,9 +94,10 @@ function setupBidScenario(settings: Settings): GameState {
       else if (d.action === "surcoinche") g = applySurcoinche(g);
       else g = applyPass(g);
     }
-    // On n'accepte que les situations VALIDES : c'est au siège 0 de parler,
-    // toujours en phase d'enchères (une redonne / surcoinche est rejetée).
-    if (g.phase === "bidding" && g.current === 0) {
+    // On n'accepte que les situations VALIDES : c'est au siège 0 de parler, en
+    // phase d'enchères, et SANS capot/générale en cours (sinon aucune enchère
+    // chiffrée n'est légale et la saisie libre n'aurait pas de sens).
+    if (g.phase === "bidding" && g.current === 0 && !g.standing?.capot && !g.standing?.generale) {
       // On rend la main au profil de l'utilisateur (le coach évalue en expert).
       return { ...g, settings };
     }

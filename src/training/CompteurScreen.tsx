@@ -56,7 +56,7 @@ export function CompteurScreen() {
 
       {winner !== null && (
         <p className="animate-pop mt-3 rounded-xl bg-yellow-400/90 p-2.5 text-center font-bold text-emerald-950">
-          🏆 {state.names[winner]} {winner === 0 ? "gagnent" : "gagnent"} !
+          🏆 {state.names[winner]} gagnent !
         </p>
       )}
 
