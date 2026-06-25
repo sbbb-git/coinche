@@ -28,6 +28,34 @@ npx cap open android     # Android Studio
 > Réseau requis pour installer ces paquets : à lancer en local (pas dans le
 > sandbox). L'app web ne change pas : Capacitor enveloppe `dist/`.
 
+### Le projet Android est DÉJÀ généré ✅
+Le dossier `android/` est dans le dépôt (plugins haptics + notifications + splash
+déjà liés). Pour builder l'APK/AAB sur ta machine :
+```bash
+npm install            # récupère les deps (dont Capacitor)
+npm run build && npx cap sync android
+# Option A (simple) : ouvrir le dossier android/ dans Android Studio → Run / Build Bundle
+npx cap open android
+# Option B (ligne de commande, nécessite le SDK Android) :
+cd android && ./gradlew assembleRelease   # APK   (ou bundleRelease pour l'AAB Play Store)
+```
+> Il te faut le **SDK Android** (fourni par Android Studio). Le code natif (haptique,
+> rappels de notif, splash) est déjà câblé : rien à coder, juste builder + signer.
+
+## 1bis. Où publier une app Android (au-delà de Google Play)
+Le même fichier (APK/AAB) peut aller sur **plusieurs stores**, c'est du bonus de visibilité :
+- **Google Play** : le principal (25 $ une fois). À faire en premier.
+- **Amazon Appstore** : gratuit, couvre les tablettes Fire + Android. Même build, simple. ✅ recommandé.
+- **Samsung Galaxy Store** : préinstallé sur les Samsung (gros parc en France). Gratuit.
+- **Huawei AppGallery** : pour les Huawei (sans services Google). Notre jeu est offline donc OK,
+  MAIS **AdMob ne marche pas sans Google Play Services** → là-bas, pas de pub (ou Huawei Ads).
+- **Microsoft Store (Windows)** : on emballe la PWA en 5 min via **PWABuilder.com** (pas besoin de Capacitor).
+- **Téléchargement direct** de l'APK depuis `coincheur.fr` (pour partager hors store).
+- ❌ F-Droid : réservé à l'open-source, on passe.
+
+> iOS : uniquement l'**App Store** (les marketplaces alternatives DMA en UE sont anecdotiques).
+> Reco : **Google Play + Amazon Appstore** au lancement (effort quasi nul pour Amazon), le reste plus tard.
+
 ## 2. Game Center (Apple) & Google Play Games
 
 Fonctionnalités natives → via un plugin Capacitor (ex. `@capacitor-community/game-connect`
