@@ -70,8 +70,14 @@ export function BiddingPanel() {
                   aria-pressed={mode === m}
                   className={[
                     "h-11 flex-1 min-w-11 px-2 rounded-md text-lg font-bold shadow",
-                    mode === m ? "bg-yellow-400 text-emerald-950" : "bg-white/90 text-zinc-800",
-                    lbl.suit && mode !== m ? suitColorClass(lbl.suit, game.settings.fourColors) : "",
+                    mode === m ? "bg-yellow-400" : "bg-white/90",
+                    // Couleur du symbole : rouge pour ♥/♦, sombre pour ♠/♣ (lisibilité).
+                    // Pour SA/TA (sans couleur), texte sombre selon l'état.
+                    lbl.suit
+                      ? suitColorClass(lbl.suit, game.settings.fourColors)
+                      : mode === m
+                        ? "text-emerald-950"
+                        : "text-zinc-800",
                   ].join(" ")}
                 >
                   {lbl.text}
