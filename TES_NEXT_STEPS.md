@@ -22,8 +22,9 @@ Reste 🔴 (bloquants) :
 - [ ] **Packaging natif** (Capacitor sur Mac) — Étape 4.
 
 Reste 🟠 (à faire au packaging) :
-- [ ] Activer **1 feature native** (haptique au jeu d'une carte / à la victoire, ou
-  Game Center) pour écarter le risque Apple « simple site web emballé » (règle 4.2).
+- ✅ **Feature native (haptique) codée** : `feedback.ts` appelle le moteur haptique
+  natif iOS/Android via Capacitor Haptics (repli vibration web). Il suffit d'installer
+  le plugin au packaging (`npm i @capacitor/haptics`, cf. `STORE.md`). Écarte le 4.2.
 - [ ] Captures d'écran (Étape 5).
 
 ## Étape 0 — Vérifier le site en ligne (5 min)

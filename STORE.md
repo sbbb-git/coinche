@@ -10,6 +10,7 @@ Le `capacitor.config.json` est déjà présent (appId `com.coincheur.app`, webDi
 ```bash
 npm i -D @capacitor/cli
 npm i @capacitor/core @capacitor/ios @capacitor/android
+npm i @capacitor/haptics @capacitor/splash-screen   # feature native (haptique iOS) + splash
 npm run build            # génère dist/
 npx cap add ios
 npx cap add android
@@ -17,6 +18,12 @@ npx cap sync             # après chaque build
 npx cap open ios         # Xcode (nécessite un Mac)
 npx cap open android     # Android Studio
 ```
+
+> `@capacitor/haptics` active le vrai moteur haptique iOS (le code l'utilise déjà
+> automatiquement via `src/state/feedback.ts` ; sans le plugin, repli sur la
+> vibration web). C'est aussi la **feature native** qui écarte le rejet Apple 4.2.
+> `@capacitor/splash-screen` + `capacitor.config.json` (déjà configuré) évitent
+> l'écran blanc au lancement.
 
 > Réseau requis pour installer ces paquets : à lancer en local (pas dans le
 > sandbox). L'app web ne change pas : Capacitor enveloppe `dist/`.
