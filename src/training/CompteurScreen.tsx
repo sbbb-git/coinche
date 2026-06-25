@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
-import { modeLabel } from "../components/Table";
-import { suitColorClassDark } from "../components/Card";
-import { TrumpMode } from "../engine/cards";
 import { scoreManualDeal, Team } from "../engine/scoring";
 import { useCounter } from "../state/counter";
 
-const MODES: TrumpMode[] = ["S", "H", "D", "C", "NT", "AT"];
 const TARGETS = [500, 1000, 1500, 2000, 3000];
 type Special = "none" | "capot" | "generale";
 
@@ -137,14 +133,12 @@ function DealForm({
   const [taker, setTaker] = useState<Team>(0);
   const [special, setSpecial] = useState<Special>("none");
   const [value, setValue] = useState(90);
-  const [mode, setMode] = useState<TrumpMode>("S");
   const [points, setPoints] = useState("");
   const [coinche, setCoinche] = useState<1 | 2 | 4>(1);
   const [belote, setBelote] = useState<Team | null>(null);
   const [succeeded, setSucceeded] = useState(true);
   const [defenseWonAll, setDefenseWonAll] = useState(false);
 
-  const ml = modeLabel(mode);
   const valid = special !== "none" || points !== "";
 
   const validate = () => {
@@ -160,9 +154,9 @@ function DealForm({
       coinche,
       beloteTeam: belote,
     });
-    const what = special === "generale" ? "Générale" : special === "capot" ? "Capot" : `${value} ${ml.text}`;
-    const mult = coinche === 4 ? " ×4" : coinche === 2 ? " ×2" : "";
-    const desc = `${names[taker]} · ${what}${mult} · ${made ? "réussi" : "chuté"}`;
+    const what = special === "generale" ? "Générale" : special === "capot" ? "Capot" : `${value} annoncés`;
+    const mult = coinche === 4 ? " surcoinche" : coinche === 2 ? " coinche" : "";
+    const desc = `${names[taker]} : ${what}${mult}, ${made ? "réussi" : "chuté"}`;
     onAdd({ desc, scores });
   };
 
@@ -182,7 +176,7 @@ function DealForm({
 
       {special === "none" && (
         <>
-          <Field label={`Valeur : ${value}`}>
+          <Field label={`Points annoncés : ${value}`}>
             <div className="flex items-center gap-2">
               <Step onClick={() => setValue((v) => Math.max(80, v - 10))}>−</Step>
               <input
@@ -197,27 +191,7 @@ function DealForm({
               <Step onClick={() => setValue((v) => Math.min(160, v + 10))}>+</Step>
             </div>
           </Field>
-          <Field label="Couleur">
-            <div className="flex flex-wrap gap-1">
-              {MODES.map((m) => {
-                const l = modeLabel(m);
-                return (
-                  <button
-                    key={m}
-                    onClick={() => setMode(m)}
-                    className={[
-                      "min-h-11 flex-1 rounded-md px-2 text-sm font-bold",
-                      mode === m ? "bg-yellow-400 text-emerald-950" : "bg-white/10 hover:bg-white/20",
-                      mode === m || !l.suit ? "" : suitColorClassDark(l.suit, true),
-                    ].join(" ")}
-                  >
-                    {l.text}
-                  </button>
-                );
-              })}
-            </div>
-          </Field>
-          <Field label="Points du preneur (0–162)">
+          <Field label="Points faits par le preneur (0 à 162)">
             <input
               type="number"
               inputMode="numeric"

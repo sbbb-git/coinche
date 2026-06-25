@@ -12,7 +12,7 @@ import {
 } from "../engine/game";
 import { aiBid, aiPlay } from "../engine/ai";
 import { DealRecord } from "../storage";
-import { genBidExercise, genPlayExercise } from "./exercises";
+import { genBidExercise, genPlayExercise, gradeBid } from "./exercises";
 import { simulate } from "./simulation";
 import { reviewDeal } from "./replay";
 
@@ -46,16 +46,28 @@ function playOneDeal(): DealRecord {
 }
 
 describe("générateur d'exercices", () => {
-  it("enchères : options valides + index correct cohérent", () => {
+  it("enchères : réponse idéale + plancher cohérents (saisie libre)", () => {
     for (let i = 0; i < 20; i++) {
       const ex = genBidExercise(S);
       expect(ex.hand.length).toBe(8);
-      expect(ex.options.length).toBeGreaterThanOrEqual(2);
-      expect(ex.options.length).toBeLessThanOrEqual(4);
-      expect(ex.correctIndex).toBeGreaterThanOrEqual(0);
-      expect(ex.correctIndex).toBeLessThan(ex.options.length);
+      expect(ex.minValue).toBeGreaterThanOrEqual(80);
+      expect(["pass", "bid"]).toContain(ex.ideal.action);
+      if (ex.ideal.action === "bid") {
+        expect(ex.ideal.value).toBeGreaterThanOrEqual(80);
+        expect(ex.ideal.value).toBeLessThanOrEqual(160);
+      }
       expect(ex.reason.length).toBeGreaterThan(0);
     }
+  });
+
+  it("notation nuancée des enchères (gradeBid)", () => {
+    // Idéal 120 Cœur : 120♥ = 3⭐, 110♥ = 2⭐ (pas mal), passer = trop prudent.
+    const ideal = { action: "bid" as const, value: 120, mode: "H" as const };
+    expect(gradeBid({ kind: "bid", value: 120, mode: "H" }, ideal).stars).toBe(3);
+    expect(gradeBid({ kind: "bid", value: 110, mode: "H" }, ideal).stars).toBe(2);
+    expect(gradeBid({ kind: "pass" }, ideal).stars).toBe(1);
+    // Idéal passer : passer = 3⭐, annoncer = trop optimiste.
+    expect(gradeBid({ kind: "pass" }, { action: "pass" }).stars).toBe(3);
   });
 
   it("enchères : propose parfois des annonces préalables (fausses enchères) bien formées", () => {

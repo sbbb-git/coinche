@@ -5,7 +5,6 @@ import { Home } from "./app/Home";
 import { PlayScreen } from "./app/PlayScreen";
 import { ExercisesScreen } from "./training/ExercisesScreen";
 import { ReviewMyGamesScreen } from "./training/ReviewMyGamesScreen";
-import { ReviewGlobalScreen } from "./training/ReviewGlobalScreen";
 import { LessonsScreen } from "./training/LessonsScreen";
 import { GuidesScreen } from "./training/GuidesScreen";
 import { StatsScreen } from "./training/StatsScreen";
@@ -18,6 +17,7 @@ import { InstallBanner } from "./components/InstallBanner";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { RatePrompt } from "./components/RatePrompt";
 import { WhatsNew } from "./components/WhatsNew";
+import { ConsentBanner } from "./components/ConsentBanner";
 import { unlockAudio } from "./state/feedback";
 
 function CurrentView() {
@@ -32,8 +32,6 @@ function CurrentView() {
       return <ExercisesScreen />;
     case "mygames":
       return <ReviewMyGamesScreen />;
-    case "review":
-      return <ReviewGlobalScreen />;
     case "lessons":
       return <LessonsScreen />;
     case "guides":
@@ -76,6 +74,7 @@ export default function App() {
       <OfflineIndicator />
       {view === "home" && <RatePrompt />}
       <WhatsNew />
+      <ConsentBanner />
     </div>
   );
 }

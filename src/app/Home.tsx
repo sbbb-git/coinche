@@ -7,7 +7,6 @@ const TILES: { view: View; emoji: string; title: string; desc: string }[] = [
   { view: "play", emoji: "🃏", title: "Jouer", desc: "Une partie contre 3 IA paramétrables" },
   { view: "exercises", emoji: "🎯", title: "S'entraîner", desc: "Exercices, leçons et guides" },
   { view: "mygames", emoji: "🔍", title: "Mes parties", desc: "Analyse coup par coup de tes décisions" },
-  { view: "review", emoji: "📊", title: "Review IA", desc: "Analyse globale de la stratégie sur des milliers de donnes" },
   { view: "stats", emoji: "📈", title: "Progression", desc: "Ton niveau et tes statistiques" },
   { view: "compteur", emoji: "🧮", title: "Compteur", desc: "Marquer les points d'une partie avec de vraies cartes" },
   { view: "account", emoji: "👤", title: "Compte", desc: "Ton profil, sur cet appareil" },
@@ -23,7 +22,7 @@ export function Home() {
           Coin<span className="text-yellow-400">cheur</span>
         </h1>
         <p className="mt-1 text-sm text-white/70">
-          {name && name !== "Vous" ? `Salut ${name} — ` : ""}Jouer & progresser à la Coinche
+          {name && name !== "Vous" ? `Salut ${name}, ` : ""}Jouer & progresser à la Coinche
         </p>
       </header>
 
@@ -85,7 +84,7 @@ function DailyCard({ onClick }: { onClick: () => void }) {
       <span className="min-w-0 flex-1">
         <span className="block text-lg font-bold">Défi du jour</span>
         <span className="block text-sm text-white/85">
-          {done ? "Fait ✅ — reviens demain" : "La même donne pour tous. À toi de jouer !"}
+          {done ? "Fait ✅, reviens demain" : "La même donne pour tous. À toi de jouer !"}
         </span>
       </span>
       <span className="shrink-0 text-right">

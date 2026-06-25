@@ -172,7 +172,7 @@ function TeamScore({
       ].join(" ")}
     >
       <span className="truncate text-[11px] text-white/70 max-w-24">{label}</span>
-      <span className="text-lg font-bold tabular-nums">{hidden ? "—" : score}</span>
+      <span className="text-lg font-bold tabular-nums">{hidden ? "-" : score}</span>
     </div>
   );
 }

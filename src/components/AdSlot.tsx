@@ -1,10 +1,10 @@
 import { useEntitlements } from "../state/entitlements";
 
 // Emplacement publicitaire. Le vrai réseau (Google AdMob en natif, ou AdSense en
-// web) se branche ICI au packaging — cf. ADS.md. Tant que le SDK n'est pas câblé,
+// web) se branche ICI au packaging, cf. ADS.md. Tant que le SDK n'est pas câblé,
 // on n'affiche RIEN en production (pas de faux encart, déconseillé par les stores),
 // mais on matérialise l'emplacement en dev pour valider la mise en page.
-// Règle d'or : JAMAIS au milieu d'une donne — uniquement écrans hors-jeu / inter-parties.
+// Règle d'or : JAMAIS au milieu d'une donne, uniquement écrans hors-jeu / inter-parties.
 
 const env = (import.meta as unknown as { env?: { DEV?: boolean } }).env;
 const IS_DEV = env?.DEV === true;

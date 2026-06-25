@@ -68,7 +68,7 @@ export function DealResultModal() {
         {r.made ? "✅ Contrat réussi" : "❌ Chute"}
       </h2>
       <p className="mt-1 text-center text-sm text-white/70">
-        {takerName} — {target}
+        {takerName}, {target}
         {mult}
       </p>
 
@@ -96,7 +96,7 @@ export function DealResultModal() {
         <div className="mt-1 flex justify-between text-xs text-white/55">
           <span>Total partie</span>
           <span className="tabular-nums">
-            {game.scores[0]} — {game.scores[1]}
+            {game.scores[0]}, {game.scores[1]}
           </span>
         </div>
       </div>
@@ -134,7 +134,7 @@ export function GameOverModal() {
     <Overlay label="Fin de partie">
       <h2 className="text-center text-2xl font-bold">{youWon ? "🏆 Victoire !" : "Défaite"}</h2>
       <p className="mt-2 text-center text-sm text-white/70">
-        {game.scores[0]} — {game.scores[1]}
+        {game.scores[0]}, {game.scores[1]}
       </p>
       <button
         onClick={() => startNewGame()}
@@ -301,6 +301,9 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
             </Toggle>
             <Toggle on={draft.allowSurcoinche} onClick={() => upd({ allowSurcoinche: !draft.allowSurcoinche })}>
               Autoriser la Surcoinche
+            </Toggle>
+            <Toggle on={draft.allowCapot} onClick={() => upd({ allowCapot: !draft.allowCapot })}>
+              Autoriser le Capot (250)
             </Toggle>
             <Toggle on={draft.allowGenerale} onClick={() => upd({ allowGenerale: !draft.allowGenerale })}>
               Autoriser la Générale (500, en solo)

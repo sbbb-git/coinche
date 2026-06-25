@@ -26,7 +26,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "Mon partenaire a ouvert à 80, que dire ?",
-        a: "Convention du « 100 fort » : si tu as le Valet ET le 9 de sa couleur, relance à 100 — c'est un message de soutien fort. Sinon, soutiens prudemment ou passe.",
+        a: "Convention du « 100 fort » : si tu as le Valet ET le 9 de sa couleur, relance à 100, c'est un message de soutien fort. Sinon, soutiens prudemment ou passe.",
       },
       {
         q: "Quand annoncer Capot ?",
@@ -34,7 +34,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "Quand coincher l'adversaire ?",
-        a: "Quand tu penses le faire chuter : contrat élevé (120+) et tu tiens beaucoup d'atouts/As. Tu doubles les points — mais tu doubles aussi le risque.",
+        a: "Quand tu penses le faire chuter : contrat élevé (120+) et tu tiens beaucoup d'atouts/As. Tu doubles les points, mais tu doubles aussi le risque.",
       },
       {
         q: "Petit jeu ou jeu offensif ?",
@@ -88,7 +88,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "Tirer les atouts ou pas ?",
-        a: "En attaque, oui : tire-les pour protéger tes As. En défense, généralement non — tu prives ton partenaire de ses coupes. Laisse plutôt le preneur s'en occuper.",
+        a: "En attaque, oui : tire-les pour protéger tes As. En défense, généralement non, tu prives ton partenaire de ses coupes. Laisse plutôt le preneur s'en occuper.",
       },
       {
         q: "Sur quoi se défausser ?",

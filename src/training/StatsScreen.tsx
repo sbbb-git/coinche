@@ -3,7 +3,7 @@ import { ScreenShell } from "../app/ScreenShell";
 import { levelInfo, useStats } from "../state/stats";
 
 function pct(n: number, d: number): string {
-  return d ? `${Math.round((100 * n) / d)} %` : "—";
+  return d ? `${Math.round((100 * n) / d)} %` : "-";
 }
 
 export function StatsScreen() {

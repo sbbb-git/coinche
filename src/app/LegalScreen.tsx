@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ScreenShell } from "./ScreenShell";
 
-// Pages légales — indispensables pour la publication sur l'App Store / Google Play
+// Pages légales, indispensables pour la publication sur l'App Store / Google Play
 // et pour les comptes. Textes FR génériques ; les champs [À COMPLÉTER] sont à
 // renseigner avant publication (raison sociale, contact, etc.).
 

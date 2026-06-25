@@ -80,7 +80,7 @@ export function DailyScreen() {
           </div>
         </div>
         <p className="mt-2 text-xs text-white/60">
-          La même donne pour tout le monde. Une seule tentative — choisis la meilleure carte.
+          La même donne pour tout le monde. Une seule tentative, choisis la meilleure carte.
         </p>
       </div>
 
@@ -106,7 +106,7 @@ export function DailyScreen() {
       </div>
 
       <p className="mb-2 text-center text-sm text-white/70">
-        {answered ? "Ta main" : "Ta main — quelle carte jouer ?"}
+        {answered ? "Ta main" : "Ta main, quelle carte jouer ?"}
       </p>
       <div className="flex flex-wrap justify-center gap-1">
         {g.hands[0].map((card) => {
@@ -157,7 +157,7 @@ function Result({ success, reason, streak, keyDay }: { success: boolean; reason:
   }, []);
 
   const share = async () => {
-    const text = `Coincheur — Défi du jour ${keyDay}\n${success ? "✅ trouvé" : "❌ manqué"} · série ${streak} 🔥\n${SITE}`;
+    const text = `Coincheur, Défi du jour ${keyDay}\n${success ? "✅ trouvé" : "❌ manqué"} · série ${streak} 🔥\n${SITE}`;
     try {
       if (navigator.share) await navigator.share({ text });
       else await navigator.clipboard.writeText(text);
@@ -182,7 +182,7 @@ function Result({ success, reason, streak, keyDay }: { success: boolean; reason:
       <p className="font-bold">{success ? "✅ Bien joué !" : "❌ Pas le meilleur coup"}</p>
       <CoachText text={reason} className="mt-1 block text-sm leading-relaxed text-white/85" />
       <p className="mt-2 text-sm">
-        Série : <b className="text-yellow-300">🔥 {streak}</b> — reviens demain pour la prolonger !
+        Série : <b className="text-yellow-300">🔥 {streak}</b>, reviens demain pour la prolonger !
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button

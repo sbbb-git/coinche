@@ -33,7 +33,7 @@ interface Store {
   overlayTrick: PlayedCard[] | null;
   /** conseil du coach en direct (carte suggérée + explication), à la demande */
   hint: { cardId: string | null; text: string } | null;
-  /** le coach calcule un conseil (PIMC) — pour désactiver le bouton + spinner */
+  /** le coach calcule un conseil (PIMC), pour désactiver le bouton + spinner */
   hintLoading: boolean;
 
   /** démarre l'orchestration des IA pour la partie déjà en cours (à appeler au montage) */

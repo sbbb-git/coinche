@@ -4,16 +4,19 @@ import { CoachText } from "../components/CoachText";
 import { TrainTabs } from "./TrainTabs";
 import { useGame } from "../state/store";
 import { useStats } from "../state/stats";
-import { PlayingCard, suitColorClassDark } from "../components/Card";
+import { PlayingCard, suitColorClass, suitColorClassDark } from "../components/Card";
 import { modeLabel } from "../components/Table";
+import { availableModes } from "../engine/game";
 import { Card, TrumpMode } from "../engine/cards";
 import {
   AuctionLine,
   BidExercise,
+  BidGrade,
   BidOption,
   PlayExercise,
   PlayFocus,
   genBidExercise,
+  gradeBid,
   genPlayExercise,
 } from "./exercises";
 
@@ -58,52 +61,138 @@ function BidTrainer() {
   const settings = useGame((s) => s.game.settings);
   const record = useStats((s) => s.record);
   const [ex, setEx] = useState<BidExercise | null>(null);
-  const [picked, setPicked] = useState<number | null>(null);
+  const [mode, setMode] = useState<TrumpMode>("S");
+  const [value, setValue] = useState(80);
+  const [grade, setGrade] = useState<BidGrade | null>(null);
 
   const next = () => {
-    setPicked(null);
-    setEx(genBidExercise(settings));
+    setGrade(null);
+    const e = genBidExercise(settings);
+    setEx(e);
+    setMode(availableModes(settings)[0]);
+    setValue(Math.max(80, Math.min(160, e.minValue)));
   };
   useEffect(next, [settings]);
   if (!ex) return null;
 
-  const answered = picked !== null;
-  const choose = (i: number) => {
+  const modes = availableModes(settings);
+  const minV = Math.max(80, Math.min(160, ex.minValue));
+  const eff = Math.min(160, Math.max(minV, value));
+  const answered = grade !== null;
+
+  const submit = (option: BidOption) => {
     if (answered) return;
-    setPicked(i);
-    record("bid", i === ex.correctIndex);
+    const g = gradeBid(option, ex.ideal);
+    setGrade(g);
+    record("bid", g.stars >= 2);
   };
 
   return (
     <div>
       {ex.auction.length > 0 && <AuctionRecap auction={ex.auction} fourColors={settings.fourColors} />}
       <p className="mb-2 text-sm text-white/70">
-        {ex.auction.length > 0 ? "À toi de parler — quelle enchère ?" : "Tu ouvres — quelle enchère ?"}
+        {ex.auction.length > 0 ? "À toi de parler : choisis ton enchère." : "Tu ouvres : choisis ton enchère."}
       </p>
       <div className="mb-4 flex flex-wrap justify-center gap-1">
         {ex.hand.map((c) => (
           <PlayingCard key={c.id} card={c} size="md" />
         ))}
       </div>
-      <div className="flex flex-col gap-2">
-        {ex.options.map((opt, i) => (
-          <OptionBtn
-            key={i}
-            option={opt}
-            fourColors={settings.fourColors}
-            state={
-              !answered ? "idle" : i === ex.correctIndex ? "good" : i === picked ? "bad" : "muted"
-            }
-            onClick={() => choose(i)}
-          />
-        ))}
-      </div>
-      {answered && (
+
+      {!answered && (
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-1">
+            {modes.map((m) => {
+              const lbl = modeLabel(m);
+              return (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  aria-pressed={mode === m}
+                  className={[
+                    "h-11 flex-1 min-w-11 rounded-md text-lg font-bold shadow",
+                    mode === m ? "bg-yellow-400" : "bg-white/90",
+                    lbl.suit
+                      ? suitColorClass(lbl.suit, settings.fourColors)
+                      : mode === m
+                        ? "text-emerald-950"
+                        : "text-zinc-800",
+                  ].join(" ")}
+                >
+                  {lbl.text}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-stretch gap-2">
+            <button
+              onClick={() => setValue(Math.max(minV, eff - 10))}
+              disabled={eff <= minV}
+              aria-label="Diminuer"
+              className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30"
+            >
+              −
+            </button>
+            <div className="flex h-12 flex-1 items-center justify-center gap-1 rounded-lg bg-black/30 text-2xl font-bold tabular-nums">
+              <span>{eff}</span>
+              <ModeSym mode={mode} fourColors={settings.fourColors} />
+            </div>
+            <button
+              onClick={() => setValue(Math.min(160, eff + 10))}
+              disabled={eff >= 160}
+              aria-label="Augmenter"
+              className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30"
+            >
+              +
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => submit({ kind: "bid", value: eff, mode })}
+              className="min-h-11 flex-1 rounded-lg bg-yellow-400 px-3 font-bold text-emerald-950 hover:bg-yellow-300"
+            >
+              Annoncer {eff}
+            </button>
+            <button
+              onClick={() => submit({ kind: "pass" })}
+              className="min-h-11 flex-1 rounded-lg bg-white/15 font-semibold text-white hover:bg-white/25"
+            >
+              Passer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {answered && grade && (
         <>
           <EstimateBar estimates={ex.estimates} fourColors={settings.fourColors} />
-          <Feedback ok={picked === ex.correctIndex} reason={ex.reason} onNext={next} />
+          <BidFeedback grade={grade} reason={ex.reason} onNext={next} />
         </>
       )}
+    </div>
+  );
+}
+
+function BidFeedback({ grade, reason, onNext }: { grade: BidGrade; reason: string; onNext: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, []);
+  const tone =
+    grade.stars === 3 ? "bg-emerald-900/70" : grade.stars === 2 ? "bg-sky-900/70" : "bg-amber-900/60";
+  return (
+    <div ref={ref} role="status" tabIndex={-1} className={`mt-3 rounded-xl p-3 ${tone}`}>
+      <p className="font-bold">
+        {grade.stars > 0 ? "⭐".repeat(grade.stars) + " " : ""}
+        {grade.title}
+      </p>
+      <CoachText text={reason} className="mt-1 block text-sm leading-relaxed text-white/85" />
+      <button
+        onClick={onNext}
+        className="mt-3 min-h-11 w-full rounded-lg bg-white/15 font-semibold text-white hover:bg-white/25"
+      >
+        Suivant
+      </button>
     </div>
   );
 }
@@ -265,7 +354,7 @@ function PlayTrainer() {
       </div>
 
       <p className="mb-2 text-center text-sm text-white/70">
-        Ta main — quelle carte jouer ?
+        Ta main, quelle carte jouer ?
       </p>
       <div className="flex flex-wrap justify-center gap-1">
         {g.hands[0].map((card) => {
@@ -324,43 +413,6 @@ function Tab({ id, active, onClick, children }: { id?: string; active: boolean; 
       ].join(" ")}
     >
       {children}
-    </button>
-  );
-}
-
-type OptState = "idle" | "good" | "bad" | "muted";
-function OptionBtn({
-  option,
-  fourColors,
-  state,
-  onClick,
-}: {
-  option: BidOption;
-  fourColors: boolean;
-  state: OptState;
-  onClick: () => void;
-}) {
-  const cls =
-    state === "good"
-      ? "bg-green-500/90 text-white"
-      : state === "bad"
-        ? "bg-red-500/90 text-white"
-        : state === "muted"
-          ? "bg-white/5 text-white/60"
-          : "bg-white/10 text-white hover:bg-white/20";
-  return (
-    <button
-      onClick={onClick}
-      disabled={state !== "idle"}
-      className={`rounded-xl px-4 py-3 text-left text-base font-semibold ${cls}`}
-    >
-      {option.kind === "pass" ? (
-        "Passer"
-      ) : (
-        <>
-          {option.value} <ModeSym mode={option.mode} fourColors={fourColors} />
-        </>
-      )}
     </button>
   );
 }

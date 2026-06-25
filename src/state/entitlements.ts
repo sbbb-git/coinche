@@ -3,7 +3,7 @@ import { create } from "zustand";
 // Abstraction FREEMIUM / PUBLICITÉ.
 //
 // MODÈLE v1 : gratuit AVEC publicités (décision produit). Toutes les
-// fonctionnalités restent ACCESSIBLES — on ne verrouille rien : la monétisation
+// fonctionnalités restent ACCESSIBLES, on ne verrouille rien : la monétisation
 // passe par la pub (et plus tard un achat « Retirer les pubs » → premium).
 //
 // Branchement réel (au packaging natif) : Google AdMob via

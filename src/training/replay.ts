@@ -129,7 +129,7 @@ export function fullReplay(rec: DealRecord): FullReplay {
     ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}${
         c.coinche > 1 ? (c.coinche === 4 ? " ×4" : " ×2") : ""
       }`
-    : "—";
+    : "-";
   const made = rec.result?.made;
   const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
 
@@ -153,8 +153,8 @@ export function exportDealText(rec: DealRecord): string {
   const names = mergedSettings(rec).playerNames;
   const r = fullReplay(rec);
   const L: string[] = [];
-  L.push(`Coinche — donne du ${new Date(rec.ts).toLocaleString("fr-FR")}`);
-  L.push(`Contrat : ${r.contractLabel} par ${names[r.taker]} — ${r.resultLabel} (${r.scores[0]}-${r.scores[1]})`);
+  L.push(`Coinche, donne du ${new Date(rec.ts).toLocaleString("fr-FR")}`);
+  L.push(`Contrat : ${r.contractLabel} par ${names[r.taker]}, ${r.resultLabel} (${r.scores[0]}-${r.scores[1]})`);
   L.push("");
   L.push("Mains initiales :");
   for (let p = 0; p < 4; p++) {
@@ -226,7 +226,7 @@ export function reviewDeal(rec: DealRecord): DealReview {
   }
 
   const c = rec.contract;
-  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "—";
+  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "-";
   const made = rec.result?.made;
   const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
 
@@ -298,7 +298,7 @@ export async function reviewDealAsync(rec: DealRecord): Promise<DealReview> {
   }
 
   const c = rec.contract;
-  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "—";
+  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "-";
   const made = rec.result?.made;
   const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
 

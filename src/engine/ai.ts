@@ -303,7 +303,7 @@ export function aiBid(state: GameState, player: number): BidDecision {
   const minToBid = standingIsPartner ? standingVal + 20 : standingVal + 10;
 
   // Capot : main qui domine vraiment (atout maître + couleurs annexes tenues).
-  if (level !== "easy" && !state.standing?.capot && capotWorthy(hand, mode)) {
+  if (level !== "easy" && state.settings.allowCapot && !state.standing?.capot && capotWorthy(hand, mode)) {
     return { action: "bid", value: 250, mode, capot: true, generale: false };
   }
 
@@ -405,7 +405,7 @@ export function aiPlay(state: GameState, deterministic = false): Card {
   // Le coach n'est pas contraint par le temps réel, mais 48 sims gelaient le
   // thread sur mobile (~300-800 ms) ; 32 = bon compromis fiabilité/réactivité.
   const samples = deterministic ? 32 : depth;
-  // Expert : PIMC. Le rollout utilise la politique BASIQUE — mesuré comme la plus
+  // Expert : PIMC. Le rollout utilise la politique BASIQUE, mesuré comme la plus
   // forte (les variantes « malines » se sont révélées contre-productives en jeu).
   return expertPlay(state, legal, rng, samples, false);
 }
@@ -846,12 +846,12 @@ function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number, 
 
 /**
  * Indice du meilleur coup : score maximal, et à QUASI-ÉGALITÉ (écart moyen < 1 pt)
- * la carte la MOINS chère — on ne gâche jamais une grosse carte quand une petite
+ * la carte la MOINS chère, on ne gâche jamais une grosse carte quand une petite
  * fait le même travail (« plus petite carte qui gagne »). `eps = samples` ⇒ tolérance
  * d'~1 point de moyenne. Utilisé à l'identique par l'IA experte et le coach.
  */
 function pickBestIndex(legal: Card[], scoreSum: number[], mode: TrumpMode, eps: number): number {
-  // 1) score maximal GLOBAL (référence fixe — pas un « best » mouvant, sinon on
+  // 1) score maximal GLOBAL (référence fixe, pas un « best » mouvant, sinon on
   //    pourrait sélectionner par sauts une carte bien en dessous du max).
   let max = -Infinity;
   for (const s of scoreSum) if (s > max) max = s;
@@ -896,7 +896,7 @@ export interface PlayAnalysis {
  * Comme `expertPlay`, mais retient pour CHAQUE carte des statistiques lisibles par
  * un humain (probabilité de gagner le pli, points moyens, issue de la donne). Le
  * meilleur coup retourné est IDENTIQUE à celui d'`aiPlay` déterministe EN MODE EXPERT
- * (même seed, mêmes 32 mondes) — le coach force toujours ce mode (cf. asCoach), donc
+ * (même seed, mêmes 32 mondes), le coach force toujours ce mode (cf. asCoach), donc
  * la carte affichée colle au coup recommandé. (En « hard », aiPlay n'utilise que 8
  * mondes : ne pas comparer analyzePlay à ce niveau.)
  */

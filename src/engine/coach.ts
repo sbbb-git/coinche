@@ -94,12 +94,12 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[]): s
   const pts = bestO.trickPtsForUs >= 1 ? ` (~${Math.round(bestO.trickPtsForUs)} pts)` : "";
   if (bestO.trickWinPct >= 0.5) {
     lines.push(
-      `**${cardLabel(best)}** — tu remportes ce pli **${pct(bestO.trickWinPct)}%** du temps${pts} · ` +
+      `**${cardLabel(best)}**, tu remportes ce pli **${pct(bestO.trickWinPct)}%** du temps${pts} · ` +
         `ton camp gagne la donne **~${pct(bestO.dealWinPct)}%**.`,
     );
   } else {
     lines.push(
-      `**${cardLabel(best)}** — tu laisses filer ce pli (**${pct(bestO.trickWinPct)}%**) pour garder tes cartes · ` +
+      `**${cardLabel(best)}**, tu laisses filer ce pli (**${pct(bestO.trickWinPct)}%**) pour garder tes cartes · ` +
         `ton camp gagne la donne **~${pct(bestO.dealWinPct)}%**.`,
     );
   }
@@ -114,12 +114,12 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[]): s
       const cost = delta >= 120 ? "**ferait probablement basculer la donne**" : `**~${Math.round(delta)} pts** plus bas`;
       if (alt.trickWinPct > bestO.trickWinPct + 0.15) {
         lines.push(
-          `vs **${cardLabel(alt.card)}** : prendrait ce pli (**${pct(alt.trickWinPct)}%**) mais ton camp finirait ${cost} — ` +
+          `vs **${cardLabel(alt.card)}** : prendrait ce pli (**${pct(alt.trickWinPct)}%**) mais ton camp finirait ${cost}, ` +
             `garde-la, elle vaut plus tard.`,
         );
       } else {
         lines.push(
-          `vs **${cardLabel(alt.card)}** : même pli, mais ton camp finirait ${cost} — ` +
+          `vs **${cardLabel(alt.card)}** : même pli, mais ton camp finirait ${cost}, ` +
             `garde-la pour un pli que tu peux rafler.`,
         );
       }
@@ -149,10 +149,10 @@ export function playReason(state: GameState, card: Card): string {
       // la couleur peut couper ton As. On ne promet donc pas un pli garanti.
       return mode === "NT"
         ? "Tu entames de ton As maître : un pli sûr (personne ne peut le couper), et tu gardes la main."
-        : "Tu entames ton As : tu encaisses des points et gardes la main — à moins qu'un adversaire, coupé dans cette couleur, ne le coupe.";
+        : "Tu entames ton As : tu encaisses des points et gardes la main, à moins qu'un adversaire, coupé dans cette couleur, ne le coupe.";
     }
     if (!iAmTaker) {
-      return "En défense : tu entames petit, sans ouvrir l'atout ni lâcher tes As — tu laisses le preneur se découvrir.";
+      return "En défense : tu entames petit, sans ouvrir l'atout ni lâcher tes As, tu laisses le preneur se découvrir.";
     }
     return "Tu entames petit dans une couleur, sans gâcher tes cartes fortes.";
   }
@@ -194,7 +194,7 @@ export function playReason(state: GameState, card: Card): string {
     if (keptStronger) {
       return (
         `Tu n'es que ${pos} à jouer : tu poses ta plus petite carte qui passe et tu GARDES ta ` +
-        `maîtresse — le preneur joue après toi et pourrait la couper ou la surmonter (« deuxième main basse »).`
+        `maîtresse, le preneur joue après toi et pourrait la couper ou la surmonter (« deuxième main basse »).`
       );
     }
     return `Tu prends, mais prudence : tu n'es que ${pos}, le preneur joue encore après toi.`;

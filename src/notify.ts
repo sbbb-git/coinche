@@ -55,7 +55,7 @@ export const notify = {
 };
 
 /**
- * Programme un rappel quotidien NATIF (« ta série t'attend ») — ne fonctionne
+ * Programme un rappel quotidien NATIF (« ta série t'attend »), ne fonctionne
  * qu'en build Capacitor. Sur le web, no-op (le navigateur ne peut pas planifier
  * une notif quand l'app est fermée). L'import est dynamique et ignoré par Vite
  * pour ne pas casser le build web tant que le plugin n'est pas installé.
@@ -73,7 +73,7 @@ export async function scheduleDailyReminder(hour = 19): Promise<boolean> {
         {
           id: 1001,
           title: "🔥 Défi du jour",
-          body: "Ta série t'attend — une donne rapide ?",
+          body: "Ta série t'attend, une donne rapide ?",
           schedule: { on: { hour, minute: 0 }, repeats: true },
         },
       ],

@@ -7,6 +7,22 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
+      // Consent Mode v2 : tout REFUSÉ par défaut (RGPD). Mis à jour selon le choix stocké.
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500
+      });
+      try {
+        if (localStorage.getItem('cookie-consent') === 'granted') {
+          gtag('consent', 'update', {
+            ad_storage: 'granted', ad_user_data: 'granted',
+            ad_personalization: 'granted', analytics_storage: 'granted'
+          });
+        }
+      } catch (e) {}
       gtag('config', 'G-89PX80N9H7');
     </script>
     <meta charset="UTF-8" />
@@ -20,7 +36,7 @@
     <meta name="apple-mobile-web-app-title" content="Coincheur" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0f5132" />
-    <title>Coincheur — Coinche & entraînement</title>
+    <title>Coincheur, Coinche & entraînement</title>
     <!-- Ahrefs Web Analytics (cookieless) -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="mt0GFY89V8kLys/52fBIIw" async></script>
   </head>

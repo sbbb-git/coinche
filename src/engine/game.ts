@@ -19,30 +19,31 @@ export interface PlayProfile {
 }
 
 export interface Settings {
-  // — Jeu (règles) —
+  //, Jeu (règles) -
   targetScore: number; // 1000 / 1500 / 2000
   allowNT: boolean; // autoriser Sans Atout
   allowAT: boolean; // autoriser Tout Atout
   beloteAtToutAtout: boolean; // belote/rebelote comptée à Tout Atout
   allowCoinche: boolean;
   allowSurcoinche: boolean;
+  allowCapot: boolean; // autoriser l'IA à annoncer un Capot (250)
   allowGenerale: boolean; // autoriser l'annonce de Générale (500)
   pisserObligatoire: boolean; // obligation de mettre de l'atout si on ne peut surcouper
   coincheEndsGame: boolean; // "la coinche fait gagner la partie"
 
-  // — Comptage des points —
+  //, Comptage des points -
   roundToTen: boolean; // arrondir les scores à la dizaine
   contractCanSucceedIfDefenseMore: boolean; // sinon il faut faire > la défense
   beloteCountsToSucceed: boolean; // la belote compte pour réussir un contrat
   beloteCountsToFail: boolean; // la belote compte pour faire chuter un contrat
 
-  // — IA —
+  //, IA -
   aiLevel: AiLevel;
   /** profondeur de simulation de l'IA Expert (force ↔ rapidité) */
   expertDepth: "rapide" | "normal" | "fort";
   profile: PlayProfile;
 
-  // — Interface —
+  //, Interface -
   gameSpeed: "lent" | "normal" | "rapide";
   sensHoraire: boolean; // sens de jeu (false = anti-horaire, défaut app)
   cardSort: "asc" | "desc"; // ordre d'affichage de la main
@@ -75,6 +76,7 @@ export const DEFAULT_SETTINGS: Settings = {
   beloteAtToutAtout: false,
   allowCoinche: true,
   allowSurcoinche: true,
+  allowCapot: true,
   allowGenerale: false,
   pisserObligatoire: true,
   coincheEndsGame: false,
@@ -239,7 +241,7 @@ export function startDeal(state: GameState): GameState {
 }
 
 /** Reconstruit l'état initial d'une donne (phase enchères) à partir de mains
- *  connues, sans mélanger — pour rejouer/analyser une partie enregistrée. */
+ *  connues, sans mélanger, pour rejouer/analyser une partie enregistrée. */
 export function dealStateFrom(settings: Settings, dealer: number, hands: Card[][]): GameState {
   const base: GameState = {
     settings,
@@ -345,7 +347,7 @@ export function applyPass(state: GameState): GameState {
   // 4 passes sans annonce -> redonne (donneur suivant).
   if (!state.standing && passStreak >= 4) {
     const redeal = { ...state, dealer: next(state, state.dealer), bidHistory: history };
-    return { ...startDeal(redeal), message: "Personne n'a pris — nouvelle donne." };
+    return { ...startDeal(redeal), message: "Personne n'a pris, nouvelle donne." };
   }
   // Une annonce existe et tout le monde a passé après elle -> on joue.
   if (state.standing && passStreak >= 3) {

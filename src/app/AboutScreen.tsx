@@ -7,7 +7,7 @@ import { notify } from "../notify";
 function rateApp() {
   const url = storeUrl();
   if (url) window.open(url, "_blank", "noopener");
-  else notify.show("Merci 💛", "Bientôt sur les stores — ta note comptera !");
+  else notify.show("Merci 💛", "Bientôt sur les stores, ta note comptera !");
 }
 
 async function shareApp() {

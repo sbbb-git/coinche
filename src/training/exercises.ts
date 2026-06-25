@@ -14,7 +14,7 @@ import {
   newGame,
 } from "../engine/game";
 import { aiBid, aiPlay } from "../engine/ai";
-import { coachBid, coachPlay, handEstimates } from "../engine/coach";
+import { coachBid, coachPlay, handEstimates, BidAdviceAction } from "../engine/coach";
 import { teamOf } from "../engine/scoring";
 
 export type PlayFocus = "any" | "attack" | "defense";
@@ -35,16 +35,51 @@ export interface BidExercise {
   kind: "bid";
   hand: Card[];
   auction: AuctionLine[]; // annonces faites avant ton tour (vide si tu ouvres)
-  options: BidOption[];
-  correctIndex: number;
+  /** Réponse idéale du coach (passer, ou annoncer valeur+couleur). */
+  ideal: BidAdviceAction;
+  /** Plancher d'annonce légal (il faut dépasser l'enchère en cours). */
+  minValue: number;
   reason: string;
   estimates: { mode: TrumpMode; est: number }[];
 }
 
-const optKey = (o: BidOption) => (o.kind === "pass" ? "pass" : `${o.value}${o.mode}`);
+function modeText(mode: TrumpMode): string {
+  if (mode === "NT") return "Sans Atout";
+  if (mode === "AT") return "Tout Atout";
+  return { S: "Pique", H: "Cœur", D: "Carreau", C: "Trèfle" }[mode];
+}
+
+export interface BidGrade {
+  stars: 0 | 1 | 2 | 3;
+  title: string;
+}
+
+/** Note NUANCÉE de l'enchère du joueur vs l'idéal (pas un simple vrai/faux). */
+export function gradeBid(player: BidOption, ideal: BidAdviceAction): BidGrade {
+  if (ideal.action === "pass") {
+    return player.kind === "pass"
+      ? { stars: 3, title: "Parfait : ici, il fallait passer." }
+      : { stars: 1, title: "Un peu trop optimiste : passer était plus sage." };
+  }
+  const idealTxt = `${ideal.value} ${modeText(ideal.mode)}`;
+  if (player.kind === "pass") {
+    return { stars: 1, title: `Trop prudent : tu pouvais annoncer ${idealTxt}.` };
+  }
+  const sameMode = player.mode === ideal.mode;
+  const diff = Math.abs(player.value - ideal.value);
+  if (sameMode && diff === 0) return { stars: 3, title: "Parfait !" };
+  if (sameMode && diff <= 10)
+    return { stars: 2, title: `Pas mal ! L'idéal était ${idealTxt} (à 10 près).` };
+  if (sameMode)
+    return {
+      stars: 1,
+      title: `Bonne couleur, mais ${player.value > ideal.value ? "trop haut" : "trop bas"} : vise ${idealTxt}.`,
+    };
+  return { stars: 1, title: `La couleur idéale était plutôt ${modeText(ideal.mode)} (${idealTxt}).` };
+}
 
 /** Met en place une séquence d'enchères : les autres joueurs parlent jusqu'à ce
- *  que ce soit (enfin) au tour du siège 0 — parfois après un ou plusieurs
+ *  que ce soit (enfin) au tour du siège 0, parfois après un ou plusieurs
  *  contrats adverses/partenaire (« fausses enchères »). */
 function setupBidScenario(settings: Settings): GameState {
   // Les meneurs d'enchères jouent « difficile » : des annonces réalistes et variées.
@@ -89,37 +124,13 @@ export function genBidExercise(settings: Settings): BidExercise {
   const advice = coachBid(g, 0);
   const estimates = handEstimates(hand, g);
   // Plancher d'annonce légal : il faut dépasser l'enchère en cours.
-  const floor = g.standing ? g.standing.value + 10 : 80;
-  const capped = (v: number) => Math.min(160, v);
-
-  const opts: BidOption[] = [];
-  if (advice.action.action === "bid") {
-    const { value, mode } = advice.action;
-    const second = estimates.filter((e) => e.mode !== mode).sort((a, b) => b.est - a.est)[0];
-    opts.push({ kind: "bid", value, mode }); // correct
-    opts.push({ kind: "pass" }); // trop prudent
-    opts.push({ kind: "bid", value: capped(value + 20), mode }); // trop gourmand
-    if (second) opts.push({ kind: "bid", value, mode: second.mode }); // mauvaise couleur
-  } else {
-    const best = estimates.slice().sort((a, b) => b.est - a.est)[0];
-    const second = estimates.filter((e) => e.mode !== best.mode).sort((a, b) => b.est - a.est)[0];
-    opts.push({ kind: "pass" }); // correct
-    opts.push({ kind: "bid", value: capped(floor), mode: best.mode }); // trop optimiste
-    opts.push({ kind: "bid", value: capped(floor + 10), mode: best.mode });
-    if (second) opts.push({ kind: "bid", value: capped(floor), mode: second.mode });
-  }
-
-  // Dédoublonne et complète à 4 options si besoin.
-  const seen = new Set<string>();
-  const uniq = opts.filter((o) => (seen.has(optKey(o)) ? false : seen.add(optKey(o)))).slice(0, 4);
-  const correctKey = optKey(uniq[0]);
-  const shuffled = shuffle(uniq);
+  const minValue = g.standing ? g.standing.value + 10 : 80;
   return {
     kind: "bid",
     hand,
     auction: auctionLines(g),
-    options: shuffled,
-    correctIndex: shuffled.findIndex((o) => optKey(o) === correctKey),
+    ideal: advice.action,
+    minValue,
     reason: advice.reason,
     estimates,
   };
@@ -181,13 +192,4 @@ export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any"
   }
   if (anyDecision) return anyDecision; // jamais trouvé le thème exact : on renvoie autre chose
   throw new Error("Impossible de générer un exercice de jeu avec ces réglages.");
-}
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
 }

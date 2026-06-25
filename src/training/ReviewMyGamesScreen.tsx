@@ -29,7 +29,7 @@ export function ReviewMyGamesScreen() {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="mb-1 text-sm text-white/70">Tes dernières donnes — touche pour revoir.</p>
+            <p className="mb-1 text-sm text-white/70">Tes dernières donnes, touche pour revoir.</p>
             {history.map((rec, i) => (
               <DealRow key={`${rec.ts}-${i}`} rec={rec} onClick={() => setSelected(i)} />
             ))}
@@ -43,7 +43,7 @@ export function ReviewMyGamesScreen() {
 }
 
 function DealRow({ rec, onClick }: { rec: DealRecord; onClick: () => void }) {
-  // Liste légère : on n'exécute PAS l'analyse coach (PIMC) ici — seulement le
+  // Liste légère : on n'exécute PAS l'analyse coach (PIMC) ici, seulement le
   // rejeu rapide pour les libellés. La review coach est calculée à l'ouverture du
   // détail (sinon, monter 25 lignes gèlerait le thread avec des centaines de PIMC).
   const full = useMemo(() => fullReplay(rec), [rec]);

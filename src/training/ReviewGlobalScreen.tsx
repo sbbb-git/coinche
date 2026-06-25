@@ -121,7 +121,7 @@ function Picker({
 }
 
 function pct(n: number, d: number): string {
-  return d ? `${Math.round((100 * n) / d)} %` : "—";
+  return d ? `${Math.round((100 * n) / d)} %` : "-";
 }
 
 function Report({ r }: { r: SimReport }) {
