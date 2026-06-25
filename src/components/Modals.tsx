@@ -5,6 +5,7 @@ import { useFocusTrap } from "../app/useFocusTrap";
 import { AiLevel, PlayProfile, Settings, winnerTeam } from "../engine/game";
 import { storage } from "../storage";
 import { shareResultImage } from "../share";
+import { useLang, useT, Lang } from "../i18n";
 
 function Overlay({
   children,
@@ -176,6 +177,9 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
   const [draft, setDraft] = useState<Settings>(game.settings);
   const [tab, setTab] = useState<Tab>("interface");
   const [confirmClear, setConfirmClear] = useState(false);
+  const lang = useLang((s) => s.lang);
+  const setLang = useLang((s) => s.setLang);
+  const t = useT();
 
   const upd = (p: Partial<Settings>) => setDraft({ ...draft, ...p });
   const updP = (p: Partial<PlayProfile>) => setDraft({ ...draft, profile: { ...draft.profile, ...p } });
@@ -220,6 +224,15 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
       >
         {tab === "interface" && (
           <>
+            <Seg
+              label={t("settings.language")}
+              value={lang}
+              options={[
+                ["fr", "Français"],
+                ["en", "English"],
+              ]}
+              onChange={(v) => setLang(v as Lang)}
+            />
             <Seg
               label="Vitesse de jeu"
               value={draft.gameSpeed}
