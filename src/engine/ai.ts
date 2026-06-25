@@ -851,16 +851,22 @@ function expertPlay(state: GameState, legal: Card[], rng: Rng, samples: number, 
  * d'~1 point de moyenne. Utilisé à l'identique par l'IA experte et le coach.
  */
 function pickBestIndex(legal: Card[], scoreSum: number[], mode: TrumpMode, eps: number): number {
-  let best = 0;
-  for (let i = 1; i < legal.length; i++) {
-    const d = scoreSum[i] - scoreSum[best];
-    if (d > eps) {
+  // 1) score maximal GLOBAL (référence fixe — pas un « best » mouvant, sinon on
+  //    pourrait sélectionner par sauts une carte bien en dessous du max).
+  let max = -Infinity;
+  for (const s of scoreSum) if (s > max) max = s;
+  // 2) parmi les cartes à quasi-égalité du max (dans la bande eps), la MOINS chère
+  //    (points puis force) : on ne gâche jamais une grosse carte si une petite suffit.
+  let best = -1;
+  for (let i = 0; i < legal.length; i++) {
+    if (scoreSum[i] < max - eps) continue;
+    if (best === -1) {
       best = i;
-    } else if (d >= -eps) {
-      const a = legal[i], b = legal[best];
-      const pa = points(a, mode), pb = points(b, mode);
-      if (pa < pb || (pa === pb && strength(a, mode) < strength(b, mode))) best = i;
+      continue;
     }
+    const a = legal[i], b = legal[best];
+    const pa = points(a, mode), pb = points(b, mode);
+    if (pa < pb || (pa === pb && strength(a, mode) < strength(b, mode))) best = i;
   }
   return best;
 }
