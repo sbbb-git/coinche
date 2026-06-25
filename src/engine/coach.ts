@@ -145,7 +145,11 @@ export function playReason(state: GameState, card: Card): string {
         : "Tu es preneur : tu tires l'atout pour vider les adversaires avant d'encaisser tes couleurs.";
     }
     if (card.rank === "A" && !isTrump(card, mode)) {
-      return "Tu entames de ton As maître : un pli sûr, et tu gardes la main.";
+      // « Pli sûr » UNIQUEMENT en Sans Atout : à l'atout, un adversaire coupé dans
+      // la couleur peut couper ton As. On ne promet donc pas un pli garanti.
+      return mode === "NT"
+        ? "Tu entames de ton As maître : un pli sûr (personne ne peut le couper), et tu gardes la main."
+        : "Tu entames ton As : tu encaisses des points et gardes la main — à moins qu'un adversaire, coupé dans cette couleur, ne le coupe.";
     }
     if (!iAmTaker) {
       return "En défense : tu entames petit, sans ouvrir l'atout ni lâcher tes As — tu laisses le preneur se découvrir.";
