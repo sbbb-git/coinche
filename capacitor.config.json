@@ -2,7 +2,6 @@
   "appId": "com.coincheur.app",
   "appName": "Coincheur",
   "webDir": "dist",
-  "bundledWebRuntime": false,
   "backgroundColor": "#0b3d28",
   "ios": {
     "contentInset": "always",
