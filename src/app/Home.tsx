@@ -52,7 +52,13 @@ export function Home() {
 
       <div className="shrink-0 pt-3 text-center">
         <p className="text-[11px] text-white/55">{t("home.offline")}</p>
-        <div className="mt-1 flex justify-center gap-1">
+        <div className="mt-1 flex flex-wrap justify-center gap-1">
+          <a
+            href="/apprendre-la-coinche.html"
+            className="flex min-h-11 items-center rounded-lg px-4 text-xs font-semibold text-white/70 hover:bg-white/10"
+          >
+            {t("home.learn")}
+          </a>
           <button
             onClick={() => go("about")}
             className="flex min-h-11 items-center rounded-lg px-4 text-xs font-semibold text-white/70 hover:bg-white/10"
