@@ -3,7 +3,7 @@ import { useNav } from "./nav";
 import { useGame } from "../state/store";
 import { storage } from "../storage";
 import { AiLevel } from "../engine/game";
-import { useT, currentLang, translate } from "../i18n";
+import { useT, currentLang, translate, useLang } from "../i18n";
 
 const LEVELS: { id: AiLevel; labelKey: string; descKey: string }[] = [
   { id: "easy", labelKey: "welcome.level.easy", descKey: "welcome.level.easy.desc" },
@@ -17,6 +17,8 @@ export function WelcomeScreen() {
   const game = useGame((s) => s.game);
   const updateSettings = useGame((s) => s.updateSettings);
   const t = useT();
+  const lang = useLang((s) => s.lang);
+  const setLang = useLang((s) => s.setLang);
   const [step, setStep] = useState(0);
   const defaultName = translate(currentLang(), "review.defaultNames.you");
   const [name, setName] = useState(() => {
@@ -40,7 +42,23 @@ export function WelcomeScreen() {
 
   return (
     <div className="safe-top safe-bottom mx-auto flex h-full w-full max-w-md flex-col px-6 py-6">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-0.5 rounded-lg bg-white/10 p-0.5 text-xs font-bold">
+          {(["fr", "en"] as const).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              aria-pressed={lang === l}
+              aria-label={l === "fr" ? "Français" : "English"}
+              className={[
+                "min-h-9 rounded-md px-2.5",
+                lang === l ? "bg-yellow-400 text-emerald-950" : "text-white/70 hover:text-white",
+              ].join(" ")}
+            >
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <button
           onClick={skip}
           className="flex min-h-11 items-center rounded-lg px-3 text-sm text-white/60 hover:bg-white/10 hover:text-white/90"

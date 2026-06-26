@@ -172,7 +172,15 @@ export function exportDealText(rec: DealRecord): string {
   const r = fullReplay(rec);
   const L: string[] = [];
   L.push(translate(lang, "export.header", { date: new Date(rec.ts).toLocaleString(locale) }));
-  L.push(`Contrat : ${r.contractLabel} par ${names[r.taker]}, ${r.resultLabel} (${r.scores[0]}-${r.scores[1]})`);
+  L.push(
+    translate(lang, "export.contract", {
+      contract: r.contractLabel,
+      taker: names[r.taker],
+      result: r.resultLabel,
+      a: r.scores[0],
+      b: r.scores[1],
+    }),
+  );
   L.push("");
   L.push(translate(lang, "export.hands"));
   for (let p = 0; p < 4; p++) {
@@ -189,7 +197,7 @@ export function exportDealText(rec: DealRecord): string {
     L.push(`  ${i + 1}. ${cards}  → ${names[t.winner]} (+${t.points}${t.lastDix ? " +10 der" : ""})`);
   });
   L.push("");
-  L.push("Données exactes (JSON) :");
+  L.push(translate(lang, "export.json"));
   L.push(JSON.stringify(rec));
   return L.join("\n");
 }
