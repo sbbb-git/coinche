@@ -9,3 +9,5 @@ dev-dist
 coincheur-release.keystore
 android/keystore.properties
 android/local.properties
+*.aab
+*.apk
