@@ -1,6 +1,6 @@
 // Machine d'état d'une partie : distribution, enchères, jeu des plis.
 
-import { Card, TrumpMode, freshDeck } from "./cards";
+import { Card, Suit, TrumpMode, freshDeck } from "./cards";
 import { Contract, ScoreBreakdown, Team, scoreDeal, teamOf } from "./scoring";
 import { PlayedCard, legalMoves, winningIndex } from "./rules";
 
@@ -266,7 +266,6 @@ export function dealStateFrom(settings: Settings, dealer: number, hands: Card[][
   return { ...base, current: opener, trickLeader: opener };
 }
 
-const SUIT_SORT = { S: 0, H: 1, C: 2, D: 3 } as const;
 const RANK_SORT: Record<Card["rank"], number> = {
   A: 0,
   "10": 1,
@@ -278,11 +277,32 @@ const RANK_SORT: Record<Card["rank"], number> = {
   "7": 7,
 };
 
-/** Tri d'affichage : par couleur puis par force usuelle (ordre réglable). */
+/**
+ * Ordre d'affichage des couleurs qui ALTERNE noir/rouge autant que possible, selon
+ * les couleurs présentes dans la main (pour qu'on distingue clairement les paquets).
+ * Ex. ♠♥♣♦ (toutes présentes) ; ♠♦♣ si pas de cœur ; ♥♠♦ si une seule noire.
+ */
+export function alternatingSuitOrder(present: Suit[]): Suit[] {
+  const blacks = (["S", "C"] as Suit[]).filter((s) => present.includes(s));
+  const reds = (["H", "D"] as Suit[]).filter((s) => present.includes(s));
+  // On commence par la couleur majoritaire pour « enterrer » les restes éventuels.
+  const [a, b] = blacks.length >= reds.length ? [blacks, reds] : [reds, blacks];
+  const out: Suit[] = [];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (i < a.length) out.push(a[i]);
+    if (i < b.length) out.push(b[i]);
+  }
+  return out;
+}
+
+/** Tri d'affichage : couleurs en ALTERNANCE de couleur, puis par force (ordre réglable). */
 export function sortHand(hand: Card[], order: "asc" | "desc" = "asc"): Card[] {
   const dir = order === "asc" ? 1 : -1;
+  const present = Array.from(new Set(hand.map((c) => c.suit)));
+  const pos: Partial<Record<Suit, number>> = {};
+  alternatingSuitOrder(present).forEach((s, i) => (pos[s] = i));
   return [...hand].sort((a, b) => {
-    if (a.suit !== b.suit) return (SUIT_SORT[a.suit] - SUIT_SORT[b.suit]) * dir;
+    if (a.suit !== b.suit) return (pos[a.suit] ?? 0) - (pos[b.suit] ?? 0);
     return (RANK_SORT[a.rank] - RANK_SORT[b.rank]) * dir;
   });
 }
