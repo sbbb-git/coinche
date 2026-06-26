@@ -1,0 +1,84 @@
+# Build cloud (Codemagic) — compile l'app SANS posséder de Mac.
+# iOS : nécessite un compte Apple Developer (99 $/an) connecté à Codemagic
+#   (App Store Connect API key). Android : optionnel, on a déjà l'.aab en local.
+#
+# Mise en route : voir IOS_BUILD.md. Le projet natif (ios/) est généré pendant le
+# build (npx cap add ios) ; pas besoin de le committer.
+
+workflows:
+  # --------------------------------------------------------------------------
+  ios-appstore:
+    name: Coincheur — iOS (App Store / TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: CoincheurAppStoreKey # à créer dans Codemagic (clé API App Store Connect)
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.coincheur.app
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+        APP_STORE_APP_ID: 0000000000 # remplacer par l'ID de l'app App Store Connect
+      node: 20
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Installer les dépendances
+        script: npm ci
+      - name: Construire le web (Vite + PWA)
+        script: npm run build
+      - name: Générer / synchroniser le projet iOS
+        script: |
+          if [ ! -d "ios" ]; then npx cap add ios; fi
+          npx cap sync ios
+      - name: Installer les Pods
+        script: cd ios/App && pod install
+      - name: Numéro de build automatique
+        script: |
+          cd ios/App
+          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID") + 1)) || true
+      - name: Profils de signature
+        script: xcode-project use-profiles
+      - name: Compiler l'IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true # envoie direct sur TestFlight pour tester
+
+  # --------------------------------------------------------------------------
+  android-release:
+    name: Coincheur — Android (AAB Play Store)
+    instance_type: linux_x2
+    max_build_duration: 45
+    environment:
+      android_signing:
+        - CoincheurUploadKeystore # à créer dans Codemagic (upload du .keystore)
+      vars:
+        PACKAGE_NAME: com.coincheur.app
+      node: 20
+    scripts:
+      - name: Installer les dépendances
+        script: npm ci
+      - name: Construire le web
+        script: npm run build
+      - name: Synchroniser Android
+        script: npx cap sync android
+      - name: Compiler l'AAB signé
+        script: |
+          cd android
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS # clé de service Play (optionnel)
+        track: internal
