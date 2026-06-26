@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useGame } from "../state/store";
+import { useT } from "../i18n";
 import { useNav } from "./nav";
 import { useFocusTrap } from "./useFocusTrap";
 import { ScorePanel } from "../components/ScorePanel";
@@ -10,6 +11,7 @@ import { CoachBar } from "../components/CoachBar";
 import { DealResultModal, GameOverModal, MenuSheet } from "../components/Modals";
 
 export function PlayScreen() {
+  const t = useT();
   const [menu, setMenu] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const init = useGame((s) => s.init);
@@ -53,18 +55,18 @@ export function PlayScreen() {
             ref={confirmRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Quitter la partie ?"
+            aria-label={t("play.leave.title")}
             onClick={(e) => e.stopPropagation()}
             className="animate-pop w-full max-w-sm rounded-2xl bg-emerald-950 p-5 text-center shadow-2xl ring-1 ring-emerald-700"
           >
-            <p className="font-bold">Quitter la partie ?</p>
-            <p className="mt-1 text-sm text-white/70">Pas de panique : tu pourras la reprendre là où tu t'es arrêté.</p>
+            <p className="font-bold">{t("play.leave.title")}</p>
+            <p className="mt-1 text-sm text-white/70">{t("play.leave.body")}</p>
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => setConfirmLeave(false)}
                 className="min-h-11 flex-1 rounded-xl bg-white/10 font-semibold hover:bg-white/20"
               >
-                Continuer
+                {t("play.leave.continue")}
               </button>
               <button
                 onClick={() => {
@@ -73,7 +75,7 @@ export function PlayScreen() {
                 }}
                 className="min-h-11 flex-1 rounded-xl bg-yellow-400 font-bold text-emerald-950 hover:bg-yellow-300"
               >
-                Quitter
+                {t("play.leave.quit")}
               </button>
             </div>
           </div>

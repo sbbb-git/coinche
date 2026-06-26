@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
+import { useT } from "../i18n";
 import { CoachText } from "../components/CoachText";
 import { TrainTabs } from "./TrainTabs";
 import { useGame } from "../state/store";
@@ -25,16 +26,17 @@ import {
 type Kind = "bid" | "play";
 
 export function ExercisesScreen() {
+  const t = useT();
   const [kind, setKind] = useState<Kind>("bid");
   return (
-    <ScreenShell title="S'entraîner">
+    <ScreenShell title={t("train.title")}>
       <TrainTabs current="exercises" />
-      <div role="tablist" aria-label="Type d'exercice" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
+      <div role="tablist" aria-label={t("ex.aria.kind")} className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
         <Tab id="exo-tab-bid" active={kind === "bid"} onClick={() => setKind("bid")}>
-          🂠 Enchères
+          {t("ex.tab.bid")}
         </Tab>
         <Tab id="exo-tab-play" active={kind === "play"} onClick={() => setKind("play")}>
-          🃏 Jeu de la carte
+          {t("ex.tab.play")}
         </Tab>
       </div>
       <StreakBar />
@@ -46,13 +48,14 @@ export function ExercisesScreen() {
 }
 
 function StreakBar() {
+  const t = useT();
   const stats = useStats((s) => s.stats);
   return (
     <div className="mb-3 flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm">
       <span>
-        🔥 Série : <b className="text-yellow-300">{stats.streak}</b>
+        {t("ex.streak")}<b className="text-yellow-300">{stats.streak}</b>
       </span>
-      <span className="text-white/60">Record : {stats.bestStreak}</span>
+      <span className="text-white/60">{t("ex.record", { n: stats.bestStreak })}</span>
     </div>
   );
 }
@@ -60,6 +63,7 @@ function StreakBar() {
 // --- Entraînement aux enchères ----------------------------------------------
 
 function BidTrainer() {
+  const t = useT();
   const settings = useGame((s) => s.game.settings);
   const record = useStats((s) => s.record);
   const [ex, setEx] = useState<BidExercise | null>(null);
@@ -93,7 +97,7 @@ function BidTrainer() {
     <div>
       {ex.auction.length > 0 && <AuctionRecap auction={ex.auction} fourColors={settings.fourColors} />}
       <p className="mb-2 text-sm text-white/70">
-        {ex.auction.length > 0 ? "À toi de parler : choisis ton enchère." : "Tu ouvres : choisis ton enchère."}
+        {ex.auction.length > 0 ? t("ex.yourTurn") : t("ex.youOpen")}
       </p>
       <div className="mb-4 flex flex-wrap justify-center gap-1">
         {ex.hand.map((c) => (
@@ -130,7 +134,7 @@ function BidTrainer() {
             <button
               onClick={() => setValue(Math.max(minV, eff - 10))}
               disabled={eff <= minV}
-              aria-label="Diminuer"
+              aria-label={t("ex.aria.decrease")}
               className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30"
             >
               −
@@ -142,7 +146,7 @@ function BidTrainer() {
             <button
               onClick={() => setValue(Math.min(160, eff + 10))}
               disabled={eff >= 160}
-              aria-label="Augmenter"
+              aria-label={t("ex.aria.increase")}
               className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30"
             >
               +
@@ -153,13 +157,13 @@ function BidTrainer() {
               onClick={() => submit({ kind: "bid", value: eff, mode })}
               className="min-h-11 flex-1 rounded-lg bg-yellow-400 px-3 font-bold text-emerald-950 hover:bg-yellow-300"
             >
-              Annoncer {eff}
+              {t("ex.bid", { n: eff })}
             </button>
             <button
               onClick={() => submit({ kind: "pass" })}
               className="min-h-11 flex-1 rounded-lg bg-white/15 font-semibold text-white hover:bg-white/25"
             >
-              Passer
+              {t("ex.pass")}
             </button>
           </div>
         </div>
@@ -177,6 +181,7 @@ function BidTrainer() {
 
 /** Retour nuancé (1 à 3 ⭐) pour enchères ET jeu de la carte. */
 function GradeFeedback({ stars, title, reason, onNext }: { stars: 1 | 2 | 3; title: string; reason: string; onNext: () => void }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -190,7 +195,7 @@ function GradeFeedback({ stars, title, reason, onNext }: { stars: 1 | 2 | 3; tit
         onClick={onNext}
         className="mt-3 min-h-11 w-full rounded-lg bg-white/15 font-semibold text-white hover:bg-white/25"
       >
-        Suivant
+        {t("ex.next")}
       </button>
     </div>
   );
@@ -205,17 +210,18 @@ function ModeSym({ mode, fourColors }: { mode: TrumpMode; fourColors: boolean })
 
 /** Rappel de la séquence d'enchères déjà prononcée (fausses enchères). */
 function AuctionRecap({ auction, fourColors }: { auction: AuctionLine[]; fourColors: boolean }) {
+  const t = useT();
   return (
     <div className="mb-3 rounded-lg bg-black/30 p-2.5">
       <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/60">
-        Enchères en cours
+        {t("ex.auctionInProgress")}
       </p>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
         {auction.map((l, i) => (
           <span key={i} className="tabular-nums">
             <span className={l.partner ? "text-yellow-300" : "text-white/60"}>{l.name}</span>{" "}
             {l.value === "passe" ? (
-              <span className="text-white/60">passe</span>
+              <span className="text-white/60">{t("ex.pass.word")}</span>
             ) : (
               <b>
                 {l.value}
@@ -241,10 +247,11 @@ function EstimateBar({
   estimates: BidExercise["estimates"];
   fourColors: boolean;
 }) {
+  const t = useT();
   const sorted = [...estimates].sort((a, b) => b.est - a.est);
   return (
     <div className="mt-3 rounded-lg bg-white/5 p-2 text-xs text-white/70">
-      <span className="text-white/60">Valeur estimée de ta main : </span>
+      <span className="text-white/60">{t("ex.handValue")}</span>
       {sorted.map((e, i) => (
         <span key={e.mode} className="ml-1 tabular-nums">
           <ModeSym mode={e.mode} fourColors={fourColors} /> <b className="text-white/90">{e.est}</b>
@@ -258,6 +265,7 @@ function EstimateBar({
 // --- Entraînement au jeu de la carte ----------------------------------------
 
 function PlayTrainer() {
+  const t = useT();
   const settings = useGame((s) => s.game.settings);
   const record = useStats((s) => s.record);
   const [focus, setFocus] = useState<PlayFocus>("any");
@@ -281,9 +289,9 @@ function PlayTrainer() {
   if (error)
     return (
       <p className="mt-6 text-center text-sm text-white/70">
-        Impossible de générer une situation pour ce thème avec ces réglages.{" "}
+        {t("ex.cannotGenerate")}
         <button onClick={next} className="underline">
-          Réessayer
+          {t("ex.retry")}
         </button>
       </p>
     );
@@ -313,8 +321,8 @@ function PlayTrainer() {
 
   return (
     <div>
-      <div className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1" role="group" aria-label="Thème">
-        {([["any", "Tout"], ["attack", "Attaque"], ["defense", "Défense"]] as [PlayFocus, string][]).map(
+      <div className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1" role="group" aria-label={t("ex.aria.theme")}>
+        {([["any", t("ex.focus.any")], ["attack", t("ex.focus.attack")], ["defense", t("ex.focus.defense")]] as [PlayFocus, string][]).map(
           ([id, lbl]) => (
             <button
               key={id}
@@ -332,7 +340,7 @@ function PlayTrainer() {
       </div>
       <div className="mb-2 flex items-center justify-center gap-2 text-sm">
         <span className="rounded-full bg-black/40 px-3 py-1">
-          Contrat <b>{c.generale ? "Générale" : c.capot ? "Capot" : c.value}</b>{" "}
+          {t("ex.contract")} <b>{c.generale ? t("ex.generale") : c.capot ? t("ex.capot") : c.value}</b>{" "}
           <span
             className={
               modeLabel(c.mode).suit
@@ -342,13 +350,13 @@ function PlayTrainer() {
           >
             {modeLabel(c.mode).text}
           </span>{" "}
-          · preneur {names[c.taker]}
+          · {t("ex.taker", { name: names[c.taker] })}
         </span>
       </div>
 
-      <p className="mb-1 text-center text-xs text-white/60">Pli en cours</p>
+      <p className="mb-1 text-center text-xs text-white/60">{t("ex.currentTrick")}</p>
       <div className="mb-4 flex min-h-24 items-center justify-center gap-2">
-        {g.trick.length === 0 && <span className="text-sm text-white/70">Tu entames</span>}
+        {g.trick.length === 0 && <span className="text-sm text-white/70">{t("ex.youLead")}</span>}
         {g.trick.map((p) => (
           <div key={p.player} className="flex flex-col items-center gap-1">
             <PlayingCard card={p.card} size="sm" />
@@ -358,7 +366,7 @@ function PlayTrainer() {
       </div>
 
       <p className="mb-2 text-center text-sm text-white/70">
-        Ta main, quelle carte jouer ?
+        {t("ex.whichCard")}
       </p>
       <div className="flex flex-wrap justify-center gap-1">
         {g.hands[0].map((card) => (

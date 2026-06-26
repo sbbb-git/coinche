@@ -22,6 +22,7 @@ import { PlayedCard } from "../engine/rules";
 import { loadInitialSettings, loadResumableGame, storage } from "../storage";
 import { feedback } from "./feedback";
 import { review } from "../review";
+import { currentLang } from "../i18n";
 
 export const HUMAN = 0; // le joueur humain est toujours le siège 0 (en bas)
 
@@ -260,10 +261,10 @@ export const useGame = create<Store>((set, get) => {
           return;
         }
         if (gg.phase === "playing") {
-          const { best, reason } = coachPlay(gg);
+          const { best, reason } = coachPlay(gg, currentLang());
           set({ hint: { cardId: best.id, text: reason }, hintLoading: false });
         } else if (gg.phase === "bidding") {
-          const a = coachBid(gg, HUMAN);
+          const a = coachBid(gg, HUMAN, currentLang());
           set({ hint: { cardId: null, text: a.reason }, hintLoading: false });
         } else {
           set({ hintLoading: false });

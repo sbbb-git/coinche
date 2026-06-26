@@ -51,6 +51,7 @@ function Overlay({
 export function DealResultModal() {
   const game = useGame((s) => s.game);
   const cont = useGame((s) => s.continueDeal);
+  const t = useT();
   if (game.phase !== "dealScored" || !game.lastResult || !game.contract) return null;
 
   const r = game.lastResult;
@@ -64,9 +65,9 @@ export function DealResultModal() {
   const mult = c.coinche > 1 ? (c.coinche === 4 ? " ×4" : " ×2") : "";
 
   return (
-    <Overlay label="Résultat de la donne">
+    <Overlay label={t("settings.dealResult.title")}>
       <h2 className="text-center text-xl font-bold">
-        {r.made ? "✅ Contrat réussi" : "❌ Chute"}
+        {r.made ? t("settings.dealResult.made") : t("settings.dealResult.failed")}
       </h2>
       <p className="mt-1 text-center text-sm text-white/70">
         {takerName}, {target}
@@ -74,28 +75,31 @@ export function DealResultModal() {
       </p>
 
       <div className="mt-4 space-y-1 text-sm">
-        <p className="mb-1 text-xs uppercase tracking-wide text-white/60">Dans les plis (+ 10 de der)</p>
-        <Row label={`${teamName(takerTeam)} (preneur)`} value={r.cardPoints[takerTeam]} />
-        <Row label={`${teamName(defTeam)} (défense)`} value={r.cardPoints[defTeam]} />
+        <p className="mb-1 text-xs uppercase tracking-wide text-white/60">{t("settings.dealResult.tricks")}</p>
+        <Row label={`${teamName(takerTeam)} (${t("settings.dealResult.taker")})`} value={r.cardPoints[takerTeam]} />
+        <Row label={`${teamName(defTeam)} (${t("settings.dealResult.defense")})`} value={r.cardPoints[defTeam]} />
         {(r.belote[0] > 0 || r.belote[1] > 0) && (
           <>
-            <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/60">Belote (imprenable)</p>
+            <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/60">{t("settings.dealResult.belote")}</p>
             {r.belote[takerTeam] > 0 && <Row label={teamName(takerTeam)} value={`+${r.belote[takerTeam]}`} />}
             {r.belote[defTeam] > 0 && <Row label={teamName(defTeam)} value={`+${r.belote[defTeam]}`} />}
           </>
         )}
-        <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/60">Contrat</p>
+        <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-white/60">{t("settings.dealResult.contract")}</p>
         <Row
-          label={`Réalisé ${r.realized[takerTeam]} / ${c.capot || c.generale ? "tous les plis" : c.value} requis`}
-          value={r.made ? "réussi" : "chute"}
+          label={t("settings.dealResult.realized", {
+            done: r.realized[takerTeam],
+            need: c.capot || c.generale ? t("settings.dealResult.allTricks") : c.value,
+          })}
+          value={r.made ? t("settings.dealResult.success") : t("settings.dealResult.chute")}
         />
 
         <div className="my-2 h-px bg-white/10" />
-        <p className="mb-1 text-xs uppercase tracking-wide text-white/60">Points marqués (cette manche)</p>
+        <p className="mb-1 text-xs uppercase tracking-wide text-white/60">{t("settings.dealResult.scoredThisRound")}</p>
         <Row label={teamName(0)} value={`+${r.scores[0]}`} bold />
         <Row label={teamName(1)} value={`+${r.scores[1]}`} bold />
         <div className="mt-1 flex justify-between text-xs text-white/55">
-          <span>Total partie</span>
+          <span>{t("settings.dealResult.gameTotal")}</span>
           <span className="tabular-nums">
             {game.scores[0]}, {game.scores[1]}
           </span>
@@ -106,7 +110,7 @@ export function DealResultModal() {
         onClick={cont}
         className="mt-5 min-h-11 w-full rounded-xl bg-yellow-400 py-3 font-bold text-emerald-950 hover:bg-yellow-300"
       >
-        Donne suivante
+        {t("settings.dealResult.next")}
       </button>
     </Overlay>
   );
@@ -116,6 +120,7 @@ export function GameOverModal() {
   const game = useGame((s) => s.game);
   const startNewGame = useGame((s) => s.startNewGame);
   const go = useNav((s) => s.go);
+  const t = useT();
   const [sharing, setSharing] = useState(false);
   if (game.phase !== "gameOver") return null;
   const w = winnerTeam(game);
@@ -132,8 +137,8 @@ export function GameOverModal() {
   };
 
   return (
-    <Overlay label="Fin de partie">
-      <h2 className="text-center text-2xl font-bold">{youWon ? "🏆 Victoire !" : "Défaite"}</h2>
+    <Overlay label={t("settings.gameOver.title")}>
+      <h2 className="text-center text-2xl font-bold">{youWon ? t("settings.gameOver.win") : t("settings.gameOver.loss")}</h2>
       <p className="mt-2 text-center text-sm text-white/70">
         {game.scores[0]}, {game.scores[1]}
       </p>
@@ -141,21 +146,21 @@ export function GameOverModal() {
         onClick={() => startNewGame()}
         className="mt-5 min-h-11 w-full rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
       >
-        Nouvelle partie
+        {t("settings.gameOver.newGame")}
       </button>
       <div className="mt-2 flex gap-2">
         <button
           onClick={() => go("home")}
           className="min-h-11 flex-1 rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/85 hover:bg-white/20"
         >
-          Accueil
+          {t("settings.gameOver.home")}
         </button>
         <button
           onClick={share}
           disabled={sharing}
           className="min-h-11 flex-1 rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/85 hover:bg-white/20 disabled:opacity-50"
         >
-          {sharing ? "…" : "📤 Partager"}
+          {sharing ? "…" : t("settings.gameOver.share")}
         </button>
       </div>
     </Overlay>
@@ -163,11 +168,11 @@ export function GameOverModal() {
 }
 
 type Tab = "interface" | "jeu" | "ia" | "comptage";
-const TABS: { id: Tab; label: string }[] = [
-  { id: "interface", label: "Interface" },
-  { id: "jeu", label: "Jeu" },
-  { id: "ia", label: "IA" },
-  { id: "comptage", label: "Comptage" },
+const TABS: { id: Tab; labelKey: string }[] = [
+  { id: "interface", labelKey: "settings.tab.interface" },
+  { id: "jeu", labelKey: "settings.tab.game" },
+  { id: "ia", labelKey: "settings.tab.ai" },
+  { id: "comptage", labelKey: "settings.tab.scoring" },
 ];
 
 export function MenuSheet({ onClose }: { onClose: () => void }) {
@@ -185,33 +190,33 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
   const updP = (p: Partial<PlayProfile>) => setDraft({ ...draft, profile: { ...draft.profile, ...p } });
 
   return (
-    <Overlay wide onClose={onClose} label="Réglages">
+    <Overlay wide onClose={onClose} label={t("settings.title")}>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">Réglages</h2>
+        <h2 className="text-lg font-bold">{t("settings.title")}</h2>
         <button
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label={t("settings.close")}
           className="grid h-11 w-11 place-items-center rounded-full text-white/60 hover:bg-white/10 hover:text-white"
         >
           ✕
         </button>
       </div>
 
-      <div role="tablist" aria-label="Sections des réglages" className="mt-3 flex gap-1 rounded-lg bg-black/30 p-1">
-        {TABS.map((t) => (
+      <div role="tablist" aria-label={t("settings.sections")} className="mt-3 flex gap-1 rounded-lg bg-black/30 p-1">
+        {TABS.map((tb) => (
           <button
-            key={t.id}
-            id={`settab-${t.id}`}
-            onClick={() => setTab(t.id)}
+            key={tb.id}
+            id={`settab-${tb.id}`}
+            onClick={() => setTab(tb.id)}
             role="tab"
-            aria-selected={tab === t.id}
+            aria-selected={tab === tb.id}
             aria-controls="settings-panel"
             className={[
               "min-w-0 flex-1 truncate rounded-md py-2.5 text-sm font-semibold transition",
-              tab === t.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
+              tab === tb.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
             ].join(" ")}
           >
-            {t.label}
+            {t(tb.labelKey)}
           </button>
         ))}
       </div>
@@ -234,53 +239,53 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
               onChange={(v) => setLang(v as Lang)}
             />
             <Seg
-              label="Vitesse de jeu"
+              label={t("settings.gameSpeed")}
               value={draft.gameSpeed}
               options={[
-                ["lent", "Lent"],
-                ["normal", "Normal"],
-                ["rapide", "Rapide"],
+                ["lent", t("settings.gameSpeed.slow")],
+                ["normal", t("settings.gameSpeed.normal")],
+                ["rapide", t("settings.gameSpeed.fast")],
               ]}
               onChange={(v) => upd({ gameSpeed: v as Settings["gameSpeed"] })}
             />
             <Seg
-              label="Sens de jeu"
+              label={t("settings.direction")}
               value={draft.sensHoraire ? "h" : "a"}
               options={[
-                ["a", "Anti-horaire"],
-                ["h", "Horaire"],
+                ["a", t("settings.direction.ccw")],
+                ["h", t("settings.direction.cw")],
               ]}
               onChange={(v) => upd({ sensHoraire: v === "h" })}
             />
             <Seg
-              label="Rangement des cartes"
+              label={t("settings.cardSort")}
               value={draft.cardSort}
               options={[
-                ["asc", "Croissant"],
-                ["desc", "Décroissant"],
+                ["asc", t("settings.cardSort.asc")],
+                ["desc", t("settings.cardSort.desc")],
               ]}
               onChange={(v) => upd({ cardSort: v as Settings["cardSort"] })}
             />
             <Toggle on={draft.fourColors} onClick={() => upd({ fourColors: !draft.fourColors })}>
-              Jeu 4 couleurs (daltoniens)
+              {t("settings.fourColors")}
             </Toggle>
             <Toggle on={draft.sound} onClick={() => upd({ sound: !draft.sound })}>
-              Effets sonores
+              {t("settings.sound")}
             </Toggle>
             <Toggle on={draft.haptics} onClick={() => upd({ haptics: !draft.haptics })}>
-              Vibrations (iPhone)
+              {t("settings.haptics")}
             </Toggle>
             <Toggle on={draft.autoPlaySingle} onClick={() => upd({ autoPlaySingle: !draft.autoPlaySingle })}>
-              Jeu automatique (1 seule carte jouable)
+              {t("settings.autoPlaySingle")}
             </Toggle>
             <Toggle on={draft.preselectPlayable} onClick={() => upd({ preselectPlayable: !draft.preselectPlayable })}>
-              Présélectionner les cartes jouables
+              {t("settings.preselectPlayable")}
             </Toggle>
             <Toggle on={draft.showLiveScores} onClick={() => upd({ showLiveScores: !draft.showLiveScores })}>
-              Afficher les scores en cours de donne
+              {t("settings.showLiveScores")}
             </Toggle>
             <Toggle on={draft.trumpHelper} onClick={() => upd({ trumpHelper: !draft.trumpHelper })}>
-              Aide au comptage (atouts tombés)
+              {t("settings.trumpHelper")}
             </Toggle>
           </>
         )}
@@ -288,7 +293,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         {tab === "jeu" && (
           <>
             <Seg
-              label="Points par partie"
+              label={t("settings.targetScore")}
               value={String(draft.targetScore)}
               options={[
                 ["1000", "1000"],
@@ -298,31 +303,31 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
               onChange={(v) => upd({ targetScore: Number(v) })}
             />
             <Toggle on={draft.allowNT} onClick={() => upd({ allowNT: !draft.allowNT })}>
-              Autoriser le Sans Atout
+              {t("settings.allowNT")}
             </Toggle>
             <Toggle on={draft.allowAT} onClick={() => upd({ allowAT: !draft.allowAT })}>
-              Autoriser le Tout Atout
+              {t("settings.allowAT")}
             </Toggle>
             <Toggle on={draft.beloteAtToutAtout} onClick={() => upd({ beloteAtToutAtout: !draft.beloteAtToutAtout })}>
-              Belote/Rebelote à Tout Atout
+              {t("settings.beloteAtToutAtout")}
             </Toggle>
             <Toggle on={draft.pisserObligatoire} onClick={() => upd({ pisserObligatoire: !draft.pisserObligatoire })}>
-              Obligation de pisser à l'atout
+              {t("settings.pisserObligatoire")}
             </Toggle>
             <Toggle on={draft.allowCoinche} onClick={() => upd({ allowCoinche: !draft.allowCoinche })}>
-              Autoriser la Coinche
+              {t("settings.allowCoinche")}
             </Toggle>
             <Toggle on={draft.allowSurcoinche} onClick={() => upd({ allowSurcoinche: !draft.allowSurcoinche })}>
-              Autoriser la Surcoinche
+              {t("settings.allowSurcoinche")}
             </Toggle>
             <Toggle on={draft.allowCapot} onClick={() => upd({ allowCapot: !draft.allowCapot })}>
-              Autoriser le Capot (250)
+              {t("settings.allowCapot")}
             </Toggle>
             <Toggle on={draft.allowGenerale} onClick={() => upd({ allowGenerale: !draft.allowGenerale })}>
-              Autoriser la Générale (500, en solo)
+              {t("settings.allowGenerale")}
             </Toggle>
             <Toggle on={draft.coincheEndsGame} onClick={() => upd({ coincheEndsGame: !draft.coincheEndsGame })}>
-              La coinche fait gagner la partie
+              {t("settings.coincheEndsGame")}
             </Toggle>
           </>
         )}
@@ -330,66 +335,65 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         {tab === "ia" && (
           <>
             <Seg
-              label="Niveau de l'IA"
+              label={t("settings.aiLevel")}
               value={draft.aiLevel}
               options={[
-                ["easy", "Facile"],
-                ["medium", "Moyen"],
-                ["hard", "Difficile"],
-                ["expert", "Expert"],
+                ["easy", t("settings.aiLevel.easy")],
+                ["medium", t("settings.aiLevel.medium")],
+                ["hard", t("settings.aiLevel.hard")],
+                ["expert", t("settings.aiLevel.expert")],
               ]}
               onChange={(v) => upd({ aiLevel: v as AiLevel })}
             />
             {draft.aiLevel === "expert" && (
               <Seg
-                label="Force de l'Expert (simulation)"
+                label={t("settings.expertDepth")}
                 value={draft.expertDepth}
                 options={[
-                  ["rapide", "Rapide"],
-                  ["normal", "Normal"],
-                  ["fort", "Fort"],
+                  ["rapide", t("settings.expertDepth.fast")],
+                  ["normal", t("settings.expertDepth.normal")],
+                  ["fort", t("settings.expertDepth.strong")],
                 ]}
                 onChange={(v) => upd({ expertDepth: v as Settings["expertDepth"] })}
               />
             )}
             <Slider
-              label="Style"
-              left="Prudent"
-              right="Offensif"
+              label={t("settings.style")}
+              left={t("settings.style.cautious")}
+              right={t("settings.style.aggressive")}
               value={draft.profile.aggressiveness}
               onChange={(v) => updP({ aggressiveness: v })}
             />
             <Seg
-              label="Appels du partenaire"
+              label={t("settings.appels")}
               value={draft.profile.appels}
               options={[
-                ["directs", "Directs"],
-                ["indirects", "Indirects"],
-                ["aucun", "Aucun"],
+                ["directs", t("settings.appels.direct")],
+                ["indirects", t("settings.appels.indirect")],
+                ["aucun", t("settings.appels.none")],
               ]}
               onChange={(v) => updP({ appels: v as PlayProfile["appels"] })}
             />
             <Seg
-              label="Système d'annonce"
+              label={t("settings.annonceSystem")}
               value={draft.profile.jeuAuxAs ? "as" : "petit"}
               options={[
-                ["petit", "Petit jeu"],
-                ["as", "Aux as"],
+                ["petit", t("settings.annonceSystem.small")],
+                ["as", t("settings.annonceSystem.aces")],
               ]}
               onChange={(v) => updP({ jeuAuxAs: v === "as" })}
             />
             <p className="-mt-1 px-1 text-[11px] text-white/60">
-              « Petit jeu » : on sécurise, on garde ses maîtres. « Aux as » : on sort les As
-              d'attaque pour faire des plis francs.
+              {t("settings.annonceSystem.hint")}
             </p>
             <Toggle on={draft.profile.entameAtoutValet} onClick={() => updP({ entameAtoutValet: !draft.profile.entameAtoutValet })}>
-              Entamer atout avec le valet s'il l'a
+              {t("settings.entameAtoutValet")}
             </Toggle>
             <Toggle on={draft.profile.conventionAnnonce100} onClick={() => updP({ conventionAnnonce100: !draft.profile.conventionAnnonce100 })}>
-              Annoncer 100 après un 80 (si Valet + 9)
+              {t("settings.conventionAnnonce100")}
             </Toggle>
             <Toggle on={draft.profile.appelBelote} onClick={() => updP({ appelBelote: !draft.profile.appelBelote })}>
-              Annonce de la belote/rebelote
+              {t("settings.appelBelote")}
             </Toggle>
           </>
         )}
@@ -397,16 +401,16 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
         {tab === "comptage" && (
           <>
             <Toggle on={draft.roundToTen} onClick={() => upd({ roundToTen: !draft.roundToTen })}>
-              Arrondir les scores à la dizaine
+              {t("settings.roundToTen")}
             </Toggle>
             <Toggle on={draft.contractCanSucceedIfDefenseMore} onClick={() => upd({ contractCanSucceedIfDefenseMore: !draft.contractCanSucceedIfDefenseMore })}>
-              Réussir même si la défense fait plus
+              {t("settings.contractCanSucceedIfDefenseMore")}
             </Toggle>
             <Toggle on={draft.beloteCountsToSucceed} onClick={() => upd({ beloteCountsToSucceed: !draft.beloteCountsToSucceed })}>
-              La belote compte pour réussir un contrat
+              {t("settings.beloteCountsToSucceed")}
             </Toggle>
             <Toggle on={draft.beloteCountsToFail} onClick={() => upd({ beloteCountsToFail: !draft.beloteCountsToFail })}>
-              La belote compte pour faire chuter un contrat
+              {t("settings.beloteCountsToFail")}
             </Toggle>
           </>
         )}
@@ -420,7 +424,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
           }}
           className="flex-1 rounded-xl bg-white/15 py-2.5 font-semibold text-white hover:bg-white/25"
         >
-          Appliquer
+          {t("settings.apply")}
         </button>
         <button
           onClick={() => {
@@ -429,23 +433,23 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
           }}
           className="flex-1 rounded-xl bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
         >
-          Nouvelle partie
+          {t("settings.newGame")}
         </button>
       </div>
       <p className="mt-2 text-center text-[11px] text-white/60">
-        « Appliquer » garde la partie en cours (effet dès la prochaine donne) · « Nouvelle partie » redistribue.
+        {t("settings.applyHint")}
       </p>
 
       <div className="mt-4 border-t border-white/10 pt-3">
         {confirmClear ? (
           <div className="rounded-xl bg-red-500/10 p-3 text-center ring-1 ring-red-500/30">
-            <p className="text-sm text-white/85">Effacer réglages, progression, parties et défis ? Irréversible.</p>
+            <p className="text-sm text-white/85">{t("settings.clearConfirm")}</p>
             <div className="mt-2 flex gap-2">
               <button
                 onClick={() => setConfirmClear(false)}
                 className="min-h-11 flex-1 rounded-lg bg-white/10 text-sm font-semibold hover:bg-white/20"
               >
-                Annuler
+                {t("settings.cancel")}
               </button>
               <button
                 onClick={() => {
@@ -454,7 +458,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
                 }}
                 className="min-h-11 flex-1 rounded-lg bg-red-500/90 text-sm font-bold text-white hover:bg-red-500"
               >
-                Tout effacer
+                {t("settings.clearAll")}
               </button>
             </div>
           </div>
@@ -463,7 +467,7 @@ export function MenuSheet({ onClose }: { onClose: () => void }) {
             onClick={() => setConfirmClear(true)}
             className="min-h-11 w-full rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10"
           >
-            Effacer toutes mes données
+            {t("settings.clearMyData")}
           </button>
         )}
       </div>
@@ -526,8 +530,17 @@ function Slider({
   value: number;
   onChange: (v: number) => void;
 }) {
+  const t = useT();
   const word =
-    value <= 0.2 ? "Très prudent" : value < 0.45 ? "Prudent" : value < 0.55 ? "Équilibré" : value < 0.8 ? "Offensif" : "Très offensif";
+    value <= 0.2
+      ? t("settings.style.veryCautious")
+      : value < 0.45
+        ? t("settings.style.cautious")
+        : value < 0.55
+          ? t("settings.style.balanced")
+          : value < 0.8
+            ? t("settings.style.aggressive")
+            : t("settings.style.veryAggressive");
   return (
     <div>
       <div className="mb-1 flex items-center justify-between">

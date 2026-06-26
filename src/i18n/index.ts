@@ -1,7 +1,15 @@
 // i18n léger (FR/EN). `t("clé")` via le hook useT(), langue persistée + auto-détectée.
 // Migration progressive : toute clé absente retombe sur le français (puis sur la clé),
 // donc rien ne casse pendant qu'on traduit l'app écran par écran.
+//
+// Les chaînes sont réparties par "namespace" (un fichier par domaine d'écran) puis
+// fusionnées ici. Ça permet de traduire chaque écran sans toucher à un fichier
+// monolithique. Pour ajouter des clés : créer/éditer un module dans ./strings/.
 import { create } from "zustand";
+import { core } from "./strings/core";
+import { play } from "./strings/play";
+import { train } from "./strings/train";
+import { common } from "./strings/common";
 
 export type Lang = "fr" | "en";
 const KEY = "coincheur.lang";
@@ -13,66 +21,34 @@ function detect(): Lang {
   } catch {
     /* ignore */
   }
+  // ?lang=en sur une page (utile depuis les pages SEO anglaises).
+  try {
+    const q = new URLSearchParams(location.search).get("lang");
+    if (q === "en" || q === "fr") return q;
+  } catch {
+    /* ignore */
+  }
   if (typeof navigator !== "undefined" && /^en/i.test(navigator.language || "")) return "en";
   return "fr";
 }
 
-type Dict = Record<string, string>;
+export type Dict = Record<string, string>;
+/** Un namespace fournit ses tables FR et EN. */
+export interface Namespace {
+  fr: Dict;
+  en: Dict;
+}
 
-const FR: Dict = {
-  // Accueil
-  "home.tagline": "Jouer & progresser à la Coinche",
-  "home.hi": "Salut {name},",
-  "home.offline": "100 % jouable hors-ligne",
-  "home.about": "À propos",
-  "home.legal": "Confidentialité · CGU",
-  "home.learn": "Apprendre",
-  "tile.play": "Jouer",
-  "tile.play.d": "Une partie contre 3 IA paramétrables",
-  "tile.train": "S'entraîner",
-  "tile.train.d": "Exercices, leçons et guides",
-  "tile.mygames": "Mes parties",
-  "tile.mygames.d": "Analyse coup par coup de tes décisions",
-  "tile.stats": "Progression",
-  "tile.stats.d": "Ton niveau et tes statistiques",
-  "tile.counter": "Compteur",
-  "tile.counter.d": "Marquer les points d'une partie avec de vraies cartes",
-  "tile.account": "Compte",
-  "tile.account.d": "Ton profil, sur cet appareil",
-  "daily.title": "Défi du jour",
-  "daily.todo": "La même donne pour tous. À toi de jouer !",
-  "daily.done": "Fait ✅, reviens demain",
-  "daily.streak": "série",
-  // Réglages
-  "settings.language": "Langue",
-};
+const NAMESPACES: Namespace[] = [core, play, train, common];
 
-const EN: Dict = {
-  "home.tagline": "Play & improve at Coinche",
-  "home.hi": "Hi {name},",
-  "home.offline": "100% playable offline",
-  "home.about": "About",
-  "home.legal": "Privacy · Terms",
-  "home.learn": "Learn",
-  "tile.play": "Play",
-  "tile.play.d": "A game against 3 configurable AIs",
-  "tile.train": "Train",
-  "tile.train.d": "Exercises, lessons and guides",
-  "tile.mygames": "My games",
-  "tile.mygames.d": "Move-by-move analysis of your decisions",
-  "tile.stats": "Progress",
-  "tile.stats.d": "Your level and stats",
-  "tile.counter": "Counter",
-  "tile.counter.d": "Score a game played with real cards",
-  "tile.account": "Account",
-  "tile.account.d": "Your profile, on this device",
-  "daily.title": "Daily challenge",
-  "daily.todo": "Same deal for everyone. Your turn!",
-  "daily.done": "Done ✅, come back tomorrow",
-  "daily.streak": "streak",
-  "settings.language": "Language",
-};
+function merge(lang: Lang): Dict {
+  const out: Dict = {};
+  for (const ns of NAMESPACES) Object.assign(out, ns[lang]);
+  return out;
+}
 
+const FR = merge("fr");
+const EN = merge("en");
 const DICTS: Record<Lang, Dict> = { fr: FR, en: EN };
 
 export function translate(lang: Lang, key: string, vars?: Record<string, string | number>): string {
@@ -98,6 +74,11 @@ export const useLang = create<LangStore>((set) => ({
     set({ lang });
   },
 }));
+
+/** Langue courante hors composant React (moteur, store). */
+export function currentLang(): Lang {
+  return useLang.getState().lang;
+}
 
 /** Hook : renvoie une fonction `t` liée à la langue courante (re-render au changement). */
 export function useT() {

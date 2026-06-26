@@ -3,12 +3,14 @@ import { review } from "../review";
 import { CONTACT_EMAIL, SITE_URL } from "../config";
 import { notify } from "../notify";
 import { useFocusTrap } from "../app/useFocusTrap";
+import { useT } from "../i18n";
 
 type Step = "ask" | "love" | "meh";
 
 /** Demande de notation à deux temps (pattern classique « rating gate »).
  *  Apparaît une seule fois, après quelques parties, sur un moment calme (accueil). */
 export function RatePrompt() {
+  const t = useT();
   const [visible, setVisible] = useState(() => review.shouldAsk());
   const [step, setStep] = useState<Step>("ask");
   const ref = useRef<HTMLDivElement>(null);
@@ -25,12 +27,12 @@ export function RatePrompt() {
   };
 
   const share = async () => {
-    const data = { title: "Coincheur", text: "Joue à la Coinche et progresse 🃏", url: SITE_URL };
+    const data = { title: "Coincheur", text: t("rate.shareText"), url: SITE_URL };
     try {
       if (navigator.share) await navigator.share(data);
       else {
         await navigator.clipboard.writeText(`${data.text} ${SITE_URL}`);
-        notify.show("Lien copié 💛", "Partage-le à tes potes de coinche !");
+        notify.show(t("rate.copiedTitle"), t("rate.copiedBody"));
       }
     } catch {
       /* annulé */
@@ -40,7 +42,7 @@ export function RatePrompt() {
 
   const writeUs = () => {
     if (CONTACT_EMAIL) {
-      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Avis Coincheur")}`;
+      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t("rate.shareSubject"))}`;
     }
     done();
   };
@@ -51,48 +53,48 @@ export function RatePrompt() {
         ref={ref}
         role="dialog"
         aria-modal="true"
-        aria-label="Donner ton avis sur Coincheur"
+        aria-label={t("rate.aria")}
         className="animate-pop mx-auto max-w-md rounded-2xl bg-emerald-950 p-4 shadow-2xl ring-1 ring-emerald-700"
       >
         {step === "ask" && (
           <>
-            <p className="text-center font-bold">Tu aimes Coincheur ? 🃏</p>
+            <p className="text-center font-bold">{t("rate.ask")}</p>
             <div className="mt-3 flex gap-2">
               <button
                 onClick={() => setStep("love")}
                 className="min-h-11 flex-1 rounded-xl bg-yellow-400 font-bold text-emerald-950 hover:bg-yellow-300"
               >
-                😍 Oui !
+                {t("rate.yes")}
               </button>
               <button
                 onClick={() => setStep("meh")}
                 className="min-h-11 flex-1 rounded-xl bg-white/10 font-semibold text-white/85 hover:bg-white/20"
               >
-                😕 Bof
+                {t("rate.no")}
               </button>
             </div>
             <button
               onClick={close}
               className="mt-1 flex min-h-11 w-full items-center justify-center text-xs text-white/55 hover:text-white/85"
             >
-              Plus tard
+              {t("rate.later")}
             </button>
           </>
         )}
 
         {step === "love" && (
           <>
-            <p className="text-center font-bold">Génial ! Tu le partages ? 🃏</p>
-            <p className="mt-1 text-center text-xs text-white/60">Ça aide vraiment à faire connaître Coincheur.</p>
+            <p className="text-center font-bold">{t("rate.loveTitle")}</p>
+            <p className="mt-1 text-center text-xs text-white/60">{t("rate.loveDesc")}</p>
             <div className="mt-3 flex gap-2">
               <button
                 onClick={share}
                 className="min-h-11 flex-1 rounded-xl bg-yellow-400 font-bold text-emerald-950 hover:bg-yellow-300"
               >
-                📤 Partager
+                {t("rate.share")}
               </button>
               <button onClick={close} className="min-h-11 flex-1 rounded-xl bg-white/10 font-semibold hover:bg-white/20">
-                Plus tard
+                {t("rate.later")}
               </button>
             </div>
           </>
@@ -100,23 +102,23 @@ export function RatePrompt() {
 
         {step === "meh" && (
           <>
-            <p className="text-center font-bold">Désolé ! Qu'est-ce qu'on améliore ?</p>
-            <p className="mt-1 text-center text-xs text-white/60">Ton retour nous aide à progresser.</p>
+            <p className="text-center font-bold">{t("rate.mehTitle")}</p>
+            <p className="mt-1 text-center text-xs text-white/60">{t("rate.mehDesc")}</p>
             <div className="mt-3 flex gap-2">
               {CONTACT_EMAIL ? (
                 <button
                   onClick={writeUs}
                   className="min-h-11 flex-1 rounded-xl bg-yellow-400 font-bold text-emerald-950 hover:bg-yellow-300"
                 >
-                  ✉️ Nous écrire
+                  {t("rate.contact")}
                 </button>
               ) : (
                 <button onClick={done} className="min-h-11 flex-1 rounded-xl bg-yellow-400 font-bold text-emerald-950">
-                  Merci !
+                  {t("rate.thanks")}
                 </button>
               )}
               <button onClick={close} className="min-h-11 flex-1 rounded-xl bg-white/10 font-semibold hover:bg-white/20">
-                Plus tard
+                {t("rate.later")}
               </button>
             </div>
           </>

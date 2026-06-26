@@ -1,4 +1,5 @@
 import { useGame } from "../state/store";
+import { useT } from "../i18n";
 import { modeLabel } from "./Table";
 import { suitColorClassDark } from "./Card";
 import { GameState } from "../engine/game";
@@ -23,6 +24,7 @@ function dealCardPoints(game: GameState): [number, number] {
 }
 
 export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () => void }) {
+  const t = useT();
   const game = useGame((s) => s.game);
   const names = game.settings.playerNames;
   const c = game.contract;
@@ -36,7 +38,7 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
       <div className="flex items-center justify-between gap-1 text-sm">
         <button
           onClick={onHome}
-          aria-label="Accueil"
+          aria-label={t("score.home")}
           className="grid h-11 w-11 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
         >
           ←
@@ -51,9 +53,9 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
         <div className="flex flex-col items-center min-w-0">
           {c ? (
             <div className="flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1">
-              <span className="text-white/70">Contrat</span>
+              <span className="text-white/70">{t("score.contract")}</span>
               <span className="font-bold">
-                {c.generale ? "Générale" : c.capot ? "Capot" : c.value}{" "}
+                {c.generale ? t("score.generale") : c.capot ? t("score.capot") : c.value}{" "}
                 <span
                   className={
                     modeLabel(c.mode).suit
@@ -72,10 +74,10 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
             </div>
           ) : (
             <div className="rounded-full bg-black/40 px-3 py-1 text-white/70">
-              {game.phase === "bidding" ? "Enchères" : "Coincheur"}
+              {game.phase === "bidding" ? t("score.bidding") : t("score.coincheur")}
             </div>
           )}
-          <span className="text-xs text-white/70">jusqu'à {game.settings.targetScore}</span>
+          <span className="text-xs text-white/70">{t("score.upTo", { target: game.settings.targetScore })}</span>
         </div>
 
         <TeamScore
@@ -87,7 +89,7 @@ export function ScorePanel({ onMenu, onHome }: { onMenu: () => void; onHome: () 
 
         <button
           onClick={onMenu}
-          aria-label="Menu"
+          aria-label={t("score.menu")}
           className="ml-1 grid h-11 w-11 place-items-center rounded-full bg-white/15 hover:bg-white/25"
         >
           ⚙️
@@ -112,6 +114,7 @@ function DealProgress({
   takerTeam: Team;
   dealPts: [number, number];
 }) {
+  const t = useT();
   const names = game.settings.playerNames;
   const teamName = (t: Team) => `${names[t === 0 ? 0 : 1]} & ${names[t === 0 ? 2 : 3]}`;
   const defTeam = (1 - takerTeam) as Team;
@@ -124,7 +127,7 @@ function DealProgress({
     <div className="mx-auto mt-1.5 max-w-md rounded-lg bg-black/30 px-3 py-1.5">
       <div className="flex items-center justify-between text-[11px]">
         <span className="font-semibold uppercase tracking-wide text-white/85">
-          Manche · {teamName(takerTeam)} <span className="font-normal text-white/60">(preneur)</span>
+          {t("score.deal")} · {teamName(takerTeam)} <span className="font-normal text-white/60">{t("score.taker")}</span>
         </span>
         <span className="tabular-nums text-white/70">
           <b className={made ? "text-emerald-300" : "text-yellow-300"}>{taken}</b> / {target}
@@ -136,7 +139,7 @@ function DealProgress({
         aria-valuenow={taken}
         aria-valuemin={0}
         aria-valuemax={target}
-        aria-label="Progression du preneur vers son contrat"
+        aria-label={t("score.takerProgress")}
       >
         <div
           className={`h-full transition-all ${made ? "bg-emerald-400" : "bg-yellow-400"}`}
@@ -145,7 +148,7 @@ function DealProgress({
       </div>
       <div className="flex items-center justify-between text-[11px] text-white/55">
         <span>
-          {teamName(defTeam)} <span className="text-white/40">(défense)</span>
+          {teamName(defTeam)} <span className="text-white/40">{t("score.defense")}</span>
         </span>
         <span className="tabular-nums">{dealPts[defTeam]}</span>
       </div>

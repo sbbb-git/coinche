@@ -1,4 +1,5 @@
 import { useNav } from "./nav";
+import { useT } from "../i18n";
 
 export function ScreenShell({
   title,
@@ -12,12 +13,13 @@ export function ScreenShell({
 }) {
   const navBack = useNav((s) => s.back);
   const back = onBack ?? navBack;
+  const t = useT();
   return (
     <div className="safe-x mx-auto flex h-full w-full max-w-md flex-col">
       <header className="safe-top flex items-center gap-2 px-3 pt-2 pb-2">
         <button
           onClick={back}
-          aria-label="Retour"
+          aria-label={t("shell.back")}
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-white/80 hover:bg-white/10"
         >
           ←

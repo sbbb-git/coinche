@@ -5,31 +5,43 @@ import { PlayingCard } from "../components/Card";
 import { CoachText } from "../components/CoachText";
 import { storage, DealRecord } from "../storage";
 import { DealReview, FullReplay, ReviewPoint, exportDealText, fullReplay, reviewDealAsync } from "./replay";
+import { useT, translate, currentLang } from "../i18n";
+
+/** Noms par défaut localisés des sièges (Vous / Ouest / Nord / Est). */
+function defaultNames(): string[] {
+  const l = currentLang();
+  return [
+    translate(l, "review.defaultNames.you"),
+    translate(l, "review.defaultNames.west"),
+    translate(l, "review.defaultNames.north"),
+    translate(l, "review.defaultNames.east"),
+  ];
+}
 
 export function ReviewMyGamesScreen() {
+  const t = useT();
   const history = useMemo(() => storage.loadHistory(), []);
   const [selected, setSelected] = useState<number | null>(null);
   const go = useNav((s) => s.go);
 
   if (selected === null) {
     return (
-      <ScreenShell title="Mes parties">
+      <ScreenShell title={t("review.title")}>
         {history.length === 0 ? (
           <div className="mt-8 text-center">
             <p className="text-sm text-white/60">
-              Aucune donne enregistrée pour l'instant. Joue une partie, puis reviens analyser tes
-              décisions ici.
+              {t("review.empty")}
             </p>
             <button
               onClick={() => go("play")}
               className="mt-4 rounded-xl bg-yellow-400 px-5 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
             >
-              🃏 Jouer une partie
+              {t("review.playAGame")}
             </button>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="mb-1 text-sm text-white/70">Tes dernières donnes, touche pour revoir.</p>
+            <p className="mb-1 text-sm text-white/70">{t("review.lastDeals")}</p>
             {history.map((rec, i) => (
               <DealRow key={`${rec.ts}-${i}`} rec={rec} onClick={() => setSelected(i)} />
             ))}
@@ -68,6 +80,7 @@ function DealRow({ rec, onClick }: { rec: DealRecord; onClick: () => void }) {
 type DetailTab = "full" | "decisions";
 
 function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
+  const t = useT();
   const full = useMemo(() => fullReplay(rec), [rec]);
   const [tab, setTab] = useState<DetailTab>("full");
   // L'analyse coach (PIMC) est LOURDE : on ne la calcule qu'à l'ouverture de
@@ -85,7 +98,7 @@ function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
   }, [tab, rec, review]);
 
   return (
-    <ScreenShell title="Revoir la donne" onBack={onBack}>
+    <ScreenShell title={t("review.dealTitle")} onBack={onBack}>
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="text-sm text-white/70">
           {full.contractLabel} · {full.resultLabel}{" "}
@@ -96,10 +109,10 @@ function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
 
       <div role="tablist" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
         <TabBtn id="deal-tab-full" active={tab === "full"} onClick={() => setTab("full")}>
-          🃏 Donne complète
+          {t("review.tab.full")}
         </TabBtn>
         <TabBtn id="deal-tab-decisions" active={tab === "decisions"} onClick={() => setTab("decisions")}>
-          🎯 Tes décisions
+          {t("review.tab.decisions")}
         </TabBtn>
       </div>
 
@@ -109,7 +122,7 @@ function DealDetail({ rec, onBack }: { rec: DealRecord; onBack: () => void }) {
         ) : review ? (
           <DecisionsView review={review} />
         ) : (
-          <p className="mt-8 text-center text-sm text-white/60">⏳ Analyse du coach en cours…</p>
+          <p className="mt-8 text-center text-sm text-white/60">{t("review.analyzing")}</p>
         )}
       </div>
     </ScreenShell>
@@ -135,6 +148,7 @@ function TabBtn({ id, active, onClick, children }: { id?: string; active: boolea
 }
 
 function ExportButton({ rec }: { rec: DealRecord }) {
+  const t = useT();
   const [done, setDone] = useState(false);
   const onExport = async () => {
     const text = exportDealText(rec);
@@ -158,7 +172,7 @@ function ExportButton({ rec }: { rec: DealRecord }) {
       onClick={onExport}
       className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-white/10 px-3 text-xs font-semibold hover:bg-white/20"
     >
-      {done ? "✅ Copié !" : "📋 Exporter"}
+      {done ? t("review.exportDone") : t("review.export")}
     </button>
   );
 }
@@ -166,17 +180,18 @@ function ExportButton({ rec }: { rec: DealRecord }) {
 // --- Vue « donne complète » : qui avait quoi + pli par pli -------------------
 
 function FullDealView({ full, rec }: { full: FullReplay; rec: DealRecord }) {
-  const names = rec.settings?.playerNames ?? ["Vous", "Ouest", "Nord", "Est"];
+  const t = useT();
+  const names = rec.settings?.playerNames ?? defaultNames();
   return (
     <div className="space-y-4">
       <section>
-        <h3 className="mb-2 text-sm font-bold text-white/80">Les mains distribuées</h3>
+        <h3 className="mb-2 text-sm font-bold text-white/80">{t("review.dealtHands")}</h3>
         <div className="flex flex-col gap-2">
           {[0, 2, 1, 3].map((p) => (
             <div key={p} className="rounded-xl bg-white/5 p-2 ring-1 ring-white/10">
               <div className="mb-1 text-xs">
                 <span className={p % 2 === 0 ? "text-sky-300" : "text-white/70"}>{names[p]}</span>
-                {p === full.taker && <span className="ml-1">👑 preneur</span>}
+                {p === full.taker && <span className="ml-1">{t("review.takerTag")}</span>}
               </div>
               <div className="flex flex-wrap gap-1">
                 {full.hands[p].map((c) => (
@@ -189,7 +204,7 @@ function FullDealView({ full, rec }: { full: FullReplay; rec: DealRecord }) {
       </section>
 
       <section>
-        <h3 className="mb-2 text-sm font-bold text-white/80">Les enchères</h3>
+        <h3 className="mb-2 text-sm font-bold text-white/80">{t("review.bids")}</h3>
         <div className="flex flex-wrap gap-x-3 gap-y-1 rounded-xl bg-white/5 p-2.5 text-sm ring-1 ring-white/10">
           {full.bids.map((b, i) => (
             <span key={i}>
@@ -201,20 +216,25 @@ function FullDealView({ full, rec }: { full: FullReplay; rec: DealRecord }) {
       </section>
 
       <section>
-        <h3 className="mb-2 text-sm font-bold text-white/80">Les plis</h3>
+        <h3 className="mb-2 text-sm font-bold text-white/80">{t("review.tricks")}</h3>
         <div className="flex flex-col gap-2">
-          {full.tricks.map((t, i) => (
+          {full.tricks.map((tr, i) => (
             <div key={i} className="rounded-xl bg-white/5 p-2 ring-1 ring-white/10">
               <div className="mb-1 flex items-center justify-between text-xs text-white/60">
-                <span>Pli {i + 1}</span>
+                <span>{t("review.trick", { n: i + 1 })}</span>
                 <span>
-                  remporté par <b className="text-yellow-300">{names[t.winner]}</b> · +{t.points}
-                  {t.lastDix ? " (+10 der)" : ""} · cumul {full.cumul[i][0]}-{full.cumul[i][1]}
+                  {t("review.wonBy")}<b className="text-yellow-300">{names[tr.winner]}</b>
+                  {t("review.trickInfo", {
+                    points: tr.points,
+                    der: tr.lastDix ? t("review.derSuffix") : "",
+                    a: full.cumul[i][0],
+                    b: full.cumul[i][1],
+                  })}
                 </span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {t.played.map((p) => {
-                  const isWin = p.player === t.winner;
+                {tr.played.map((p) => {
+                  const isWin = p.player === tr.winner;
                   return (
                     <div key={p.player} className="flex flex-col items-center gap-0.5">
                       <div className={isWin ? "rounded-lg ring-2 ring-yellow-400" : ""}>
@@ -236,13 +256,13 @@ function FullDealView({ full, rec }: { full: FullReplay; rec: DealRecord }) {
 // --- Vue « tes décisions » (coup par coup) ----------------------------------
 
 function DecisionsView({ review }: { review: DealReview }) {
+  const t = useT();
   const [i, setI] = useState(0);
 
   if (review.points.length === 0) {
     return (
       <p className="mt-4 text-sm text-white/70">
-        Cette donne n'avait aucun choix à analyser pour toi (que des coups forcés). Va voir l'onglet
-        « Donne complète ».
+        {t("review.noChoices")}
       </p>
     );
   }
@@ -254,10 +274,10 @@ function DecisionsView({ review }: { review: DealReview }) {
       <AccuracyBanner pct={acc} good={review.goodCount} total={review.points.length} />
       <div className="mb-2 flex items-center justify-between">
         <span className="rounded-full bg-black/40 px-3 py-1 text-sm font-semibold">
-          {p.phase === "bid" ? "🂠 Enchère" : "🃏 Jeu"} · choix {i + 1}/{review.points.length}
+          {p.phase === "bid" ? t("review.choicePhase.bid") : t("review.choicePhase.play")} · {t("review.choiceCounter", { i: i + 1, total: review.points.length })}
         </span>
         <span className="text-sm text-white/60">
-          {review.goodCount}/{review.points.length} bons choix
+          {t("review.goodChoices", { good: review.goodCount, total: review.points.length })}
         </span>
       </div>
 
@@ -269,14 +289,14 @@ function DecisionsView({ review }: { review: DealReview }) {
           disabled={i === 0}
           className="flex-1 rounded-lg bg-white/10 py-2.5 text-sm font-semibold disabled:opacity-40"
         >
-          ← Précédent
+          {t("review.prev")}
         </button>
         <button
           onClick={() => setI((x) => Math.min(review.points.length - 1, x + 1))}
           disabled={i === review.points.length - 1}
           className="flex-1 rounded-lg bg-yellow-400 py-2.5 text-sm font-bold text-emerald-950 disabled:opacity-40"
         >
-          Suivant →
+          {t("review.next")}
         </button>
       </div>
     </div>
@@ -285,20 +305,21 @@ function DecisionsView({ review }: { review: DealReview }) {
 
 /** Bandeau de précision façon « Game Review » de Chess.com. */
 function AccuracyBanner({ pct, good, total }: { pct: number; good: number; total: number }) {
+  const t = useT();
   const { label, color } =
     pct >= 90
-      ? { label: "Excellent", color: "text-green-400" }
+      ? { label: t("review.accuracyExcellent"), color: "text-green-400" }
       : pct >= 75
-        ? { label: "Solide", color: "text-emerald-300" }
+        ? { label: t("review.accuracySolid"), color: "text-emerald-300" }
         : pct >= 55
-          ? { label: "Correct", color: "text-yellow-300" }
-          : { label: "À retravailler", color: "text-orange-300" };
+          ? { label: t("review.accuracyCorrect"), color: "text-yellow-300" }
+          : { label: t("review.accuracyToWork"), color: "text-orange-300" };
   return (
     <div className="mb-3 flex items-center justify-between rounded-2xl bg-gradient-to-br from-sky-900/70 to-emerald-900/60 p-4 ring-1 ring-white/10">
       <div>
-        <p className="text-xs uppercase tracking-wide text-white/55">Précision de tes choix</p>
+        <p className="text-xs uppercase tracking-wide text-white/55">{t("review.accuracyLabel")}</p>
         <p className={`text-lg font-bold ${color}`}>{label}</p>
-        <p className="text-xs text-white/55">{good}/{total} coups optimaux</p>
+        <p className="text-xs text-white/55">{t("review.optimalMoves", { good, total })}</p>
       </div>
       <div className={`text-4xl font-black tabular-nums ${color}`}>{pct}%</div>
     </div>
@@ -306,15 +327,16 @@ function AccuracyBanner({ pct, good, total }: { pct: number; good: number; total
 }
 
 function PointView({ point }: { point: ReviewPoint }) {
+  const t = useT();
   const g = point.snapshot;
   const names = g.settings.playerNames;
   return (
     <div>
       {point.phase === "play" && (
         <>
-          <p className="mb-1 text-center text-xs text-white/60">Pli en cours</p>
+          <p className="mb-1 text-center text-xs text-white/60">{t("review.currentTrick")}</p>
           <div className="mb-3 flex min-h-20 items-center justify-center gap-2">
-            {g.trick.length === 0 && <span className="text-sm text-white/60">Tu entamais</span>}
+            {g.trick.length === 0 && <span className="text-sm text-white/60">{t("review.youLed")}</span>}
             {g.trick.map((pc) => (
               <div key={pc.player} className="flex flex-col items-center gap-1">
                 <PlayingCard card={pc.card} size="sm" />
@@ -322,7 +344,7 @@ function PointView({ point }: { point: ReviewPoint }) {
               </div>
             ))}
           </div>
-          <p className="mb-1 text-center text-xs text-white/60">Ta main</p>
+          <p className="mb-1 text-center text-xs text-white/60">{t("review.yourHand")}</p>
           <div className="mb-3 flex flex-wrap justify-center gap-1">
             {g.hands[0].map((c) => {
               const isBest = c.id === point.bestCardId;
@@ -357,7 +379,7 @@ function PointView({ point }: { point: ReviewPoint }) {
 
       {point.phase === "bid" && (
         <>
-          <p className="mb-1 text-center text-xs text-white/60">Ta main</p>
+          <p className="mb-1 text-center text-xs text-white/60">{t("review.yourHand")}</p>
           <div className="mb-3 flex flex-wrap justify-center gap-1">
             {g.hands[0].map((c) => (
               <PlayingCard key={c.id} card={c} size="sm" />
@@ -367,14 +389,14 @@ function PointView({ point }: { point: ReviewPoint }) {
       )}
 
       <div className="rounded-xl bg-emerald-900/70 p-3 ring-1 ring-emerald-700">
-        <p className="font-bold">{point.good ? "✅ Meilleur coup" : "⚠️ Imprécision"}</p>
+        <p className="font-bold">{point.good ? t("review.bestMove") : t("review.inaccuracy")}</p>
         <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-lg bg-white/5 p-2">
-            <div className="text-white/60">Tu as joué</div>
+            <div className="text-white/60">{t("review.youPlayed")}</div>
             <div className="text-lg font-bold">{point.actual}</div>
           </div>
           <div className="rounded-lg bg-white/5 p-2">
-            <div className="text-white/60">Conseil du coach</div>
+            <div className="text-white/60">{t("review.coachAdvice")}</div>
             <div className="text-lg font-bold text-yellow-300">{point.best}</div>
           </div>
         </div>

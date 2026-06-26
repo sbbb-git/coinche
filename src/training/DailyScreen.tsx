@@ -19,10 +19,11 @@ import {
 } from "./exercises";
 import { notify, scheduleDailyReminder } from "../notify";
 import { SITE_URL as SITE } from "../config";
+import { useT, translate, currentLang } from "../i18n";
 
 function prettyDate(key: string): string {
   try {
-    return new Date(key).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    return new Date(key).toLocaleDateString(currentLang() === "en" ? "en-US" : "fr-FR", { weekday: "long", day: "numeric", month: "long" });
   } catch {
     return key;
   }
@@ -35,6 +36,7 @@ function ModeSym({ mode, fourColors }: { mode: TrumpMode; fourColors: boolean })
 }
 
 export function DailyScreen() {
+  const t = useT();
   const key = isoDay();
   const ex = useMemo<DailyChallenge | null>(() => {
     try {
@@ -48,25 +50,25 @@ export function DailyScreen() {
   const doneToday = useDaily((s) => s.doneToday());
 
   return (
-    <ScreenShell title="Défi du jour">
+    <ScreenShell title={t("daily.title")}>
       <div className="mb-3 rounded-2xl bg-gradient-to-br from-sky-900/70 to-emerald-900/60 p-4 ring-1 ring-white/10">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-white/80">{prettyDate(key)}</p>
-            <p className="text-lg font-bold">🗓️ Le défi du jour</p>
+            <p className="text-lg font-bold">{t("daily.header")}</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-black tabular-nums text-yellow-300">🔥 {daily.streak}</div>
-            <div className="text-[11px] text-white/55">série · record {daily.best}</div>
+            <div className="text-[11px] text-white/55">{t("daily.streakLabel", { n: daily.best })}</div>
           </div>
         </div>
         <p className="mt-2 text-xs text-white/60">
-          La même situation pour tout le monde. Une seule tentative : fais ton meilleur choix.
+          {t("daily.blurb")}
         </p>
       </div>
 
       {!ex ? (
-        <p className="mt-6 text-center text-sm text-white/70">Défi indisponible aujourd'hui. Reviens plus tard !</p>
+        <p className="mt-6 text-center text-sm text-white/70">{t("daily.unavailable")}</p>
       ) : ex.kind === "bid" ? (
         <BidDaily ex={ex} keyDay={key} doneToday={doneToday} priorSuccess={daily.success} />
       ) : (
@@ -79,6 +81,7 @@ export function DailyScreen() {
 // --- Défi « jeu de la carte » -----------------------------------------------
 
 function PlayDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: PlayExercise; keyDay: string; doneToday: boolean; priorSuccess: boolean }) {
+  const t = useT();
   const record = useStats((s) => s.record);
   const complete = useDaily((s) => s.complete);
   const [grade, setGrade] = useState<PlayGrade | null>(null);
@@ -111,9 +114,9 @@ function PlayDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: PlayExercise; 
   return (
     <>
       <ContractLine c={c} names={names} fourColors={g.settings.fourColors} />
-      <p className="mb-1 text-center text-xs text-white/60">Pli en cours</p>
+      <p className="mb-1 text-center text-xs text-white/60">{t("daily.currentTrick")}</p>
       <div className="mb-4 flex min-h-24 items-center justify-center gap-2">
-        {g.trick.length === 0 && <span className="text-sm text-white/60">Tu entames</span>}
+        {g.trick.length === 0 && <span className="text-sm text-white/60">{t("daily.youLead")}</span>}
         {g.trick.map((p) => (
           <div key={p.player} className="flex flex-col items-center gap-1">
             <PlayingCard card={p.card} size="sm" />
@@ -122,7 +125,7 @@ function PlayDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: PlayExercise; 
         ))}
       </div>
 
-      <p className="mb-2 text-center text-sm text-white/70">{answered ? "Ta main" : "Ta main : quelle carte jouer ?"}</p>
+      <p className="mb-2 text-center text-sm text-white/70">{answered ? t("daily.yourHand") : t("daily.whichCard")}</p>
       <div className="flex flex-wrap justify-center gap-1">
         {g.hands[0].map((card) => (
           <div key={card.id} className={`relative rounded-lg ${ringFor(card)}`}>
@@ -143,7 +146,7 @@ function PlayDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: PlayExercise; 
       {answered && (
         <ResultPanel
           stars={grade?.stars}
-          title={grade?.title ?? (priorSuccess ? "Défi déjà relevé aujourd'hui." : "Défi déjà tenté aujourd'hui.")}
+          title={grade?.title ?? (priorSuccess ? t("daily.alreadyDone") : t("daily.alreadyTried"))}
           reason={ex.reason}
           keyDay={keyDay}
         />
@@ -155,6 +158,7 @@ function PlayDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: PlayExercise; 
 // --- Défi « enchère » -------------------------------------------------------
 
 function BidDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: BidExercise; keyDay: string; doneToday: boolean; priorSuccess: boolean }) {
+  const t = useT();
   const record = useStats((s) => s.record);
   const complete = useDaily((s) => s.complete);
   // Le défi est généré sur DEFAULT_SETTINGS : on propose les mêmes modes au picker.
@@ -180,19 +184,19 @@ function BidDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: BidExercise; ke
     <>
       {ex.auction.length > 0 && (
         <div className="mb-3 rounded-lg bg-black/30 p-2.5 text-sm">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/60">Enchères en cours</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/60">{t("daily.auctionInProgress")}</p>
           <div className="flex flex-wrap gap-x-3 gap-y-1">
             {ex.auction.map((l, i) => (
               <span key={i} className="tabular-nums">
                 <span className={l.partner ? "text-yellow-300" : "text-white/60"}>{l.name}</span>{" "}
-                {l.value === "passe" ? <span className="text-white/60">passe</span> : <b>{l.value}{l.mode ? <> <ModeSym mode={l.mode} fourColors={fourColors} /></> : null}</b>}
+                {l.value === "passe" ? <span className="text-white/60">{t("daily.pass.word")}</span> : <b>{l.value}{l.mode ? <> <ModeSym mode={l.mode} fourColors={fourColors} /></> : null}</b>}
               </span>
             ))}
           </div>
         </div>
       )}
 
-      <p className="mb-2 text-center text-sm text-white/70">{ex.auction.length > 0 ? "À toi de parler : quelle enchère ?" : "Tu ouvres : quelle enchère ?"}</p>
+      <p className="mb-2 text-center text-sm text-white/70">{ex.auction.length > 0 ? t("daily.yourTurn") : t("daily.youOpen")}</p>
       <div className="mb-4 flex flex-wrap justify-center gap-1">
         {ex.hand.map((card) => (
           <PlayingCard key={card.id} card={card} size="md" />
@@ -221,16 +225,16 @@ function BidDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: BidExercise; ke
             })}
           </div>
           <div className="flex items-stretch gap-2">
-            <button onClick={() => setValue(Math.max(minV, eff - 10))} disabled={eff <= minV} aria-label="Diminuer" className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30">−</button>
+            <button onClick={() => setValue(Math.max(minV, eff - 10))} disabled={eff <= minV} aria-label={t("daily.aria.decrease")} className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30">−</button>
             <div className="flex h-12 flex-1 items-center justify-center gap-1 rounded-lg bg-black/30 text-2xl font-bold tabular-nums">
               <span>{eff}</span>
               <ModeSym mode={mode} fourColors={fourColors} />
             </div>
-            <button onClick={() => setValue(Math.min(160, eff + 10))} disabled={eff >= 160} aria-label="Augmenter" className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30">+</button>
+            <button onClick={() => setValue(Math.min(160, eff + 10))} disabled={eff >= 160} aria-label={t("daily.aria.increase")} className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white disabled:opacity-30">+</button>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => submit({ kind: "bid", value: eff, mode })} className="min-h-11 flex-1 rounded-lg bg-yellow-400 px-3 font-bold text-emerald-950 hover:bg-yellow-300">Annoncer {eff}</button>
-            <button onClick={() => submit({ kind: "pass" })} className="min-h-11 flex-1 rounded-lg bg-white/15 font-semibold text-white hover:bg-white/25">Passer</button>
+            <button onClick={() => submit({ kind: "bid", value: eff, mode })} className="min-h-11 flex-1 rounded-lg bg-yellow-400 px-3 font-bold text-emerald-950 hover:bg-yellow-300">{t("daily.bid", { n: eff })}</button>
+            <button onClick={() => submit({ kind: "pass" })} className="min-h-11 flex-1 rounded-lg bg-white/15 font-semibold text-white hover:bg-white/25">{t("daily.pass")}</button>
           </div>
         </div>
       )}
@@ -238,7 +242,7 @@ function BidDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: BidExercise; ke
       {answered && (
         <ResultPanel
           stars={grade?.stars}
-          title={grade?.title ?? (priorSuccess ? "Défi déjà relevé aujourd'hui." : "Défi déjà tenté aujourd'hui.")}
+          title={grade?.title ?? (priorSuccess ? t("daily.alreadyDone") : t("daily.alreadyTried"))}
           reason={ex.reason}
           keyDay={keyDay}
         />
@@ -248,18 +252,20 @@ function BidDaily({ ex, keyDay, doneToday, priorSuccess }: { ex: BidExercise; ke
 }
 
 function ContractLine({ c, names, fourColors }: { c: NonNullable<PlayExercise["state"]["contract"]>; names: string[]; fourColors: boolean }) {
+  const t = useT();
   return (
     <div className="mb-2 flex items-center justify-center gap-2 text-sm">
       <span className="rounded-full bg-black/40 px-3 py-1">
-        Contrat <b>{c.generale ? "Générale" : c.capot ? "Capot" : c.value}</b>{" "}
+        {t("daily.contract")} <b>{c.generale ? t("daily.generale") : c.capot ? t("daily.capot") : c.value}</b>{" "}
         <span className={modeLabel(c.mode).suit ? suitColorClassDark(modeLabel(c.mode).suit!, fourColors) : ""}>{modeLabel(c.mode).text}</span>{" "}
-        · preneur {names[c.taker]}
+        · {t("daily.taker", { name: names[c.taker] })}
       </span>
     </div>
   );
 }
 
 function ResultPanel({ stars, title, reason, keyDay }: { stars?: 1 | 2 | 3; title: string; reason: string; keyDay: string }) {
+  const t = useT();
   const daily = useDaily((s) => s.state);
   const [shared, setShared] = useState(false);
   const [reminder, setReminder] = useState(notify.optedIn());
@@ -271,7 +277,12 @@ function ResultPanel({ stars, title, reason, keyDay }: { stars?: 1 | 2 | 3; titl
   const tone = stars === 3 ? "bg-emerald-900/70" : stars === 2 ? "bg-sky-900/70" : stars === 1 ? "bg-amber-900/60" : "bg-white/10";
 
   const share = async () => {
-    const text = `Coincheur, défi du jour ${keyDay}\n${stars ? "⭐".repeat(stars) : ""} · série ${daily.streak} 🔥\n${SITE}`;
+    const text = translate(currentLang(), "daily.shareText", {
+      day: keyDay,
+      stars: stars ? "⭐".repeat(stars) : "",
+      streak: daily.streak,
+      site: SITE,
+    });
     try {
       if (navigator.share) await navigator.share({ text });
       else await navigator.clipboard.writeText(text);
@@ -287,7 +298,7 @@ function ResultPanel({ stars, title, reason, keyDay }: { stars?: 1 | 2 | 3; titl
     setReminder(ok);
     if (ok) {
       await scheduleDailyReminder(19);
-      notify.show("Rappels activés 🔔", "On te préviendra pour le défi du jour.");
+      notify.show(t("daily.remindersEnabled.title"), t("daily.remindersEnabled.body"));
     }
   };
 
@@ -299,18 +310,18 @@ function ResultPanel({ stars, title, reason, keyDay }: { stars?: 1 | 2 | 3; titl
       </p>
       <CoachText text={reason} className="mt-1 block text-sm leading-relaxed text-white/85" />
       <p className="mt-2 text-sm">
-        Série : <b className="text-yellow-300">🔥 {daily.streak}</b> · reviens demain pour la prolonger.
+        {t("daily.comeBack")}<b className="text-yellow-300">🔥 {daily.streak}</b>{t("daily.comeBackTail")}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button onClick={share} className="inline-flex min-h-11 items-center rounded-lg bg-yellow-400 px-4 text-sm font-bold text-emerald-950 hover:bg-yellow-300">
-          {shared ? "✅ Copié !" : "📤 Partager mon score"}
+          {shared ? t("daily.shareDone") : t("daily.share")}
         </button>
         {notify.supported() && !reminder && (
           <button onClick={enableReminder} className="inline-flex min-h-11 items-center rounded-lg bg-white/10 px-4 text-sm font-semibold hover:bg-white/20">
-            🔔 Me rappeler
+            {t("daily.remindMe")}
           </button>
         )}
-        {reminder && <span className="inline-flex min-h-11 items-center text-sm text-white/55">🔔 Rappels activés</span>}
+        {reminder && <span className="inline-flex min-h-11 items-center text-sm text-white/55">{t("daily.remindersOn")}</span>}
       </div>
     </div>
   );

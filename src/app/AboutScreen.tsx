@@ -2,9 +2,10 @@ import { ScreenShell } from "./ScreenShell";
 import { useNav } from "./nav";
 import { APP_VERSION } from "../version";
 import { CONTACT_EMAIL, SITE_URL } from "../config";
+import { useT, translate, currentLang } from "../i18n";
 
 async function shareApp() {
-  const data = { title: "Coincheur", text: "Joue à la Coinche et progresse 🃏", url: SITE_URL };
+  const data = { title: "Coincheur", text: translate(currentLang(), "about.shareText"), url: SITE_URL };
   try {
     if (navigator.share) await navigator.share(data);
     else await navigator.clipboard.writeText(`${data.text} ${SITE_URL}`);
@@ -15,8 +16,9 @@ async function shareApp() {
 
 export function AboutScreen() {
   const go = useNav((s) => s.go);
+  const t = useT();
   return (
-    <ScreenShell title="À propos">
+    <ScreenShell title={t("about.title")}>
       <div className="text-center">
         <div className="mx-auto mb-2 grid h-16 w-16 place-items-center rounded-2xl bg-white/10 text-4xl">
           🃏
@@ -24,41 +26,40 @@ export function AboutScreen() {
         <h2 className="text-2xl font-black">
           Coin<span className="text-yellow-400">cheur</span>
         </h2>
-        <p className="text-sm text-white/60">Coinche & entraînement · version {APP_VERSION}</p>
+        <p className="text-sm text-white/60">{t("about.subtitle", { version: APP_VERSION })}</p>
       </div>
 
       <p className="mt-4 rounded-xl bg-white/5 p-3 text-sm text-white/80 ring-1 ring-white/10">
-        Joue à la Coinche (Belote contrée) contre des IA paramétrables et progresse comme sur une
-        plateforme d'échecs : coach en direct, exercices, analyse de tes parties et niveau estimé.
+        {t("about.intro")}
       </p>
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-        <Badge>📴 Jouable hors-ligne</Badge>
-        <Badge>💡 Coach intégré</Badge>
-        <Badge>🎯 Entraînement</Badge>
+        <Badge>{t("about.badge.offline")}</Badge>
+        <Badge>{t("about.badge.coach")}</Badge>
+        <Badge>{t("about.badge.train")}</Badge>
       </div>
 
       <div className="mt-4 space-y-2">
-        <Row onClick={() => go("lessons")}>🎓 Apprendre à jouer</Row>
-        <Row onClick={() => go("guides")}>📖 Guides de stratégie</Row>
-        <Row onClick={() => go("legal")}>📄 Confidentialité · CGU · Mentions</Row>
-        <Row href={SITE_URL} external>🌐 Site web ↗</Row>
+        <Row onClick={() => go("lessons")}>{t("about.learn")}</Row>
+        <Row onClick={() => go("guides")}>{t("about.guides")}</Row>
+        <Row onClick={() => go("legal")}>{t("about.legal")}</Row>
+        <Row href={SITE_URL} external ariaLabel={t("about.websiteAria")}>{t("about.website")}</Row>
       </div>
 
       <p className="mt-5 mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/60">
-        Soutenir le projet
+        {t("about.support")}
       </p>
       <div className="space-y-2">
-        <Row onClick={shareApp}>📤 Partager Coincheur</Row>
+        <Row onClick={shareApp}>{t("about.share")}</Row>
         {CONTACT_EMAIL && (
-          <Row href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Avis Coincheur")}`}>
-            ✉️ Nous écrire
+          <Row href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t("about.shareSubject"))}`}>
+            {t("about.contact")}
           </Row>
         )}
       </div>
 
       <p className="mt-6 text-center text-[11px] text-white/40">
-        La Coinche est un jeu du domaine public. Fait avec ❤️ pour les amateurs de belote.
+        {t("about.footer")}
       </p>
     </ScreenShell>
   );
@@ -77,11 +78,13 @@ function Row({
   onClick,
   href,
   external,
+  ariaLabel,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   href?: string;
   external?: boolean;
+  ariaLabel?: string;
 }) {
   const cls =
     "flex min-h-11 w-full items-center rounded-xl bg-white/5 px-4 text-left text-sm font-semibold text-white/85 hover:bg-white/10";
@@ -91,7 +94,7 @@ function Row({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={external ? "Site web Coincheur (nouvel onglet)" : undefined}
+        aria-label={external ? ariaLabel : undefined}
         className={cls}
       >
         {children}

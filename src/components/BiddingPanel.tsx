@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useGame, HUMAN } from "../state/store";
+import { useT } from "../i18n";
 import {
   BID_VALUES,
   availableModes,
@@ -12,6 +13,7 @@ import { modeLabel } from "./Table";
 import { suitColorClass, suitColorClassDark } from "./Card";
 
 export function BiddingPanel() {
+  const t = useT();
   const game = useGame((s) => s.game);
   const overlay = useGame((s) => s.overlayTrick);
   const bid = useGame((s) => s.bid);
@@ -32,12 +34,12 @@ export function BiddingPanel() {
   if (canSurcoinche(game, HUMAN)) {
     return (
       <Panel>
-        <p className="text-sm font-medium">Tu as été coinché ! Confiant ?</p>
+        <p className="text-sm font-medium">{t("bid.coinched.title")}</p>
         <div className="flex gap-2">
           <Btn primary onClick={surcoinche}>
-            Surcoincher
+            {t("bid.surcoinche")}
           </Btn>
-          <Btn onClick={pass}>Laisser</Btn>
+          <Btn onClick={pass}>{t("bid.leave")}</Btn>
         </div>
       </Panel>
     );
@@ -55,7 +57,7 @@ export function BiddingPanel() {
   return (
     <Panel>
       <p className="text-sm font-medium">
-        {canStillAnnounce ? "À toi d'annoncer" : "Plus d'annonce possible"}
+        {canStillAnnounce ? t("bid.yourTurn") : t("bid.noMore")}
       </p>
       {canStillAnnounce && (
         <div className="flex flex-col gap-2">
@@ -90,7 +92,7 @@ export function BiddingPanel() {
             <button
               onClick={() => step(-10)}
               disabled={effValue <= minBid}
-              aria-label="Diminuer l'annonce"
+              aria-label={t("bid.decrease")}
               className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white shadow transition hover:bg-white/25 disabled:opacity-30"
             >
               −
@@ -108,7 +110,7 @@ export function BiddingPanel() {
             <button
               onClick={() => step(10)}
               disabled={effValue >= maxBid}
-              aria-label="Augmenter l'annonce"
+              aria-label={t("bid.increase")}
               className="h-12 w-12 rounded-lg bg-white/15 text-2xl font-bold text-white shadow transition hover:bg-white/25 disabled:opacity-30"
             >
               +
@@ -119,20 +121,20 @@ export function BiddingPanel() {
       <div className="flex flex-wrap gap-2">
         {canStillAnnounce && (
           <Btn primary disabled={!canAnnounce} onClick={() => bid(effValue, mode, false)}>
-            Annoncer {effValue} {modeLabel(mode).text}
+            {t("bid.announce", { value: effValue, mode: modeLabel(mode).text })}
           </Btn>
         )}
         {canCoinche(game, HUMAN) && (
           <Btn warn onClick={coinche}>
-            Coincher
+            {t("bid.coinche")}
           </Btn>
         )}
         {game.settings.allowGenerale &&
           game.bidHistory.length > 0 &&
           !game.standing?.generale && (
-            <Btn onClick={() => bid(500, mode, false, true)}>Générale {modeLabel(mode).text}</Btn>
+            <Btn onClick={() => bid(500, mode, false, true)}>{t("bid.generale", { mode: modeLabel(mode).text })}</Btn>
           )}
-        <Btn onClick={pass}>Passer</Btn>
+        <Btn onClick={pass}>{t("bid.pass")}</Btn>
       </div>
     </Panel>
   );
@@ -140,6 +142,7 @@ export function BiddingPanel() {
 
 /** Coinche « à la volée » : visible pendant que les adversaires enchérissent. */
 export function CoinchePrompt() {
+  const t = useT();
   const game = useGame((s) => s.game);
   const overlay = useGame((s) => s.overlayTrick);
   const coinche = useGame((s) => s.coinche);
@@ -152,7 +155,7 @@ export function CoinchePrompt() {
         onClick={coinche}
         className="pointer-events-auto animate-pop rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-orange-400"
       >
-        ✊ Coincher !
+        {t("bid.coinchePrompt")}
       </button>
     </div>
   );

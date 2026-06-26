@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useT } from "../i18n";
 
 /** Petit badge « hors-ligne » : l'app reste 100% jouable sans réseau (PWA +
  *  données locales), on rassure juste l'utilisateur sur l'état de la connexion. */
 export function OfflineIndicator() {
+  const t = useT();
   const [offline, setOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -19,7 +21,7 @@ export function OfflineIndicator() {
   if (!offline) return null;
   return (
     <div className="pointer-events-none fixed bottom-[calc(0.5rem+env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white/90 shadow">
-      ✈️ Hors-ligne · tout reste jouable
+      {t("offline.badge")}
     </div>
   );
 }

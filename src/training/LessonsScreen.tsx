@@ -5,8 +5,10 @@ import { useNav } from "../app/nav";
 import { storage } from "../storage";
 import { PlayingCard } from "../components/Card";
 import { Lesson, LESSONS } from "./lessons";
+import { useT } from "../i18n";
 
 export function LessonsScreen() {
+  const t = useT();
   const [openId, setOpenId] = useState<string | null>(null);
   const [done, setDone] = useState<string[]>(() => storage.loadDoneLessons());
 
@@ -28,10 +30,10 @@ export function LessonsScreen() {
   }
 
   return (
-    <ScreenShell title="S'entraîner">
+    <ScreenShell title={t("lesson.title")}>
       <TrainTabs current="lessons" />
       <p className="mb-3 text-sm text-white/70">
-        Un parcours progressif, des règles aux conventions. {done.length}/{LESSONS.length} terminées.
+        {t("lesson.progress", { done: done.length, total: LESSONS.length })}
       </p>
       <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-white/10">
         <div
@@ -55,7 +57,7 @@ export function LessonsScreen() {
                 <span className="block font-semibold">
                   {i + 1}. {l.title}
                 </span>
-                <span className="block text-xs text-white/55">{l.steps.length} étapes</span>
+                <span className="block text-xs text-white/55">{t("lesson.steps", { n: l.steps.length })}</span>
               </span>
               <span className="text-lg">{isDone ? "✅" : "›"}</span>
             </button>
@@ -75,6 +77,7 @@ function LessonView({
   onDone: () => void;
   onBack: () => void;
 }) {
+  const t = useT();
   const go = useNav((s) => s.go);
 
   // Toute la leçon sur une seule page : chaque idée est un bloc visible, et
@@ -121,7 +124,7 @@ function LessonView({
         }}
         className="mt-5 w-full rounded-lg bg-yellow-400 py-3 text-sm font-bold text-emerald-950 hover:bg-yellow-300"
       >
-        {lesson.practice ? "S'entraîner →" : "Terminer ✅"}
+        {lesson.practice ? t("lesson.practice") : t("lesson.finish")}
       </button>
     </ScreenShell>
   );

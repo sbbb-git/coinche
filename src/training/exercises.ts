@@ -17,6 +17,7 @@ import { aiBid, aiPlay, analyzePlay } from "../engine/ai";
 import { coachBid, coachPlay, handEstimates, BidAdviceAction } from "../engine/coach";
 import { RANK_LABEL, SUIT_SYMBOL } from "../engine/cards";
 import { teamOf } from "../engine/scoring";
+import { translate, currentLang } from "../i18n";
 
 export type PlayFocus = "any" | "attack" | "defense";
 
@@ -45,9 +46,7 @@ export interface BidExercise {
 }
 
 function modeText(mode: TrumpMode): string {
-  if (mode === "NT") return "Sans Atout";
-  if (mode === "AT") return "Tout Atout";
-  return { S: "Pique", H: "Cœur", D: "Carreau", C: "Trèfle" }[mode];
+  return translate(currentLang(), `ex.mode.${mode}`);
 }
 
 export interface BidGrade {
@@ -57,26 +56,34 @@ export interface BidGrade {
 
 /** Note NUANCÉE de l'enchère du joueur vs l'idéal (pas un simple vrai/faux). */
 export function gradeBid(player: BidOption, ideal: BidAdviceAction): BidGrade {
+  const lang = currentLang();
   if (ideal.action === "pass") {
     return player.kind === "pass"
-      ? { stars: 3, title: "Parfait : ici, il fallait passer." }
-      : { stars: 1, title: "Un peu trop optimiste : passer était plus sage." };
+      ? { stars: 3, title: translate(lang, "ex.grade.bid.passPerfect") }
+      : { stars: 1, title: translate(lang, "ex.grade.bid.tooOptimistic") };
   }
   const idealTxt = `${ideal.value} ${modeText(ideal.mode)}`;
   if (player.kind === "pass") {
-    return { stars: 1, title: `Trop prudent : tu pouvais annoncer ${idealTxt}.` };
+    return { stars: 1, title: translate(lang, "ex.grade.bid.tooCautious", { ideal: idealTxt }) };
   }
   const sameMode = player.mode === ideal.mode;
   const diff = Math.abs(player.value - ideal.value);
-  if (sameMode && diff === 0) return { stars: 3, title: "Parfait !" };
+  if (sameMode && diff === 0) return { stars: 3, title: translate(lang, "ex.grade.bid.perfect") };
   if (sameMode && diff <= 10)
-    return { stars: 2, title: `Pas mal ! L'idéal était ${idealTxt} (à 10 près).` };
+    return { stars: 2, title: translate(lang, "ex.grade.bid.notBad", { ideal: idealTxt }) };
   if (sameMode)
     return {
       stars: 1,
-      title: `Bonne couleur, mais ${player.value > ideal.value ? "trop haut" : "trop bas"} : vise ${idealTxt}.`,
+      title: translate(
+        lang,
+        player.value > ideal.value ? "ex.grade.bid.goodModeTooHigh" : "ex.grade.bid.goodModeTooLow",
+        { ideal: idealTxt },
+      ),
     };
-  return { stars: 1, title: `La couleur idéale était plutôt ${modeText(ideal.mode)} (${idealTxt}).` };
+  return {
+    stars: 1,
+    title: translate(lang, "ex.grade.bid.wrongMode", { mode: modeText(ideal.mode), ideal: idealTxt }),
+  };
 }
 
 /** Met en place une séquence d'enchères : les autres joueurs parlent jusqu'à ce
@@ -123,7 +130,7 @@ function auctionLines(g: GameState): AuctionLine[] {
 export function genBidExercise(settings: Settings): BidExercise {
   const g = setupBidScenario(settings);
   const hand = g.hands[0];
-  const advice = coachBid(g, 0);
+  const advice = coachBid(g, 0, currentLang());
   const estimates = handEstimates(hand, g);
   // Plancher d'annonce légal : il faut dépasser l'enchère en cours.
   const minValue = g.standing ? g.standing.value + 10 : 80;
@@ -168,14 +175,15 @@ export function gradePlay(state: GameState, cardId: string): PlayGrade {
   const cs: GameState = { ...state, settings: { ...state.settings, aiLevel: "expert" } };
   const { best, outcomes } = analyzePlay(cs, true);
   const bestLbl = cardLbl(best);
+  const lang = currentLang();
   const bestO = outcomes.find((o) => o.card.id === best.id);
   const mine = outcomes.find((o) => o.card.id === cardId);
-  if (cardId === best.id) return { stars: 3, title: "Excellent, c'est le meilleur coup.", bestId: best.id };
-  if (!mine || !bestO) return { stars: 1, title: `Il y avait mieux : ${bestLbl}.`, bestId: best.id };
+  if (cardId === best.id) return { stars: 3, title: translate(lang, "ex.grade.play.best"), bestId: best.id };
+  if (!mine || !bestO) return { stars: 1, title: translate(lang, "ex.grade.play.betterExisted", { best: bestLbl }), bestId: best.id };
   const delta = bestO.scoreDiff - mine.scoreDiff; // écart d'espérance sur la donne (points)
-  if (delta <= 5) return { stars: 3, title: `Très bon coup, aussi solide que ${bestLbl}.`, bestId: best.id };
-  if (delta <= 20) return { stars: 2, title: `Bon coup. ${bestLbl} était un poil plus tranchant.`, bestId: best.id };
-  return { stars: 1, title: `Jouable, mais il y avait mieux : ${bestLbl}.`, bestId: best.id };
+  if (delta <= 5) return { stars: 3, title: translate(lang, "ex.grade.play.asSolid", { best: bestLbl }), bestId: best.id };
+  if (delta <= 20) return { stars: 2, title: translate(lang, "ex.grade.play.sharper", { best: bestLbl }), bestId: best.id };
+  return { stars: 1, title: translate(lang, "ex.grade.play.playable", { best: bestLbl }), bestId: best.id };
 }
 
 /** Avance les enchères avec l'IA jusqu'à la phase de jeu. */
@@ -214,7 +222,7 @@ export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any"
         const legal = legalForCurrent(g);
         if (legal.length === 0) break;
         if (legal.length > 1) {
-          const { best, reason } = coachPlay(g);
+          const { best, reason } = coachPlay(g, currentLang());
           const exo: PlayExercise = { kind: "play", state: g, legal, correctId: best.id, reason };
           if (matchesFocus(g)) {
             if (matchCount++ === skip) return exo; // la k-ième décision du thème (variété)
@@ -228,5 +236,5 @@ export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any"
     }
   }
   if (anyDecision) return anyDecision; // jamais trouvé le thème exact : on renvoie autre chose
-  throw new Error("Impossible de générer un exercice de jeu avec ces réglages.");
+  throw new Error(translate(currentLang(), "ex.error.cannotGenerate"));
 }

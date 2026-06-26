@@ -1,4 +1,5 @@
 import { useGame, HUMAN } from "../state/store";
+import { useT, translate, currentLang } from "../i18n";
 import { CardBack, PlayingCard } from "./Card";
 import { Suit, SUIT_SYMBOL, TrumpMode } from "../engine/cards";
 import { GameState } from "../engine/game";
@@ -21,8 +22,8 @@ const TRICK_POS: Record<number, string> = {
 };
 
 export function modeLabel(mode: TrumpMode): { text: string; suit: Suit | null } {
-  if (mode === "NT") return { text: "Sans Atout", suit: null };
-  if (mode === "AT") return { text: "Tout Atout", suit: null };
+  if (mode === "NT") return { text: translate(currentLang(), "table.noTrump"), suit: null };
+  if (mode === "AT") return { text: translate(currentLang(), "table.allTrump"), suit: null };
   return { text: SUIT_SYMBOL[mode], suit: mode };
 }
 
@@ -30,18 +31,21 @@ function lastBidText(game: GameState, player: number): string | null {
   for (let i = game.bidHistory.length - 1; i >= 0; i--) {
     const b = game.bidHistory[i];
     if (b.player !== player) continue;
-    if (b.kind === "pass") return "Passe";
-    if (b.kind === "coinche") return "Coinche !";
-    if (b.kind === "surcoinche") return "Surcoinche !";
+    if (b.kind === "pass") return translate(currentLang(), "table.pass");
+    if (b.kind === "coinche") return translate(currentLang(), "table.coinche");
+    if (b.kind === "surcoinche") return translate(currentLang(), "table.surcoinche");
     if (b.kind === "bid") {
       const m = modeLabel(b.mode!);
-      return b.capot ? `Capot ${m.text}` : `${b.value} ${m.text}`;
+      return b.capot
+        ? translate(currentLang(), "table.capot", { mode: m.text })
+        : translate(currentLang(), "table.bid", { value: b.value!, mode: m.text });
     }
   }
   return null;
 }
 
 function Seat({ game, seat, thinking }: { game: GameState; seat: number; thinking: boolean }) {
+  const t = useT();
   const name = game.settings.playerNames[seat];
   const isTaker = game.contract?.taker === seat;
   const isCurrent = game.current === seat && (game.phase === "bidding" || game.phase === "playing");
@@ -65,7 +69,7 @@ function Seat({ game, seat, thinking }: { game: GameState; seat: number; thinkin
         ].join(" ")}
       >
         <span className={isPartner ? "text-sky-300" : ""}>{name}</span>
-        {isTaker && <span title="Preneur">👑</span>}
+        {isTaker && <span title={t("table.taker")}>👑</span>}
         {isCurrent && thinking && <span className="animate-pulse">…</span>}
       </div>
       {bid && (

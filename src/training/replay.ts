@@ -18,6 +18,7 @@ import {
 import { coachBid, coachPlay, isPlayDecision } from "../engine/coach";
 import { Team } from "../engine/scoring";
 import { DealRecord } from "../storage";
+import { currentLang } from "../i18n";
 
 export interface ReviewPoint {
   phase: "bid" | "play";
@@ -189,7 +190,7 @@ export function reviewDeal(rec: DealRecord): DealReview {
     // Le coach n'évalue que « annoncer » ou « passer » : on n'analyse pas
     // les coinches/surcoinches du joueur (sinon elles seraient comptées à tort).
     if (g.phase === "bidding" && g.current === 0 && b.player === 0 && (b.kind === "bid" || b.kind === "pass")) {
-      const adv = coachBid(g, 0);
+      const adv = coachBid(g, 0, currentLang());
       const best =
         adv.action.action === "pass" ? "Passer" : `${adv.action.value} ${modeText(adv.action.mode)}`;
       const good =
@@ -205,7 +206,7 @@ export function reviewDeal(rec: DealRecord): DealReview {
   for (const pl of rec.plays) {
     if (g.phase !== "playing") break;
     if (g.current === 0 && isPlayDecision(g)) {
-      const { best, reason } = coachPlay(g);
+      const { best, reason } = coachPlay(g, currentLang());
       const actualCard = g.hands[0].find((c) => c.id === pl.cardId);
       points.push({
         phase: "play",
@@ -261,7 +262,7 @@ export async function reviewDealAsync(rec: DealRecord): Promise<DealReview> {
 
   for (const b of rec.bids) {
     if (g.phase === "bidding" && g.current === 0 && b.player === 0 && (b.kind === "bid" || b.kind === "pass")) {
-      const adv = coachBid(g, 0);
+      const adv = coachBid(g, 0, currentLang());
       const best =
         adv.action.action === "pass" ? "Passer" : `${adv.action.value} ${modeText(adv.action.mode)}`;
       const good =
@@ -277,7 +278,7 @@ export async function reviewDealAsync(rec: DealRecord): Promise<DealReview> {
     if (g.phase !== "playing") break;
     if (g.current === 0 && isPlayDecision(g)) {
       await yieldToMain(); // libère le thread avant le calcul PIMC
-      const { best, reason } = coachPlay(g);
+      const { best, reason } = coachPlay(g, currentLang());
       const actualCard = g.hands[0].find((c) => c.id === pl.cardId);
       points.push({
         phase: "play",

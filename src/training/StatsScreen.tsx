@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { levelInfo, useStats } from "../state/stats";
+import { useT } from "../i18n";
 
 function pct(n: number, d: number): string {
   return d ? `${Math.round((100 * n) / d)} %` : "-";
 }
 
 export function StatsScreen() {
+  const t = useT();
   const stats = useStats((s) => s.stats);
   const reset = useStats((s) => s.reset);
   const [confirming, setConfirming] = useState(false);
@@ -14,11 +16,11 @@ export function StatsScreen() {
   const lvl = levelInfo(stats.rating);
 
   return (
-    <ScreenShell title="Progression">
+    <ScreenShell title={t("stats.title")}>
       <div className="rounded-2xl bg-gradient-to-br from-sky-900/70 to-emerald-900/60 p-4 ring-1 ring-white/10">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-xs uppercase tracking-wide text-white/55">Ton niveau</p>
+            <p className="text-xs uppercase tracking-wide text-white/55">{t("stats.yourLevel")}</p>
             <p className="text-2xl font-bold text-yellow-300">{lvl.label}</p>
           </div>
           <p className="text-3xl font-bold tabular-nums">{stats.rating}</p>
@@ -29,47 +31,47 @@ export function StatsScreen() {
           aria-valuenow={Math.round(lvl.progress * 100)}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={lvl.max < 3000 ? "Progression vers le palier suivant" : "Niveau maximal"}
+          aria-label={lvl.max < 3000 ? t("stats.aria.progressNext") : t("stats.aria.maxLevel")}
         >
           <div className="h-full bg-yellow-400 transition-all" style={{ width: `${lvl.progress * 100}%` }} />
         </div>
         <p className="mt-1 text-right text-[11px] text-white/55">
-          {lvl.max < 3000 ? `${lvl.max - stats.rating} pts avant le palier suivant` : "Niveau maximal"}
+          {lvl.max < 3000 ? t("stats.ptsBeforeNext", { n: lvl.max - stats.rating }) : t("stats.maxLevel")}
         </p>
         {stats.ratingHistory.length >= 2 && <RatingCurve history={stats.ratingHistory} />}
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-3">
-        <Stat big label="Exercices" value={String(totalDone)} />
-        <Stat big label="Jours d'affilée" value={`🔥 ${stats.dayStreak}`} />
-        <Stat big label="Record série" value={String(stats.bestStreak)} />
+        <Stat big label={t("stats.exercises")} value={String(totalDone)} />
+        <Stat big label={t("stats.dayStreak")} value={`🔥 ${stats.dayStreak}`} />
+        <Stat big label={t("stats.recordStreak")} value={String(stats.bestStreak)} />
       </div>
 
-      <Card title="🂠 Enchères">
-        <Stat label="Exercices" value={String(stats.bid.done)} />
-        <Stat label="Réussite" value={pct(stats.bid.correct, stats.bid.done)} />
+      <Card title={t("stats.bid.card")}>
+        <Stat label={t("stats.exercises")} value={String(stats.bid.done)} />
+        <Stat label={t("stats.success")} value={pct(stats.bid.correct, stats.bid.done)} />
       </Card>
 
-      <Card title="🃏 Jeu de la carte">
-        <Stat label="Exercices" value={String(stats.play.done)} />
-        <Stat label="Réussite" value={pct(stats.play.correct, stats.play.done)} />
+      <Card title={t("stats.play.card")}>
+        <Stat label={t("stats.exercises")} value={String(stats.play.done)} />
+        <Stat label={t("stats.success")} value={pct(stats.play.correct, stats.play.done)} />
       </Card>
 
       {totalDone === 0 && (
         <p className="mt-4 text-center text-sm text-white/60">
-          Lance des exercices pour suivre ta progression !
+          {t("stats.empty")}
         </p>
       )}
 
       {confirming ? (
         <div className="mt-6 rounded-xl bg-white/5 p-3 text-center ring-1 ring-white/10">
-          <p className="mb-2 text-sm text-white/80">Effacer toute ta progression ?</p>
+          <p className="mb-2 text-sm text-white/80">{t("stats.confirmReset")}</p>
           <div className="flex gap-2">
             <button
               onClick={() => setConfirming(false)}
               className="min-h-11 flex-1 rounded-lg bg-white/10 text-sm font-semibold hover:bg-white/20"
             >
-              Annuler
+              {t("stats.cancel")}
             </button>
             <button
               onClick={() => {
@@ -78,7 +80,7 @@ export function StatsScreen() {
               }}
               className="min-h-11 flex-1 rounded-lg bg-red-500/90 text-sm font-bold text-white hover:bg-red-500"
             >
-              Tout effacer
+              {t("stats.clearAll")}
             </button>
           </div>
         </div>
@@ -87,7 +89,7 @@ export function StatsScreen() {
           onClick={() => setConfirming(true)}
           className="mt-6 min-h-11 w-full rounded-xl bg-white/10 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/20"
         >
-          Réinitialiser les statistiques
+          {t("stats.reset")}
         </button>
       )}
     </ScreenShell>
@@ -96,6 +98,7 @@ export function StatsScreen() {
 
 /** Courbe d'évolution du niveau (façon graphe de rating Chess.com). */
 function RatingCurve({ history }: { history: number[] }) {
+  const t = useT();
   const W = 300;
   const H = 56;
   const pad = 4;
@@ -111,13 +114,13 @@ function RatingCurve({ history }: { history: number[] }) {
   const area = `${pad},${H - pad} ${pts} ${(W - pad).toFixed(1)},${H - pad}`;
   return (
     <div className="mt-3">
-      <p className="mb-1 text-[11px] text-white/55">Évolution du niveau ({n} derniers)</p>
+      <p className="mb-1 text-[11px] text-white/55">{t("stats.levelEvolution", { n })}</p>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="h-14 w-full"
         preserveAspectRatio="none"
         role="img"
-        aria-label={`Courbe de progression, de ${history[0]} à ${history[n - 1]} points`}
+        aria-label={t("stats.aria.ratingCurve", { from: history[0], to: history[n - 1] })}
       >
         <polygon points={area} fill={stroke} opacity={0.12} />
         <polyline points={pts} fill="none" stroke={stroke} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
