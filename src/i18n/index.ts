@@ -15,16 +15,31 @@ export type Lang = "fr" | "en";
 const KEY = "coincheur.lang";
 
 function detect(): Lang {
+  // ?lang=en (depuis les pages SEO anglaises) : on PERSISTE le choix et on nettoie
+  // l'URL, pour que la langue tienne sans action de l'utilisateur.
   try {
-    const v = localStorage.getItem(KEY);
-    if (v === "en" || v === "fr") return v;
+    const q = new URLSearchParams(location.search).get("lang");
+    if (q === "en" || q === "fr") {
+      try {
+        localStorage.setItem(KEY, q);
+      } catch {
+        /* ignore */
+      }
+      try {
+        const u = new URL(location.href);
+        u.searchParams.delete("lang");
+        history.replaceState(null, "", u.pathname + u.search + u.hash);
+      } catch {
+        /* ignore */
+      }
+      return q;
+    }
   } catch {
     /* ignore */
   }
-  // ?lang=en sur une page (utile depuis les pages SEO anglaises).
   try {
-    const q = new URLSearchParams(location.search).get("lang");
-    if (q === "en" || q === "fr") return q;
+    const v = localStorage.getItem(KEY);
+    if (v === "en" || v === "fr") return v;
   } catch {
     /* ignore */
   }

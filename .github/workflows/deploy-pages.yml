@@ -31,6 +31,8 @@ jobs:
         with:
           enablement: true
       - run: npm ci
+      - name: Tests (garde-fou moteur/règles avant publication)
+        run: npm test
       - name: Build (avec pub si configurée)
         # Pour ACTIVER les pubs : définir la variable de dépôt ADSENSE_CLIENT
         # (Settings -> Secrets and variables -> Actions -> Variables) = "ca-pub-XXXX".

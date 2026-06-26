@@ -1,30 +1,9 @@
 <!doctype html>
 <html lang="fr">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-89PX80N9H7"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      // Consent Mode v2 : tout REFUSÉ par défaut (RGPD). Mis à jour selon le choix stocké.
-      gtag('consent', 'default', {
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-        analytics_storage: 'denied',
-        wait_for_update: 500
-      });
-      try {
-        if (localStorage.getItem('cookie-consent') === 'granted') {
-          gtag('consent', 'update', {
-            ad_storage: 'granted', ad_user_data: 'granted',
-            ad_personalization: 'granted', analytics_storage: 'granted'
-          });
-        }
-      } catch (e) {}
-      gtag('config', 'G-89PX80N9H7');
-    </script>
+    <!-- Mesure d'audience (GA4) et pub : chargées UNIQUEMENT après consentement
+         (RGPD). Voir src/analytics.ts et src/ads.ts. Rien n'est chargé ici avant
+         le clic « Accepter » du bandeau de consentement. -->
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

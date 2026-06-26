@@ -1,28 +1,18 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNav } from "../app/nav";
 import { useT } from "../i18n";
 import { loadAds } from "../ads";
+import { loadAnalytics } from "../analytics";
+import { useFocusTrap } from "../app/useFocusTrap";
 
-// Bandeau de consentement cookies (RGPD). GA et la pub (AdSense) sont en "denied"
-// par défaut (cf. index.html, Consent Mode v2) ; on ne passe en "granted" qu'après
-// acceptation, et c'est seulement là que la pub se charge.
+// Bandeau de consentement cookies (RGPD). Mesure d'audience (GA4) et publicité
+// (AdSense) sont chargées UNIQUEMENT après acceptation explicite — rien avant.
 const KEY = "cookie-consent";
-
-function setConsent(granted: boolean) {
-  const g = (window as unknown as { gtag?: (...a: unknown[]) => void }).gtag;
-  if (granted && typeof g === "function") {
-    g("consent", "update", {
-      ad_storage: "granted",
-      ad_user_data: "granted",
-      ad_personalization: "granted",
-      analytics_storage: "granted",
-    });
-  }
-}
 
 export function ConsentBanner() {
   const go = useNav((s) => s.go);
   const t = useT();
+  const ref = useRef<HTMLDivElement>(null);
   const [choice, setChoice] = useState<string | null>(() => {
     try {
       return localStorage.getItem(KEY);
@@ -30,7 +20,23 @@ export function ConsentBanner() {
       return null;
     }
   });
-  if (choice) return null;
+  const open = !choice;
+  useFocusTrap(ref, open);
+
+  // Focus initial + Échap = refuser (équivalent d'une fermeture).
+  useEffect(() => {
+    if (!open) return;
+    const el = ref.current?.querySelector<HTMLButtonElement>("button");
+    el?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") decide(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  if (!open) return null;
 
   const decide = (granted: boolean) => {
     try {
@@ -39,16 +45,22 @@ export function ConsentBanner() {
       /* ignore */
     }
     if (granted) {
-      setConsent(true);
-      loadAds(); // la pub ne se charge qu'ici, après acceptation explicite
+      loadAnalytics(); // mesure d'audience seulement après acceptation
+      loadAds(); // pub seulement après acceptation
     }
     setChoice(granted ? "granted" : "denied");
   };
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto flex max-w-lg flex-col gap-2 rounded-xl bg-zinc-900/95 p-3 text-sm text-white/90 shadow-lg ring-1 ring-white/15">
-        <p>
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cc-text"
+        className="mx-auto flex max-w-lg flex-col gap-2 rounded-xl bg-zinc-900/95 p-3 text-sm text-white/90 shadow-lg ring-1 ring-white/15"
+      >
+        <p id="cc-text">
           {t("consent.text")}{" "}
           <button onClick={() => go("legal")} className="underline underline-offset-2">
             {t("consent.learnMore")}

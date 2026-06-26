@@ -14,13 +14,25 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg"],
-      // Offline-first : tout le shell + les assets sont précachés ; les routes
-      // retombent sur index.html ; les vieux caches sont nettoyés à la mise à jour.
+      // Offline-first : on précache le SHELL de l'app + les assets, mais PAS les
+      // ~200 pages SEO statiques (elles gonfleraient l'install de ~1 Mo pour rien).
+      // Les articles sont servis en NetworkFirst : dispo hors-ligne après visite,
+      // sans alourdir l'installation du jeu.
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
+        globPatterns: ["**/*.{js,css,svg,png,ico,webmanifest}", "index.html"],
         navigateFallback: "index.html",
+        navigateFallbackDenylist: [/\.html$/], // les .html (articles) vont au réseau
         cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith(".html"),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "articles",
+              expiration: { maxEntries: 64, maxAgeSeconds: 604800 },
+            },
+          },
+        ],
       },
       manifest: {
         name: "Coincheur : Coinche & entraînement",

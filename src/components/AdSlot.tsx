@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useEntitlements } from "../state/entitlements";
 import { useT } from "../i18n";
 import { ADS_ENABLED, ADSENSE_CLIENT, ADSENSE_SLOTS, adsConfigured } from "../config";
-import { adsLoaded, hasAdsConsent, pushAd } from "../ads";
+import { hasAdsConsent, pushAd, useAdsStore } from "../ads";
 
 // Emplacement publicitaire (Google AdSense, web).
 //  - Si AdSense n'est pas configuré (pas d'identifiant éditeur) : rien en prod,
@@ -16,12 +16,13 @@ const IS_DEV = env?.DEV === true;
 export function AdSlot({ placement, className = "" }: { placement: string; className?: string }) {
   const t = useT();
   const showAds = useEntitlements((s) => s.showAds());
+  const adsReady = useAdsStore((s) => s.ready); // re-render quand la pub devient prête
 
   if (!ADS_ENABLED) return null; // interrupteur maître : pubs coupées pour l'instant
   if (!showAds) return null; // premium ou pubs désactivées
 
   // AdSense configuré + consenti + script chargé → vraie unité.
-  if (adsConfigured() && hasAdsConsent() && adsLoaded()) {
+  if (adsConfigured() && hasAdsConsent() && adsReady) {
     return <RealAd placement={placement} className={className} label={t("ad.aria")} />;
   }
 

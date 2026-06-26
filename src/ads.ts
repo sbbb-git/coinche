@@ -7,10 +7,22 @@
 //    que la mesure d'audience (un seul bandeau, cf. ConsentBanner).
 //  - Le script n'est injecté qu'UNE fois ; les emplacements (AdSlot) se contentent
 //    ensuite de pousser des unités.
+import { create } from "zustand";
 import { ADSENSE_CLIENT, adsConfigured } from "./config";
 
 const CONSENT_KEY = "cookie-consent";
 let scriptInjected = false;
+
+// État réactif : permet à <AdSlot> de se (re)rendre quand la pub devient prête
+// (ex. juste après le clic « Accepter »).
+interface AdsStore {
+  ready: boolean;
+  markReady: () => void;
+}
+export const useAdsStore = create<AdsStore>((set) => ({
+  ready: false,
+  markReady: () => set({ ready: true }),
+}));
 
 type AdsWindow = Window & { adsbygoogle?: unknown[] };
 
@@ -35,6 +47,7 @@ export function loadAds(): void {
     ADSENSE_CLIENT,
   )}`;
   document.head.appendChild(s);
+  useAdsStore.getState().markReady();
 }
 
 /** Demande à AdSense de remplir une unité (<ins class="adsbygoogle">). */
