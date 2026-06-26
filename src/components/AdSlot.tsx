@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useEntitlements } from "../state/entitlements";
 import { useT } from "../i18n";
-import { ADSENSE_CLIENT, ADSENSE_SLOTS, adsConfigured } from "../config";
+import { ADS_ENABLED, ADSENSE_CLIENT, ADSENSE_SLOTS, adsConfigured } from "../config";
 import { adsLoaded, hasAdsConsent, pushAd } from "../ads";
 
 // Emplacement publicitaire (Google AdSense, web).
@@ -17,6 +17,7 @@ export function AdSlot({ placement, className = "" }: { placement: string; class
   const t = useT();
   const showAds = useEntitlements((s) => s.showAds());
 
+  if (!ADS_ENABLED) return null; // interrupteur maître : pubs coupées pour l'instant
   if (!showAds) return null; // premium ou pubs désactivées
 
   // AdSense configuré + consenti + script chargé → vraie unité.
