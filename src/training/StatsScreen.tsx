@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { levelInfo, useStats } from "../state/stats";
 import { useT } from "../i18n";
+import { AdSlot } from "../components/AdSlot";
 
 function pct(n: number, d: number): string {
   return d ? `${Math.round((100 * n) / d)} %` : "-";
@@ -92,6 +93,7 @@ export function StatsScreen() {
           {t("stats.reset")}
         </button>
       )}
+      <AdSlot placement="stats" className="mt-4" />
     </ScreenShell>
   );
 }

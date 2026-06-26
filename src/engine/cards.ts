@@ -24,6 +24,21 @@ export const SUIT_LABEL: Record<Suit, string> = {
   C: "Trèfle",
 };
 
+/** Noms de couleurs en anglais (lecteurs d'écran / version EN). */
+export const SUIT_LABEL_EN: Record<Suit, string> = {
+  S: "Spades",
+  H: "Hearts",
+  D: "Diamonds",
+  C: "Clubs",
+};
+
+/** Noms parlés des rangs (accessibilité), FR et EN. Le texte affiché reste
+ *  l'abréviation (RANK_LABEL) ; ces noms ne servent qu'aux aria-labels. */
+export const RANK_SPOKEN: Record<"fr" | "en", Record<Rank, string>> = {
+  fr: { "7": "7", "8": "8", "9": "9", "10": "10", J: "Valet", Q: "Dame", K: "Roi", A: "As" },
+  en: { "7": "7", "8": "8", "9": "9", "10": "10", J: "Jack", Q: "Queen", K: "King", A: "Ace" },
+};
+
 export const SUIT_SYMBOL: Record<Suit, string> = {
   S: "♠",
   H: "♥",

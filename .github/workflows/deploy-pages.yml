@@ -31,7 +31,17 @@ jobs:
         with:
           enablement: true
       - run: npm ci
-      - run: npm run build
+      - name: Build (avec pub si configurée)
+        # Pour ACTIVER les pubs : définir la variable de dépôt ADSENSE_CLIENT
+        # (Settings -> Secrets and variables -> Actions -> Variables) = "ca-pub-XXXX".
+        # Tant qu'elle est vide, aucune pub n'est injectée.
+        env:
+          ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
+          VITE_ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
+          VITE_ADSENSE_SLOT_HOME: ${{ vars.ADSENSE_SLOT_HOME }}
+          VITE_ADSENSE_SLOT_STATS: ${{ vars.ADSENSE_SLOT_STATS }}
+          VITE_ADSENSE_SLOT_EXERCISES: ${{ vars.ADSENSE_SLOT_EXERCISES }}
+        run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist

@@ -174,7 +174,7 @@ export const common: Namespace = {
     "shell.back": "Retour",
 
     // Bandeau consentement
-    "consent.text": "On utilise des cookies de mesure d'audience pour améliorer le jeu. Tu peux accepter ou refuser.",
+    "consent.text": "On utilise des cookies de mesure d'audience et de publicité pour améliorer le jeu et le garder gratuit. Tu peux accepter ou refuser.",
     "consent.learnMore": "En savoir plus",
     "consent.accept": "Accepter",
     "consent.refuse": "Refuser",
@@ -391,7 +391,7 @@ export const common: Namespace = {
     "shell.back": "Back",
 
     // Consent banner
-    "consent.text": "We use audience-measurement cookies to improve the game. You can accept or refuse.",
+    "consent.text": "We use analytics and advertising cookies to improve the game and keep it free. You can accept or refuse.",
     "consent.learnMore": "Learn more",
     "consent.accept": "Accept",
     "consent.refuse": "Refuse",

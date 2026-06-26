@@ -21,6 +21,28 @@ const EN_DIR = join(PUBLIC, "en");
 const SITE = "https://coincheur.fr";
 const AHREFS = '<script src="https://analytics.ahrefs.com/analytics.js" data-key="mt0GFY89V8kLys/52fBIIw" async></script>';
 
+// Pub (AdSense) sur les pages statiques : injectée UNIQUEMENT si un éditeur est
+// fourni au build (ADSENSE_CLIENT) ET après consentement. Sinon : pages inchangées.
+const ADSENSE_CLIENT = /^ca-pub-\d+$/.test(process.env.ADSENSE_CLIENT || "") ? process.env.ADSENSE_CLIENT : "";
+
+const CC_TXT = {
+  fr: { text: "On utilise des cookies pour la mesure d'audience et la publicité.", more: "En savoir plus", yes: "Accepter", no: "Refuser" },
+  en: { text: "We use cookies for analytics and advertising.", more: "Learn more", yes: "Accept", no: "Refuse" },
+};
+
+/** Loader AdSense (head), chargé seulement si consentement déjà donné. */
+function adsHead() {
+  if (!ADSENSE_CLIENT) return "";
+  return `\n    <script>(function(){try{if(localStorage.getItem('cookie-consent')==='granted'){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}';document.head.appendChild(s);}}catch(e){}})();</script>`;
+}
+
+/** Bandeau de consentement minimal (body), partage la clé `cookie-consent`. */
+function adsBanner(lang) {
+  if (!ADSENSE_CLIENT) return "";
+  const x = CC_TXT[lang] || CC_TXT.fr;
+  return `\n    <div id="cc" class="cc" hidden role="dialog" aria-label="${esc(x.text)}"><p>${esc(x.text)} <a href="/privacy.html">${esc(x.more)}</a></p><div class="cc-b"><button id="cc-y">${esc(x.yes)}</button><button id="cc-n">${esc(x.no)}</button></div></div>\n    <script>(function(){try{var c=localStorage.getItem('cookie-consent');if(c)return;var el=document.getElementById('cc');el.hidden=false;function load(){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}';document.head.appendChild(s);}document.getElementById('cc-y').onclick=function(){localStorage.setItem('cookie-consent','granted');el.hidden=true;load();};document.getElementById('cc-n').onclick=function(){localStorage.setItem('cookie-consent','denied');el.hidden=true;};}catch(e){}})();</script>`;
+}
+
 // Pages écrites à la main (cornerstone) — listées dans les hubs et le sitemap.
 const CORNERSTONE = [
   { slug: "regles-coinche.html", fr: "Les règles de la coinche", en: "Coinche rules", prio: 0.8 },
@@ -104,7 +126,7 @@ function renderArticle(art, lang, idToSlug) {
     <meta property="og:url" content="${url}" />
     <meta property="og:image" content="${SITE}/icon-512.png" />
     <link rel="stylesheet" href="/article.css" />
-    ${AHREFS}${articleLd}${faqLd}
+    ${AHREFS}${adsHead()}${articleLd}${faqLd}
   </head>
   <body>
     <header class="top">
@@ -120,7 +142,7 @@ ${sections}
       <footer>
         © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${playHref}">${t.play}</a> · <a href="/privacy.html">${t.priv}</a>
       </footer>
-    </main>
+    </main>${adsBanner(lang)}
   </body>
 </html>
 `;
@@ -188,7 +210,7 @@ ${blocks}
       <footer>
         © Coincheur · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="/privacy.html">${t.priv}</a>
       </footer>
-    </main>
+    </main>${adsBanner(lang)}
   </body>
 </html>
 `;

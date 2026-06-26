@@ -1,61 +1,45 @@
-# Mettre des pubs sur l'app — guide (à terme)
+# Mettre des pubs sur Coincheur (web / AdSense)
 
-> Décision : **on met des pubs** (modèle gratuit + pub, avec un futur achat « Retirer
-> les pubs »). Côté code c'est **prêt** : `entitlements.ts` (`adsEnabled = true`,
-> `premium = false`, `showAds()`) + composant `<AdSlot>` placé sur l'accueil. Le **réseau
-> pub réel (AdMob)** se branche au packaging natif. Voici le « comment ».
+Coincheur est diffusé comme **site web** (PWA). La régie web standard est
+**Google AdSense**. Tout est **déjà câblé** : il ne reste qu'une étape externe
+(ouvrir un compte AdSense et le faire valider), puis coller un identifiant.
 
 ## En une phrase
-On s'inscrit à une **régie publicitaire** (réseau de pub), on installe son **SDK**,
-on crée des **emplacements** (formats de pub), on les **affiche** aux joueurs gratuits,
-et la régie nous **paie** selon les affichages/clics.
+On s'inscrit à **Google AdSense**, Google valide le site, on récupère un
+identifiant éditeur **`ca-pub-XXXXXXXXXXXXXXXX`**, on le met dans une variable, et
+les pubs apparaissent — **uniquement après le consentement** du visiteur (RGPD).
 
-## 1. Choisir la régie
-- **Google AdMob** = le standard pour les apps mobiles (le plus simple, gros volume).
-- Alternatives / mediation (pour maximiser le revenu) : AppLovin MAX, Unity Ads,
-  ironSource, Meta Audience Network. On peut commencer **AdMob seul**, ajouter la
-  « mediation » plus tard.
+## Ce qui est déjà fait (code)
+- `src/config.ts` : `ADSENSE_CLIENT` lu depuis l'env `VITE_ADSENSE_CLIENT` (vide par défaut).
+- `src/ads.ts` : chargement **idempotent** d'AdSense, **uniquement** si configuré ET consenti.
+- `src/components/AdSlot.tsx` : emplacement réutilisable. Pubs posées sur l'**accueil**
+  et la **progression** (jamais en pleine donne). Rien ne s'affiche tant que ce n'est pas configuré.
+- `src/components/ConsentBanner.tsx` : la pub ne se charge qu'au clic **« Accepter »**.
+- **Pages SEO statiques** (`scripts/gen-seo.mjs`) : si `ADSENSE_CLIENT` est défini au build,
+  chaque page reçoit le loader AdSense **+ un mini-bandeau de consentement** (même clé
+  `cookie-consent` que l'app). C'est là que se trouve le gros du trafic de recherche.
+- `.github/workflows/deploy-pages.yml` : lit la variable de dépôt `ADSENSE_CLIENT`.
 
-## 2. Les formats de pub (et où on les met)
-- **Bannière** : petit bandeau (haut/bas), discret. → écrans hors-jeu (accueil, listes).
-- **Interstitiel** : plein écran entre deux actions. → **entre deux parties / donnes**,
-  JAMAIS au milieu d'un pli. Avec **plafond de fréquence** (ex. 1 / 3-4 donnes).
-- **Récompensé (rewarded)** : l'utilisateur **choisit** de regarder une vidéo pour un
-  bonus (ex. « voir l'analyse coach », « indice »). Le plus rentable et le mieux toléré.
+## Activer les pubs (étape par étape)
+1. Crée un compte sur **adsense.google.com** et ajoute le site **coincheur.fr**.
+2. Colle le bout de code de vérification d'AdSense (ou vérifie via le DNS / Search Console),
+   puis **attends la validation** (Google revoie le site : de quelques jours à 2 semaines).
+3. Une fois validé, récupère ton identifiant **`ca-pub-XXXXXXXXXXXXXXXX`**.
+4. Sur GitHub : **Settings → Secrets and variables → Actions → Variables → New variable**
+   - Nom : `ADSENSE_CLIENT` · Valeur : `ca-pub-XXXXXXXXXXXXXXXX`
+   - (optionnel) `ADSENSE_SLOT_HOME`, `ADSENSE_SLOT_STATS`, `ADSENSE_SLOT_EXERCISES` si tu
+     crées des emplacements manuels ; sinon laisse les **Auto ads** d'AdSense placer la pub.
+5. Relance le déploiement (un push ou « Run workflow »). Les pubs apparaissent après consentement.
 
-> Leçon des avis du concurrent : c'est la pub **forcée et trop fréquente** qui fait fuir.
-> On privilégie **rewarded + interstitiel espacé**, jamais en pleine donne.
+## RGPD / EEA — important
+- Par défaut, **aucune pub ne se charge avant le clic « Accepter »** (privacy-first, défendable).
+- Pour **maximiser le revenu en Europe** avec de la pub personnalisée, Google demande un
+  **CMP certifié**. Le plus simple : activer le **message RGPD** d'AdSense
+  (console AdSense → **Confidentialité et messages**), qui est un CMP certifié et gère le
+  consentement pub sur toutes les pages. À ce moment-là, on peut retirer le mini-bandeau maison.
+- Penser à garder la page **Confidentialité** à jour (elle mentionne déjà Google AdSense).
 
-## 3. Intégration technique (app native via Capacitor)
-1. Compte AdMob → créer l'app → créer les **ad units** (on obtient des identifiants).
-2. Installer le plugin : `npm i @capacitor-community/admob` puis `npx cap sync`.
-3. Initialiser au démarrage, puis afficher selon le format. Tout passe **derrière notre
-   abstraction** `entitlements.ts` : on n'affiche QUE si `adsEnabled && !premium`.
-4. **Consentement (obligatoire)** :
-   - iOS : **App Tracking Transparency** (pop-up « Autoriser le suivi ? ») pour la pub
-     personnalisée ; sinon pub non-personnalisée.
-   - Europe (RGPD) : **CMP/UMP** (formulaire de consentement Google) au 1er lancement.
-   - Déclarer la collecte pub dans App Privacy / Data Safety (ça change notre étiquette
-     « aucune donnée » → voir `SUBMISSION.md`, et retirer « sans pub » des fiches).
-5. **Tester avec les identifiants de test** d'AdMob (sinon risque de bannissement), puis
-   passer en réel pour la publication.
-
-## 4. Le modèle « freemium » (recommandé)
-- **Gratuit** : pubs discrètes (rewarded + interstitiel espacé).
-- **Premium** : achat in-app **« Retirer les pubs »** (une fois) et/ou petit abonnement,
-  qui met `premium = true` → plus aucune pub + bonus éventuels.
-- Achats : `@capacitor/in-app-purchases` ou **RevenueCat** (gère iOS+Android).
-
-## 5. Combien ça rapporte (ordre de grandeur)
-Très variable : la pub se mesure en **eCPM** (revenu pour 1000 affichages), souvent
-**2–8 €** en FR pour de l'interstitiel/rewarded. Le gros du revenu vient du **rewarded**
-et du **premium**, pas de la bannière. À 1000 joueurs actifs/jour, on parle de quelques
-€ à quelques dizaines d'€/jour selon l'engagement — d'où l'importance de la rétention.
-
-## 6. Ce qui est déjà prêt côté code
-- `src/state/entitlements.ts` : `premium` / `adsEnabled` / `showAds()` (gratuit + pub par défaut).
-- `src/components/AdSlot.tsx` : emplacement pub réutilisable (`<AdSlot placement="…">`),
-  rendu uniquement si `showAds()` ; en prod il n'affiche RIEN tant que le SDK n'est pas
-  branché (pas de faux encart), visible en dev pour valider la mise en page. Déjà posé sur l'accueil.
-- Le jour J (packaging) : `npm i @capacitor-community/admob`, brancher le SDK dans `AdSlot`,
-  ajouter l'achat « Retirer les pubs » (→ `premium = true`). **Aucune refonte.**
+## Bonnes pratiques (rétention)
+- Jamais de pub en pleine donne ; emplacements calmes (accueil, stats, listes).
+- Plus tard : achat **« Retirer les pubs »** (`entitlements.premium = true`) via une régie
+  d'achat web, ou rester 100 % gratuit + pub. Le code `showAds()` est déjà prêt pour ça.

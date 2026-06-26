@@ -1,11 +1,14 @@
+import { useEffect, useRef, useState } from "react";
 import { useEntitlements } from "../state/entitlements";
 import { useT } from "../i18n";
+import { ADSENSE_CLIENT, ADSENSE_SLOTS, adsConfigured } from "../config";
+import { adsLoaded, hasAdsConsent, pushAd } from "../ads";
 
-// Emplacement publicitaire. Le vrai réseau (Google AdMob en natif, ou AdSense en
-// web) se branche ICI au packaging, cf. ADS.md. Tant que le SDK n'est pas câblé,
-// on n'affiche RIEN en production (pas de faux encart, déconseillé par les stores),
-// mais on matérialise l'emplacement en dev pour valider la mise en page.
-// Règle d'or : JAMAIS au milieu d'une donne, uniquement écrans hors-jeu / inter-parties.
+// Emplacement publicitaire (Google AdSense, web).
+//  - Si AdSense n'est pas configuré (pas d'identifiant éditeur) : rien en prod,
+//    un placeholder en dev pour valider la mise en page.
+//  - Si configuré ET consentement donné : une vraie unité AdSense (responsive).
+// Règle d'or : JAMAIS au milieu d'une donne, uniquement écrans hors-jeu.
 
 const env = (import.meta as unknown as { env?: { DEV?: boolean } }).env;
 const IS_DEV = env?.DEV === true;
@@ -13,8 +16,16 @@ const IS_DEV = env?.DEV === true;
 export function AdSlot({ placement, className = "" }: { placement: string; className?: string }) {
   const t = useT();
   const showAds = useEntitlements((s) => s.showAds());
+
   if (!showAds) return null; // premium ou pubs désactivées
-  if (!IS_DEV) return null; // prod : rien tant que le réseau pub n'est pas branché
+
+  // AdSense configuré + consenti + script chargé → vraie unité.
+  if (adsConfigured() && hasAdsConsent() && adsLoaded()) {
+    return <RealAd placement={placement} className={className} label={t("ad.aria")} />;
+  }
+
+  // Non configuré : placeholder en dev, rien en prod.
+  if (!IS_DEV || adsConfigured()) return null;
   return (
     <div
       role="complementary"
@@ -26,6 +37,41 @@ export function AdSlot({ placement, className = "" }: { placement: string; class
       }
     >
       {t("ad.label", { placement })}
+    </div>
+  );
+}
+
+function RealAd({
+  placement,
+  className,
+  label,
+}: {
+  placement: string;
+  className: string;
+  label: string;
+}) {
+  const ref = useRef<HTMLModElement>(null);
+  const [pushed, setPushed] = useState(false);
+  const slot = ADSENSE_SLOTS[placement] || "";
+
+  useEffect(() => {
+    if (!pushed) {
+      pushAd();
+      setPushed(true);
+    }
+  }, [pushed]);
+
+  return (
+    <div role="complementary" aria-label={label} data-ad-placement={placement} className={className}>
+      <ins
+        ref={ref}
+        className="adsbygoogle"
+        style={{ display: "block", textAlign: "center" }}
+        data-ad-client={ADSENSE_CLIENT}
+        {...(slot ? { "data-ad-slot": slot } : {})}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
     </div>
   );
 }

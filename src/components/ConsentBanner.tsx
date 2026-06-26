@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNav } from "../app/nav";
 import { useT } from "../i18n";
+import { loadAds } from "../ads";
 
-// Bandeau de consentement cookies (RGPD). GA est en "denied" par défaut (cf.
-// index.html, Consent Mode v2) ; on ne passe en "granted" qu'après acceptation.
+// Bandeau de consentement cookies (RGPD). GA et la pub (AdSense) sont en "denied"
+// par défaut (cf. index.html, Consent Mode v2) ; on ne passe en "granted" qu'après
+// acceptation, et c'est seulement là que la pub se charge.
 const KEY = "cookie-consent";
 
 function setConsent(granted: boolean) {
@@ -36,7 +38,10 @@ export function ConsentBanner() {
     } catch {
       /* ignore */
     }
-    if (granted) setConsent(true);
+    if (granted) {
+      setConsent(true);
+      loadAds(); // la pub ne se charge qu'ici, après acceptation explicite
+    }
     setChoice(granted ? "granted" : "denied");
   };
 

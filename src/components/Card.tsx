@@ -1,6 +1,15 @@
-import { Card as TCard, RANK_LABEL, SUIT_IS_RED, SUIT_LABEL, SUIT_SYMBOL, Suit } from "../engine/cards";
+import {
+  Card as TCard,
+  RANK_LABEL,
+  RANK_SPOKEN,
+  SUIT_IS_RED,
+  SUIT_LABEL,
+  SUIT_LABEL_EN,
+  SUIT_SYMBOL,
+  Suit,
+} from "../engine/cards";
 import { useGame } from "../state/store";
-import { useT } from "../i18n";
+import { useT, useLang } from "../i18n";
 
 // Couleurs des enseignes en mode "4 couleurs" (accessibilité daltoniens).
 const FOUR_COLOR: Record<Suit, string> = {
@@ -44,9 +53,13 @@ const SYM_SIZE = { sm: "text-lg", md: "text-2xl", lg: "text-3xl" } as const;
 /** Une carte à jouer (face visible). */
 export function PlayingCard({ card, size = "md", playable, highlight = true, dimmed, onClick }: Props) {
   const t = useT();
+  const lang = useLang((s) => s.lang);
   const fourColors = useGame((s) => s.game.settings.fourColors);
   const sym = SUIT_SYMBOL[card.suit];
   const rank = RANK_LABEL[card.rank];
+  // aria : nom parlé complet selon la langue (« As de Pique » / « Ace of Spades »).
+  const spokenRank = RANK_SPOKEN[lang][card.rank];
+  const spokenSuit = (lang === "en" ? SUIT_LABEL_EN : SUIT_LABEL)[card.suit];
   const colorClass = suitColorClass(card.suit, fourColors);
   const emphasize = playable && highlight;
   return (
@@ -54,7 +67,7 @@ export function PlayingCard({ card, size = "md", playable, highlight = true, dim
       type="button"
       disabled={!playable && !!onClick}
       onClick={playable ? onClick : undefined}
-      aria-label={t("card.label", { rank, suit: SUIT_LABEL[card.suit] })}
+      aria-label={t("card.label", { rank: spokenRank, suit: spokenSuit })}
       className={[
         SIZES[size],
         "relative flex flex-col justify-between bg-white shadow-md border border-black/10 leading-none p-1",
