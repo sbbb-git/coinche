@@ -23,7 +23,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
       manifest: {
-        name: "Coincheur — Coinche & entraînement",
+        name: "Coincheur : Coinche & entraînement",
         short_name: "Coincheur",
         description:
           "Jouez à la Coinche contre des IA paramétrables et entraînez-vous, hors-ligne.",
