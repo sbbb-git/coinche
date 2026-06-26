@@ -67,16 +67,25 @@ function Privacy() {
       <p className="text-white/60">Dernière mise à jour : {new Date().getFullYear()}</p>
       <Section title="En bref">
         <p>
-          Coincheur est <b>local-first</b> : par défaut, tes données (réglages, parties,
-          progression) restent <b>sur ton appareil</b> et ne sont envoyées à personne. Aucune
-          publicité, aucun traceur, aucune revente de données.
+          Coincheur est <b>local-first</b> : ta progression (réglages, parties, stats, série) reste{" "}
+          <b>sur ton appareil</b> et n'est envoyée à personne. Nous mesurons l'audience du site pour
+          l'améliorer, et la publicité pourra arriver à terme — toujours <b>après ton consentement</b>.
         </p>
       </Section>
       <Section title="Données stockées localement">
         <p>
-          Nous utilisons le stockage de ton navigateur/appareil pour : tes réglages de jeu, ton
-          historique de donnes (pour la review), tes statistiques et ton prénom d'affichage. Tu peux
-          tout effacer en vidant les données du site ou via « Réinitialiser » dans l'app.
+          Le stockage de ton navigateur/appareil sert à : tes réglages, ton historique de donnes
+          (pour la review), tes statistiques, ta série et ton prénom d'affichage. Rien n'est envoyé à
+          un serveur. Tu peux tout effacer via « Réinitialiser » dans l'app ou en vidant les données du
+          site.
+        </p>
+      </Section>
+      <Section title="Mesure d'audience & cookies">
+        <p>
+          Pour comprendre l'usage et améliorer le jeu, on utilise <b>Google Analytics</b> (cookies,{" "}
+          <b>activé seulement si tu acceptes</b> via le bandeau) et <b>Ahrefs</b> (sans cookie, agrégé).
+          Tu peux refuser : Analytics reste alors désactivé. Détails complets dans la page web{" "}
+          <a className="underline" href="/privacy.html">Confidentialité</a>.
         </p>
       </Section>
       <Section title="Compte & synchronisation (optionnel)">
