@@ -4,11 +4,13 @@ import { TrainTabs } from "./TrainTabs";
 import { useNav } from "../app/nav";
 import { storage } from "../storage";
 import { PlayingCard } from "../components/Card";
-import { Lesson, LESSONS } from "./lessons";
-import { useT } from "../i18n";
+import { Lesson, localizedLessons } from "./lessons";
+import { useT, useLang } from "../i18n";
 
 export function LessonsScreen() {
   const t = useT();
+  const lang = useLang((s) => s.lang);
+  const LESSONS = localizedLessons(lang);
   const [openId, setOpenId] = useState<string | null>(null);
   const [done, setDone] = useState<string[]>(() => storage.loadDoneLessons());
 
