@@ -15,8 +15,10 @@ import {
   BidOption,
   PlayExercise,
   PlayFocus,
+  PlayGrade,
   genBidExercise,
   gradeBid,
+  gradePlay,
   genPlayExercise,
 } from "./exercises";
 
@@ -166,26 +168,23 @@ function BidTrainer() {
       {answered && grade && (
         <>
           <EstimateBar estimates={ex.estimates} fourColors={settings.fourColors} />
-          <BidFeedback grade={grade} reason={ex.reason} onNext={next} />
+          <GradeFeedback stars={grade.stars} title={grade.title} reason={ex.reason} onNext={next} />
         </>
       )}
     </div>
   );
 }
 
-function BidFeedback({ grade, reason, onNext }: { grade: BidGrade; reason: string; onNext: () => void }) {
+/** Retour nuancé (1 à 3 ⭐) pour enchères ET jeu de la carte. */
+function GradeFeedback({ stars, title, reason, onNext }: { stars: 1 | 2 | 3; title: string; reason: string; onNext: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, []);
-  const tone =
-    grade.stars === 3 ? "bg-emerald-900/70" : grade.stars === 2 ? "bg-sky-900/70" : "bg-amber-900/60";
+  const tone = stars === 3 ? "bg-emerald-900/70" : stars === 2 ? "bg-sky-900/70" : "bg-amber-900/60";
   return (
     <div ref={ref} role="status" tabIndex={-1} className={`mt-3 rounded-xl p-3 ${tone}`}>
-      <p className="font-bold">
-        {grade.stars > 0 ? "⭐".repeat(grade.stars) + " " : ""}
-        {grade.title}
-      </p>
+      <p className="font-bold">{"⭐".repeat(stars)} {title}</p>
       <CoachText text={reason} className="mt-1 block text-sm leading-relaxed text-white/85" />
       <button
         onClick={onNext}
@@ -264,10 +263,12 @@ function PlayTrainer() {
   const [focus, setFocus] = useState<PlayFocus>("any");
   const [ex, setEx] = useState<PlayExercise | null>(null);
   const [pickedId, setPickedId] = useState<string | null>(null);
+  const [grade, setGrade] = useState<PlayGrade | null>(null);
 
   const [error, setError] = useState(false);
   const next = () => {
     setPickedId(null);
+    setGrade(null);
     try {
       setEx(genPlayExercise(settings, focus));
       setError(false);
@@ -294,17 +295,20 @@ function PlayTrainer() {
   const names = g.settings.playerNames;
   const c = g.contract!;
 
+  const bestId = grade?.bestId ?? ex.correctId;
   const choose = (card: Card) => {
     if (answered || !legalIds.has(card.id)) return;
+    const gr = gradePlay(g, card.id);
     setPickedId(card.id);
-    record("play", card.id === ex.correctId);
+    setGrade(gr);
+    record("play", gr.stars >= 2);
   };
 
-  const cardState = (card: Card): CardMark => {
-    if (!answered) return legalIds.has(card.id) ? "playable" : "off";
-    if (card.id === ex.correctId) return "good";
-    if (card.id === pickedId) return "bad";
-    return "off";
+  const ringFor = (card: Card): string => {
+    if (!answered) return "";
+    if (card.id === pickedId) return grade && grade.stars >= 2 ? "ring-2 ring-green-400" : "ring-2 ring-amber-400";
+    if (card.id === bestId) return "ring-2 ring-sky-400";
+    return "";
   };
 
   return (
@@ -357,45 +361,28 @@ function PlayTrainer() {
         Ta main, quelle carte jouer ?
       </p>
       <div className="flex flex-wrap justify-center gap-1">
-        {g.hands[0].map((card) => {
-          const st = cardState(card);
-          return (
-            <div
-              key={card.id}
-              className={[
-                "relative rounded-lg",
-                st === "good" ? "ring-2 ring-green-400" : "",
-                st === "bad" ? "ring-2 ring-red-500" : "",
-              ].join(" ")}
-            >
-              <PlayingCard
-                card={card}
-                size="md"
-                playable={!answered && legalIds.has(card.id)}
-                dimmed={st === "off"}
-                onClick={() => choose(card)}
-              />
-              {st === "good" && (
-                <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-green-500 text-[10px] font-bold text-white">
-                  ✓
-                </span>
-              )}
-              {st === "bad" && (
-                <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                  ✗
-                </span>
-              )}
-            </div>
-          );
-        })}
+        {g.hands[0].map((card) => (
+          <div key={card.id} className={`relative rounded-lg ${ringFor(card)}`}>
+            <PlayingCard
+              card={card}
+              size="md"
+              playable={!answered && legalIds.has(card.id)}
+              dimmed={answered && card.id !== pickedId && card.id !== bestId}
+              onClick={() => choose(card)}
+            />
+            {answered && card.id === bestId && card.id !== pickedId && (
+              <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
+                ★
+              </span>
+            )}
+          </div>
+        ))}
       </div>
 
-      {answered && <Feedback ok={pickedId === ex.correctId} reason={ex.reason} onNext={next} />}
+      {answered && grade && <GradeFeedback stars={grade.stars} title={grade.title} reason={ex.reason} onNext={next} />}
     </div>
   );
 }
-
-type CardMark = "playable" | "off" | "good" | "bad";
 
 // --- Composants partagés ----------------------------------------------------
 
@@ -417,27 +404,3 @@ function Tab({ id, active, onClick, children }: { id?: string; active: boolean; 
   );
 }
 
-function Feedback({ ok, reason, onNext }: { ok: boolean; reason: string; onNext: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, []);
-  return (
-    <div
-      ref={ref}
-      className={[
-        "animate-pop mt-4 rounded-xl p-3 ring-1",
-        ok ? "bg-emerald-900/70 ring-emerald-600" : "bg-red-900/60 ring-red-600",
-      ].join(" ")}
-    >
-      <p className="font-bold">{ok ? "✅ Bien vu !" : "❌ Pas le meilleur choix"}</p>
-      <CoachText text={reason} className="mt-1 block text-sm leading-relaxed text-white/85" />
-      <button
-        onClick={onNext}
-        className="mt-3 w-full rounded-lg bg-yellow-400 py-2.5 font-bold text-emerald-950 hover:bg-yellow-300"
-      >
-        Suivant →
-      </button>
-    </div>
-  );
-}

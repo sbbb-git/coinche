@@ -3,7 +3,10 @@
 // moteur (mélange du paquet) produise toujours la même donne pour une date donnée.
 
 import { DEFAULT_SETTINGS } from "../engine/game";
-import { genPlayExercise, PlayExercise } from "./exercises";
+import { genBidExercise, genPlayExercise, BidExercise, PlayExercise } from "./exercises";
+
+/** Un défi du jour est soit une enchère, soit un coup à jouer (varié). */
+export type DailyChallenge = BidExercise | PlayExercise;
 
 export function isoDay(d: Date = new Date()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -28,12 +31,17 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/** Génère le défi d'une date (mêmes réglages pour tous → donne identique partout). */
-export function genDailyChallenge(key: string = isoDay()): PlayExercise {
+/** Génère le défi d'une date (mêmes réglages pour tous → donne identique partout).
+ *  Varié selon la date : tantôt une enchère, tantôt une entame, tantôt un coup en
+ *  cours de donne. */
+export function genDailyChallenge(key: string = isoDay()): DailyChallenge {
   const orig = Math.random;
   Math.random = mulberry32(seedFromKey(key));
   try {
-    return genPlayExercise(DEFAULT_SETTINGS, "any");
+    const r = Math.random();
+    if (r < 0.4) return genBidExercise(DEFAULT_SETTINGS); // ~40% : un tour d'annonce
+    const skip = Math.floor(Math.random() * 3); // 0/1/2 : entame ou milieu de donne
+    return genPlayExercise(DEFAULT_SETTINGS, "any", skip);
   } finally {
     Math.random = orig;
   }

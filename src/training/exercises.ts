@@ -13,8 +13,9 @@ import {
   legalForCurrent,
   newGame,
 } from "../engine/game";
-import { aiBid, aiPlay } from "../engine/ai";
+import { aiBid, aiPlay, analyzePlay } from "../engine/ai";
 import { coachBid, coachPlay, handEstimates, BidAdviceAction } from "../engine/coach";
+import { RANK_LABEL, SUIT_SYMBOL } from "../engine/cards";
 import { teamOf } from "../engine/scoring";
 
 export type PlayFocus = "any" | "attack" | "defense";
@@ -147,6 +148,36 @@ export interface PlayExercise {
   reason: string;
 }
 
+export interface PlayGrade {
+  stars: 1 | 2 | 3;
+  title: string;
+  bestId: string;
+}
+
+function cardLbl(c: Card): string {
+  return `${RANK_LABEL[c.rank]}${SUIT_SYMBOL[c.suit]}`;
+}
+
+/**
+ * Note NUANCÉE d'un coup joué (pas un vrai/faux dogmatique). On compare l'espérance
+ * Monte-Carlo de la carte choisie à celle du meilleur coup : si l'écart est faible,
+ * c'est un TRÈS BON coup aussi (plusieurs coups peuvent se valoir). Évite de marquer
+ * « erreur » un coup tout à fait jouable (ex. mener l'atout au Valet quand on est preneur).
+ */
+export function gradePlay(state: GameState, cardId: string): PlayGrade {
+  const cs: GameState = { ...state, settings: { ...state.settings, aiLevel: "expert" } };
+  const { best, outcomes } = analyzePlay(cs, true);
+  const bestLbl = cardLbl(best);
+  const bestO = outcomes.find((o) => o.card.id === best.id);
+  const mine = outcomes.find((o) => o.card.id === cardId);
+  if (cardId === best.id) return { stars: 3, title: "Excellent, c'est le meilleur coup.", bestId: best.id };
+  if (!mine || !bestO) return { stars: 1, title: `Il y avait mieux : ${bestLbl}.`, bestId: best.id };
+  const delta = bestO.scoreDiff - mine.scoreDiff; // écart d'espérance sur la donne (points)
+  if (delta <= 5) return { stars: 3, title: `Très bon coup, aussi solide que ${bestLbl}.`, bestId: best.id };
+  if (delta <= 20) return { stars: 2, title: `Bon coup. ${bestLbl} était un poil plus tranchant.`, bestId: best.id };
+  return { stars: 1, title: `Jouable, mais il y avait mieux : ${bestLbl}.`, bestId: best.id };
+}
+
 /** Avance les enchères avec l'IA jusqu'à la phase de jeu. */
 function runBidding(g: GameState): GameState {
   let s = 0;
@@ -160,11 +191,12 @@ function runBidding(g: GameState): GameState {
   return g;
 }
 
-export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any"): PlayExercise {
+export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any", skip = 0): PlayExercise {
   // Remplissage des IA en "medium" (heuristique, rapide) : Difficile/Expert font
   // du PIMC coûteux. Le coach, lui, évalue toujours en expert.
   const settings: Settings = { ...userSettings, aiLevel: "medium" };
   let anyDecision: PlayExercise | null = null; // repli si le focus n'est jamais satisfait
+  let matchCount = 0; // pour varier : on peut renvoyer la k-ième décision (entame, milieu de pli…)
 
   const matchesFocus = (g: GameState): boolean => {
     if (focus === "any") return true;
@@ -184,8 +216,12 @@ export function genPlayExercise(userSettings: Settings, focus: PlayFocus = "any"
         if (legal.length > 1) {
           const { best, reason } = coachPlay(g);
           const exo: PlayExercise = { kind: "play", state: g, legal, correctId: best.id, reason };
-          if (matchesFocus(g)) return exo; // bon thème : on le renvoie
-          if (!anyDecision) anyDecision = exo; // sinon on le garde en repli
+          if (matchesFocus(g)) {
+            if (matchCount++ === skip) return exo; // la k-ième décision du thème (variété)
+            anyDecision = exo; // sinon on garde la dernière qualifiante
+          } else if (!anyDecision) {
+            anyDecision = exo;
+          }
         }
       }
       g = applyPlay(g, aiPlay(g));
