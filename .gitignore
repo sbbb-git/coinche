@@ -4,3 +4,8 @@ dev-dist
 *.local
 .DS_Store
 .vite
+
+# Signature Android (NE PAS committer)
+coincheur-release.keystore
+android/keystore.properties
+android/local.properties
