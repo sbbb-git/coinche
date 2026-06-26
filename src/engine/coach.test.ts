@@ -158,6 +158,41 @@ describe("coach — enchères", () => {
     const adv = coachBid(stateWithHand(hand), 0);
     expect(adv.action.action).toBe("pass");
   });
+
+  it("produit des explications EN non vides (coachBid / coachPlay en 'en')", () => {
+    // --- Enchère en anglais ---
+    const bidHand = [
+      makeCard("S", "J"),
+      makeCard("S", "9"),
+      makeCard("S", "A"),
+      makeCard("S", "10"),
+      makeCard("S", "K"),
+      makeCard("H", "A"),
+      makeCard("D", "A"),
+      makeCard("C", "7"),
+    ];
+    const bidAdv = coachBid(stateWithHand(bidHand), 0, "en");
+    expect(typeof bidAdv.reason).toBe("string");
+    expect(bidAdv.reason.length).toBeGreaterThan(0);
+    // Un terme EN attendu dans l'explication d'enchère (couleur d'atout / Sans Atout…).
+    expect(bidAdv.reason).toMatch(/trump|Trumps?|No Trump|Spades|Hearts|Diamonds|Clubs|points/);
+
+    // --- Jeu de la carte en anglais ---
+    const playHand = [makeCard("S", "A"), makeCard("H", "K"), makeCard("D", "10")];
+    const g = dealStateFrom(DEFAULT_SETTINGS, 3, [playHand, [], [], []]);
+    const playing: GameState = {
+      ...g,
+      phase: "playing" as const,
+      contract: { value: 80, mode: "S" as const, taker: 0, capot: false, generale: false, coinche: 1 as const },
+      current: 0,
+      trick: [],
+    };
+    expect(isPlayDecision(playing)).toBe(true);
+    const playAdv = coachPlay(playing, "en");
+    expect(typeof playAdv.reason).toBe("string");
+    expect(playAdv.reason.length).toBeGreaterThan(0);
+    expect(playAdv.reason).toMatch(/trick|trump|No Trump|Ace|lead/);
+  });
 });
 
 describe("coach — jeu", () => {

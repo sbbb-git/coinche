@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useGame, HUMAN } from "../state/store";
-import { useT } from "../i18n";
+import { useT, useLang } from "../i18n";
 import {
   BID_VALUES,
   availableModes,
@@ -8,12 +8,13 @@ import {
   canCoinche,
   canSurcoinche,
 } from "../engine/game";
-import { TrumpMode } from "../engine/cards";
+import { TrumpMode, SUIT_LABEL, SUIT_LABEL_EN } from "../engine/cards";
 import { modeLabel } from "./Table";
 import { suitColorClass, suitColorClassDark } from "./Card";
 
 export function BiddingPanel() {
   const t = useT();
+  const lang = useLang((s) => s.lang);
   const game = useGame((s) => s.game);
   const overlay = useGame((s) => s.overlayTrick);
   const bid = useGame((s) => s.bid);
@@ -70,6 +71,7 @@ export function BiddingPanel() {
                   key={m}
                   onClick={() => setMode(m)}
                   aria-pressed={mode === m}
+                  aria-label={lbl.suit ? (lang === "en" ? SUIT_LABEL_EN : SUIT_LABEL)[lbl.suit] : lbl.text}
                   className={[
                     "h-11 flex-1 min-w-11 px-2 rounded-md text-lg font-bold shadow",
                     mode === m ? "bg-yellow-400" : "bg-white/90",

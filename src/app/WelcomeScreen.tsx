@@ -3,7 +3,7 @@ import { useNav } from "./nav";
 import { useGame } from "../state/store";
 import { storage } from "../storage";
 import { AiLevel } from "../engine/game";
-import { useT } from "../i18n";
+import { useT, currentLang, translate } from "../i18n";
 
 const LEVELS: { id: AiLevel; labelKey: string; descKey: string }[] = [
   { id: "easy", labelKey: "welcome.level.easy", descKey: "welcome.level.easy.desc" },
@@ -18,11 +18,15 @@ export function WelcomeScreen() {
   const updateSettings = useGame((s) => s.updateSettings);
   const t = useT();
   const [step, setStep] = useState(0);
-  const [name, setName] = useState(() => storage.loadProfile().name.replace(/^Vous$/, ""));
+  const defaultName = translate(currentLang(), "review.defaultNames.you");
+  const [name, setName] = useState(() => {
+    const loaded = storage.loadProfile().name;
+    return loaded === defaultName ? "" : loaded;
+  });
   const [level, setLevel] = useState<AiLevel>("medium");
 
   const finish = () => {
-    const clean = name.trim() || "Vous";
+    const clean = name.trim() || defaultName;
     storage.saveProfile({ name: clean });
     const pn = game.settings.playerNames;
     updateSettings({ ...game.settings, aiLevel: level, playerNames: [clean, pn[1], pn[2], pn[3]] });

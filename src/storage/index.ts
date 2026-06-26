@@ -4,6 +4,7 @@
 import { BidEntry, DEFAULT_PROFILE, DEFAULT_SETTINGS, GameState, Settings } from "../engine/game";
 import { Card } from "../engine/cards";
 import { Contract, ScoreBreakdown } from "../engine/scoring";
+import { currentLang, translate } from "../i18n";
 
 /** Donne enregistrée, rejouable pour la review. */
 export interface DealRecord {
@@ -212,12 +213,13 @@ class LocalStorage implements Storage {
   }
 
   loadProfile(): LocalProfile {
+    const fallback = translate(currentLang(), "review.defaultNames.you");
     try {
       const raw = localStorage.getItem(PROFILE_KEY);
       const p = raw ? (JSON.parse(raw) as Partial<LocalProfile>) : {};
-      return { name: typeof p.name === "string" && p.name.trim() ? p.name : "Vous" };
+      return { name: typeof p.name === "string" && p.name.trim() ? p.name : fallback };
     } catch {
-      return { name: "Vous" };
+      return { name: fallback };
     }
   }
 

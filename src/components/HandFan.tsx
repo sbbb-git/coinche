@@ -2,6 +2,7 @@ import { useGame, HUMAN } from "../state/store";
 import { PlayingCard } from "./Card";
 import { legalForCurrent } from "../engine/game";
 import { useCompactHeight } from "../app/useMediaQuery";
+import { useT } from "../i18n";
 
 export function HandFan() {
   const game = useGame((s) => s.game);
@@ -9,6 +10,7 @@ export function HandFan() {
   const play = useGame((s) => s.play);
   const hint = useGame((s) => s.hint);
   const compact = useCompactHeight();
+  const t = useT();
 
   const hand = game.hands[HUMAN];
   const myTurn = game.current === HUMAN && game.phase === "playing" && !overlay;
@@ -52,7 +54,7 @@ export function HandFan() {
           })}
           {hand.length === 0 && (
             <div className="grid h-21 place-items-center text-sm text-white/60">
-              En attente de la donne…
+              {t("hand.waiting")}
             </div>
           )}
         </div>

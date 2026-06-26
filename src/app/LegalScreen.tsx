@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ScreenShell } from "./ScreenShell";
+import { useT } from "../i18n";
 
 // Pages légales du site (confidentialité, CGU, mentions), requises pour un site
 // avec mesure d'audience et publicité. Textes FR génériques ; les champs
@@ -7,32 +8,33 @@ import { ScreenShell } from "./ScreenShell";
 
 type Tab = "confidentialite" | "cgu" | "mentions";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "confidentialite", label: "Confidentialité" },
-  { id: "cgu", label: "CGU" },
-  { id: "mentions", label: "Mentions" },
+const TABS: { id: Tab; labelKey: string }[] = [
+  { id: "confidentialite", labelKey: "legal.tab.privacy" },
+  { id: "cgu", labelKey: "legal.tab.terms" },
+  { id: "mentions", labelKey: "legal.tab.mentions" },
 ];
 
 export function LegalScreen() {
   const [tab, setTab] = useState<Tab>("confidentialite");
+  const t = useT();
 
   return (
-    <ScreenShell title="Informations légales">
+    <ScreenShell title={t("legal.title")}>
       <div role="tablist" className="mb-3 flex gap-1 rounded-lg bg-black/30 p-1">
-        {TABS.map((t) => (
+        {TABS.map((tb) => (
           <button
-            key={t.id}
+            key={tb.id}
             role="tab"
-            id={`legaltab-${t.id}`}
-            aria-selected={tab === t.id}
+            id={`legaltab-${tb.id}`}
+            aria-selected={tab === tb.id}
             aria-controls="legal-panel"
-            onClick={() => setTab(t.id)}
+            onClick={() => setTab(tb.id)}
             className={[
               "min-h-11 flex-1 rounded-md py-2 text-sm font-semibold transition",
-              tab === t.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
+              tab === tb.id ? "bg-yellow-400 text-emerald-950" : "text-white/80 hover:bg-white/10",
             ].join(" ")}
           >
-            {t.label}
+            {t(tb.labelKey)}
           </button>
         ))}
       </div>

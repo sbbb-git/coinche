@@ -1,24 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useNav } from "./app/nav";
 import { WelcomeScreen } from "./app/WelcomeScreen";
 import { Home } from "./app/Home";
 import { PlayScreen } from "./app/PlayScreen";
-import { ExercisesScreen } from "./training/ExercisesScreen";
-import { ReviewMyGamesScreen } from "./training/ReviewMyGamesScreen";
-import { LessonsScreen } from "./training/LessonsScreen";
-import { GuidesScreen } from "./training/GuidesScreen";
-import { StatsScreen } from "./training/StatsScreen";
-import { AccountScreen } from "./app/AccountScreen";
-import { LegalScreen } from "./app/LegalScreen";
-import { AboutScreen } from "./app/AboutScreen";
-import { DailyScreen } from "./training/DailyScreen";
-import { CompteurScreen } from "./training/CompteurScreen";
 import { InstallBanner } from "./components/InstallBanner";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { RatePrompt } from "./components/RatePrompt";
 import { WhatsNew } from "./components/WhatsNew";
 import { ConsentBanner } from "./components/ConsentBanner";
 import { unlockAudio } from "./state/feedback";
+
+// Écrans secondaires en chargement différé (code-splitting) : le bundle initial
+// ne contient que l'accueil + la partie ; le reste se charge à la demande, et
+// reste dispo hors-ligne une fois mis en cache par le service worker.
+const ExercisesScreen = lazy(() =>
+  import("./training/ExercisesScreen").then((m) => ({ default: m.ExercisesScreen })),
+);
+const ReviewMyGamesScreen = lazy(() =>
+  import("./training/ReviewMyGamesScreen").then((m) => ({ default: m.ReviewMyGamesScreen })),
+);
+const LessonsScreen = lazy(() =>
+  import("./training/LessonsScreen").then((m) => ({ default: m.LessonsScreen })),
+);
+const GuidesScreen = lazy(() =>
+  import("./training/GuidesScreen").then((m) => ({ default: m.GuidesScreen })),
+);
+const StatsScreen = lazy(() =>
+  import("./training/StatsScreen").then((m) => ({ default: m.StatsScreen })),
+);
+const AccountScreen = lazy(() =>
+  import("./app/AccountScreen").then((m) => ({ default: m.AccountScreen })),
+);
+const LegalScreen = lazy(() =>
+  import("./app/LegalScreen").then((m) => ({ default: m.LegalScreen })),
+);
+const AboutScreen = lazy(() =>
+  import("./app/AboutScreen").then((m) => ({ default: m.AboutScreen })),
+);
+const DailyScreen = lazy(() =>
+  import("./training/DailyScreen").then((m) => ({ default: m.DailyScreen })),
+);
+const CompteurScreen = lazy(() =>
+  import("./training/CompteurScreen").then((m) => ({ default: m.CompteurScreen })),
+);
 
 function CurrentView() {
   const view = useNav((s) => s.view);
@@ -69,7 +93,9 @@ export default function App() {
     <div className="flex h-full flex-col">
       {showInstall && <InstallBanner />}
       <div className="min-h-0 flex-1">
-        <CurrentView />
+        <Suspense fallback={<div className="grid h-full place-items-center text-white/40">…</div>}>
+          <CurrentView />
+        </Suspense>
       </div>
       <OfflineIndicator />
       {view === "home" && <RatePrompt />}

@@ -100,7 +100,7 @@ export default [
       ],
       faq: [
         { q: "Comment faire des équipes à 3 joueurs ?", a: "On ne peut pas former deux paires équilibrées à trois. On joue donc chacun pour soi, ou le preneur joue seul contre les deux autres, parfois aidé d'une main de mort. Ce sont des conventions à fixer avant la partie." },
-        { q: "Le barème change-t-il à 3 joueurs ?", a: "Le barème standard sert de base, mais la donne n'étant pas symétrique, beaucoup de tables ajustent l'objectif de points du preneur. Mettez-vous d'accord avant de jouer." },
+        { q: "Le barème change-t-il à 3 joueurs ?", a: "Le barème standard sert de base, mais la donne n'étant pas symétrique, beaucoup de tables ajustent l'objectif de points du preneur. Mets-toi d'accord avec tes partenaires avant de jouer." },
       ],
       related: ["var-2-joueurs", "var-5-joueurs", "lex-generale"],
     },
@@ -539,7 +539,7 @@ export default [
       ],
       faq: [
         { q: "Qu'est-ce que la contrée bridgée ?", a: "C'est une variante de coinche dont les enchères s'inspirent du bridge : plus descriptives et codifiées, elles servent à décrire sa main au partenaire plutôt qu'à seulement annoncer un nombre de points." },
-        { q: "Faut-il connaître le bridge pour y jouer ?", a: "Ce n'est pas obligatoire, mais ça aide beaucoup. La variante demande des conventions d'enchères claires et partagées. Comme il n'existe pas de système unique, accordez-vous sur les codes avant de jouer." },
+        { q: "Faut-il connaître le bridge pour y jouer ?", a: "Ce n'est pas obligatoire, mais ça aide beaucoup. La variante demande des conventions d'enchères claires et partagées. Comme il n'existe pas de système unique, mets-toi d'accord sur les codes avant de jouer." },
       ],
       related: ["var-marseillaise", "var-belote-coinchee", "var-annonces-declarees"],
     },
@@ -600,7 +600,7 @@ export default [
       ],
       faq: [
         { q: "Peut-on annoncer une tierce ou un carré à la coinche ?", a: "Pas dans la coinche standard. Certaines tables ajoutent les annonces de combinaisons héritées de la belote, mais c'est une convention non officielle à fixer avant de jouer." },
-        { q: "Combien valent ces annonces ?", a: "Avec les valeurs de belote classique, une tierce vaut 20, une cinquante 50, une cent 100, et un carré une valeur variable selon le rang. Ces barèmes ne sont pas officiels en coinche, accordez-vous dessus." },
+        { q: "Combien valent ces annonces ?", a: "Avec les valeurs de belote classique, une tierce vaut 20, une cinquante 50, une cent 100, et un carré une valeur variable selon le rang. Ces barèmes ne sont pas officiels en coinche, mets-toi d'accord dessus avec tes partenaires." },
       ],
       related: ["var-belote-coinchee", "var-contree-bridgee", "lex-capot"],
     },

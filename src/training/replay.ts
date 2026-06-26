@@ -18,7 +18,7 @@ import {
 import { coachBid, coachPlay, isPlayDecision } from "../engine/coach";
 import { Team } from "../engine/scoring";
 import { DealRecord } from "../storage";
-import { currentLang } from "../i18n";
+import { currentLang, translate } from "../i18n";
 
 export interface ReviewPoint {
   phase: "bid" | "play";
@@ -49,10 +49,16 @@ function cardLabel(c: Card): string {
   return `${RANK_LABEL[c.rank]}${SUIT_SYMBOL[c.suit]}`;
 }
 function bidEntryLabel(b: BidEntry): string {
-  if (b.kind === "pass") return "Passer";
-  if (b.kind === "coinche") return "Coincher";
-  if (b.kind === "surcoinche") return "Surcoincher";
-  return `${b.generale ? "Générale" : b.capot ? "Capot" : b.value} ${modeText(b.mode!)}`;
+  const lang = currentLang();
+  if (b.kind === "pass") return translate(lang, "replay.pass");
+  if (b.kind === "coinche") return translate(lang, "replay.coinche");
+  if (b.kind === "surcoinche") return translate(lang, "replay.surcoinche");
+  const value = b.generale
+    ? translate(lang, "replay.generale")
+    : b.capot
+      ? translate(lang, "replay.capot")
+      : b.value;
+  return `${value} ${modeText(b.mode!)}`;
 }
 function applyEntry(g: GameState, b: BidEntry): GameState {
   if (b.kind === "bid") return applyBid(g, b.value!, b.mode!, !!b.capot, !!b.generale);
@@ -125,14 +131,23 @@ export function fullReplay(rec: DealRecord): FullReplay {
     cumul.push([acc[0], acc[1]]);
   });
 
+  const lang = currentLang();
   const c = rec.contract;
+  const contractValue = c
+    ? c.generale
+      ? translate(lang, "replay.generale")
+      : c.capot
+        ? translate(lang, "replay.capot")
+        : c.value
+    : null;
   const contractLabel = c
-    ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}${
+    ? `${contractValue} ${modeText(c.mode)}${
         c.coinche > 1 ? (c.coinche === 4 ? " ×4" : " ×2") : ""
       }`
     : "-";
   const made = rec.result?.made;
-  const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
+  const resultLabel =
+    made === undefined ? "" : made ? translate(lang, "replay.made") : translate(lang, "replay.failed");
 
   return {
     hands: rec.dealtHands,
@@ -151,20 +166,24 @@ export function fullReplay(rec: DealRecord): FullReplay {
 /** Export texte lisible d'une donne (mains, enchères, plis) + JSON exact en fin,
  *  pour la partager / la coller dans une analyse. */
 export function exportDealText(rec: DealRecord): string {
+  const lang = currentLang();
+  const locale = lang === "en" ? "en-GB" : "fr-FR";
   const names = mergedSettings(rec).playerNames;
   const r = fullReplay(rec);
   const L: string[] = [];
-  L.push(`Coinche, donne du ${new Date(rec.ts).toLocaleString("fr-FR")}`);
+  L.push(translate(lang, "export.header", { date: new Date(rec.ts).toLocaleString(locale) }));
   L.push(`Contrat : ${r.contractLabel} par ${names[r.taker]}, ${r.resultLabel} (${r.scores[0]}-${r.scores[1]})`);
   L.push("");
-  L.push("Mains initiales :");
+  L.push(translate(lang, "export.hands"));
   for (let p = 0; p < 4; p++) {
-    L.push(`  ${names[p]}${p === r.taker ? " (preneur)" : ""} : ${r.hands[p].map(cardLabel).join(" ")}`);
+    L.push(
+      `  ${names[p]}${p === r.taker ? translate(lang, "export.taker") : ""} : ${r.hands[p].map(cardLabel).join(" ")}`,
+    );
   }
   L.push("");
-  L.push("Enchères : " + r.bids.map((b) => `${names[b.player]} ${b.text}`).join(" · "));
+  L.push(translate(lang, "export.bids") + r.bids.map((b) => `${names[b.player]} ${b.text}`).join(" · "));
   L.push("");
-  L.push("Plis :");
+  L.push(translate(lang, "export.tricks"));
   r.tricks.forEach((t, i) => {
     const cards = t.played.map((p) => `${names[p.player]}:${cardLabel(p.card)}`).join("  ");
     L.push(`  ${i + 1}. ${cards}  → ${names[t.winner]} (+${t.points}${t.lastDix ? " +10 der" : ""})`);
@@ -192,7 +211,9 @@ export function reviewDeal(rec: DealRecord): DealReview {
     if (g.phase === "bidding" && g.current === 0 && b.player === 0 && (b.kind === "bid" || b.kind === "pass")) {
       const adv = coachBid(g, 0, currentLang());
       const best =
-        adv.action.action === "pass" ? "Passer" : `${adv.action.value} ${modeText(adv.action.mode)}`;
+        adv.action.action === "pass"
+          ? translate(currentLang(), "replay.bestBid")
+          : `${adv.action.value} ${modeText(adv.action.mode)}`;
       const good =
         adv.action.action === "pass"
           ? b.kind === "pass"
@@ -226,10 +247,19 @@ export function reviewDeal(rec: DealRecord): DealReview {
     if (g === prev) break; // coup rejeté (illégal/corrompu) : on s'arrête proprement
   }
 
+  const lang = currentLang();
   const c = rec.contract;
-  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "-";
+  const contractValue = c
+    ? c.generale
+      ? translate(lang, "replay.generale")
+      : c.capot
+        ? translate(lang, "replay.capot")
+        : c.value
+    : null;
+  const contractLabel = c ? `${contractValue} ${modeText(c.mode)}` : "-";
   const made = rec.result?.made;
-  const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
+  const resultLabel =
+    made === undefined ? "" : made ? translate(lang, "replay.made") : translate(lang, "replay.failed");
 
   return {
     points,
@@ -264,7 +294,9 @@ export async function reviewDealAsync(rec: DealRecord): Promise<DealReview> {
     if (g.phase === "bidding" && g.current === 0 && b.player === 0 && (b.kind === "bid" || b.kind === "pass")) {
       const adv = coachBid(g, 0, currentLang());
       const best =
-        adv.action.action === "pass" ? "Passer" : `${adv.action.value} ${modeText(adv.action.mode)}`;
+        adv.action.action === "pass"
+          ? translate(currentLang(), "replay.bestBid")
+          : `${adv.action.value} ${modeText(adv.action.mode)}`;
       const good =
         adv.action.action === "pass"
           ? b.kind === "pass"
@@ -298,10 +330,19 @@ export async function reviewDealAsync(rec: DealRecord): Promise<DealReview> {
     if (g === prev) break;
   }
 
+  const lang = currentLang();
   const c = rec.contract;
-  const contractLabel = c ? `${c.generale ? "Générale" : c.capot ? "Capot" : c.value} ${modeText(c.mode)}` : "-";
+  const contractValue = c
+    ? c.generale
+      ? translate(lang, "replay.generale")
+      : c.capot
+        ? translate(lang, "replay.capot")
+        : c.value
+    : null;
+  const contractLabel = c ? `${contractValue} ${modeText(c.mode)}` : "-";
   const made = rec.result?.made;
-  const resultLabel = made === undefined ? "" : made ? "Contrat réussi" : "Chute";
+  const resultLabel =
+    made === undefined ? "" : made ? translate(lang, "replay.made") : translate(lang, "replay.failed");
 
   return {
     points,

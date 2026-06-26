@@ -2,7 +2,7 @@ import { useNav, View } from "./nav";
 import { storage } from "../storage";
 import { useDaily } from "../state/daily";
 import { AdSlot } from "../components/AdSlot";
-import { useT } from "../i18n";
+import { useT, useLang } from "../i18n";
 
 const TILES: { view: View; emoji: string; key: string }[] = [
   { view: "play", emoji: "🃏", key: "play" },
@@ -16,6 +16,8 @@ const TILES: { view: View; emoji: string; key: string }[] = [
 export function Home() {
   const go = useNav((s) => s.go);
   const t = useT();
+  const lang = useLang((s) => s.lang);
+  const learnHref = lang === "en" ? "/en/learn-coinche.html" : "/apprendre-la-coinche.html";
   const name = storage.loadProfile().name;
   return (
     <div className="safe-top safe-bottom mx-auto flex h-full w-full max-w-md flex-col px-5 py-4">
@@ -54,7 +56,7 @@ export function Home() {
         <p className="text-[11px] text-white/55">{t("home.offline")}</p>
         <div className="mt-1 flex flex-wrap justify-center gap-1">
           <a
-            href="/apprendre-la-coinche.html"
+            href={learnHref}
             className="flex min-h-11 items-center rounded-lg px-4 text-xs font-semibold text-white/70 hover:bg-white/10"
           >
             {t("home.learn")}

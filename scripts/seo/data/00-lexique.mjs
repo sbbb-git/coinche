@@ -93,7 +93,7 @@ export default [
         },
         {
           h2: "Combien ça vaut ?",
-          html: "<p>La générale rapporte généralement <strong>500 points</strong> (le double du capot), mais le barème dépend des conventions locales. Comme c'est une annonce rare et risquée, mettez-vous d'accord avant la partie.</p>",
+          html: "<p>La générale rapporte généralement <strong>500 points</strong> (le double du capot), mais le barème dépend des conventions locales. Comme c'est une annonce rare et risquée, conviens des règles avec tes partenaires avant la partie.</p>",
         },
         {
           h2: "Générale ou capot ?",

@@ -69,7 +69,7 @@ function Seat({ game, seat, thinking }: { game: GameState; seat: number; thinkin
         ].join(" ")}
       >
         <span className={isPartner ? "text-sky-300" : ""}>{name}</span>
-        {isTaker && <span title={t("table.taker")}>👑</span>}
+        {isTaker && <span role="img" aria-label={t("table.taker")}>👑</span>}
         {isCurrent && thinking && <span className="animate-pulse">…</span>}
       </div>
       {bid && (

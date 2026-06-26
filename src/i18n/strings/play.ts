@@ -64,6 +64,9 @@ export const play: Namespace = {
 
     // Card
     "card.label": "{rank} de {suit}",
+
+    // HandFan
+    "hand.waiting": "En attente de la donne…",
   },
   en: {
     "play.leave.title": "Leave the game?",
@@ -80,14 +83,14 @@ export const play: Namespace = {
     "bid.increase": "Raise the bid",
     "bid.announce": "Bid {value} {mode}",
     "bid.coinche": "Double",
-    "bid.generale": "Slam {mode}",
+    "bid.generale": "Générale {mode}",
     "bid.pass": "Pass",
     "bid.coinchePrompt": "✊ Double!",
 
     "score.home": "Home",
     "score.menu": "Menu",
     "score.contract": "Contract",
-    "score.generale": "Slam",
+    "score.generale": "Générale",
     "score.capot": "Capot",
     "score.bidding": "Bidding",
     "score.coincheur": "Coincheur",
@@ -108,7 +111,7 @@ export const play: Namespace = {
     "coach.pass": "passes",
     "coach.coinche": "doubles",
     "coach.surcoinche": "redoubles",
-    "coach.generale": "Slam",
+    "coach.generale": "Générale",
     "coach.capot": "Capot",
 
     "table.noTrump": "No Trump",
@@ -121,5 +124,8 @@ export const play: Namespace = {
     "table.taker": "Taker",
 
     "card.label": "{rank} of {suit}",
+
+    // HandFan
+    "hand.waiting": "Waiting for the deal…",
   },
 };

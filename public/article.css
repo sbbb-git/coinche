@@ -16,7 +16,7 @@ p, li { font-size: 1.02rem; }
 table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: .98rem; }
 th, td { border: 1px solid rgba(255,255,255,.16); padding: 8px 10px; text-align: left; }
 th { background: rgba(255,255,255,.08); }
-.muted { color: #b6d3c4; font-size: .9rem; }
+.muted { color: #cfe6da; font-size: .9rem; }
 .box { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 14px 16px; margin: 1.2em 0; }
 nav.related { margin-top: 1em; }
 nav.related a { display: block; padding: 7px 0; }
@@ -26,9 +26,9 @@ footer a { color: #cfe; }
 /* Bandeau de consentement (pages statiques, affiché seulement si pub activée) */
 .cc { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; margin: 0 auto; max-width: 640px;
   background: rgba(24,24,27,.97); color: #eaf3ee; border: 1px solid rgba(255,255,255,.15);
-  border-radius: 14px 14px 0 0; padding: 12px 16px; font-size: .92rem; box-shadow: 0 -6px 24px rgba(0,0,0,.35); }
+  border-radius: 14px 14px 0 0; padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom)); font-size: .92rem; box-shadow: 0 -6px 24px rgba(0,0,0,.35); }
 .cc p { margin: 0 0 8px; }
 .cc .cc-b { display: flex; gap: 8px; }
-.cc .cc-b button { min-height: 40px; flex: 1; border: 0; border-radius: 10px; font-weight: 700; cursor: pointer; }
+.cc .cc-b button { min-height: 44px; flex: 1; border: 0; border-radius: 10px; font-weight: 700; cursor: pointer; }
 .cc .cc-b #cc-y { background: #ffd84d; color: #063; }
 .cc .cc-b #cc-n { background: rgba(255,255,255,.15); color: #fff; }

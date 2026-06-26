@@ -6,6 +6,7 @@ import { TrainTabs } from "./TrainTabs";
 import { useGame } from "../state/store";
 import { useStats } from "../state/stats";
 import { PlayingCard, suitColorClass, suitColorClassDark } from "../components/Card";
+import { AdSlot } from "../components/AdSlot";
 import { modeLabel } from "../components/Table";
 import { availableModes } from "../engine/game";
 import { Card, TrumpMode } from "../engine/cards";
@@ -43,6 +44,7 @@ export function ExercisesScreen() {
       <div role="tabpanel" id="exo-panel" aria-labelledby={`exo-tab-${kind}`}>
         {kind === "bid" ? <BidTrainer /> : <PlayTrainer />}
       </div>
+      <AdSlot placement="exercises" className="mt-4" />
     </ScreenShell>
   );
 }
@@ -274,18 +276,28 @@ function PlayTrainer() {
   const [grade, setGrade] = useState<PlayGrade | null>(null);
 
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  // genPlayExercise() lance des simulations PIMC : on le sort du rendu
+  // (setTimeout 0) pour laisser peindre et éviter de geler le thread.
   const next = () => {
     setPickedId(null);
     setGrade(null);
-    try {
-      setEx(genPlayExercise(settings, focus));
-      setError(false);
-    } catch {
-      setEx(null);
-      setError(true);
-    }
+    setError(false);
+    setLoading(true);
+    setEx(null);
+    setTimeout(() => {
+      try {
+        setEx(genPlayExercise(settings, focus));
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }, 0);
   };
   useEffect(next, [settings, focus]);
+  if (loading)
+    return <p className="mt-6 text-center text-sm text-white/70" aria-live="polite">{t("review.analyzing")}</p>;
   if (error)
     return (
       <p className="mt-6 text-center text-sm text-white/70">

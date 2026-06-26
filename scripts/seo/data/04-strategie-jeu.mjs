@@ -270,7 +270,7 @@ export default [
         },
         {
           h2: "Rester prudent",
-          html: "<ul><li>Les signaux sont des <strong>conventions de table</strong> : mettez-vous d'accord avant.</li><li>L'adversaire lit aussi tes cartes : un signal renseigne tout le monde.</li><li>Le contrat passe avant le signal : ne sacrifie pas un pli juste pour « parler ».</li></ul>",
+          html: "<ul><li>Les signaux sont des <strong>conventions de table</strong> : mets-toi d'accord avec ton partenaire avant.</li><li>L'adversaire lit aussi tes cartes : un signal renseigne tout le monde.</li><li>Le contrat passe avant le signal : ne sacrifie pas un pli juste pour « parler ».</li></ul>",
         },
       ],
       faq: [
@@ -397,7 +397,7 @@ export default [
       ],
       faq: [
         { q: "Comment faire chuter le preneur à la coinche ?", a: "En l'empêchant d'atteindre son contrat : encaisse tes cartes maîtres avant qu'il purge les atouts, arrache-lui des points et coordonne-toi avec ton partenaire." },
-        { q: "Faut-il mettre ses points sur les plis du partenaire ?", a: "Oui, quand ton partenaire est déjà maître du pli, glisser un dix ou un as dessous fait monter votre total défensif sans risque." },
+        { q: "Faut-il mettre ses points sur les plis du partenaire ?", a: "Oui, quand ton partenaire est déjà maître du pli, glisser un dix ou un as dessous fait monter ton total défensif sans risque." },
       ],
       related: ["jeu-signaler-partenaire", "jeu-cartes-maitresses", "jeu-petit-pour-partenaire"],
     },

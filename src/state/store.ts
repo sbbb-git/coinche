@@ -22,9 +22,26 @@ import { PlayedCard } from "../engine/rules";
 import { loadInitialSettings, loadResumableGame, storage } from "../storage";
 import { feedback } from "./feedback";
 import { review } from "../review";
-import { currentLang } from "../i18n";
+import { currentLang, translate } from "../i18n";
 
 export const HUMAN = 0; // le joueur humain est toujours le siège 0 (en bas)
+
+/** Seede les noms de sièges selon la langue courante au démarrage d'une partie :
+ *  le siège humain garde le nom du profil, les IA prennent les noms par défaut
+ *  localisés (West/North/East ou Ouest/Nord/Est). */
+function localizedPlayerNames(settings: Settings): Settings {
+  const lang = currentLang();
+  const human = storage.loadProfile().name;
+  return {
+    ...settings,
+    playerNames: [
+      human,
+      translate(lang, "review.defaultNames.west"),
+      translate(lang, "review.defaultNames.north"),
+      translate(lang, "review.defaultNames.east"),
+    ],
+  };
+}
 
 interface Store {
   game: GameState;
@@ -176,7 +193,7 @@ export const useGame = create<Store>((set, get) => {
 
   return {
     // Reprise : on restaure la partie en cours si une donne n'était pas finie.
-    game: loadResumableGame() ?? newGame(loadInitialSettings()),
+    game: loadResumableGame() ?? newGame(localizedPlayerNames(loadInitialSettings())),
     thinking: false,
     overlayTrick: null,
     hint: null,
@@ -184,7 +201,7 @@ export const useGame = create<Store>((set, get) => {
 
     startNewGame: (settings) => {
       clearAiTimer();
-      const s = settings ?? get().game.settings;
+      const s = localizedPlayerNames(settings ?? get().game.settings);
       storage.saveSettings(s); // persiste les réglages choisis
       set({ game: newGame(s), overlayTrick: null, hint: null, hintLoading: false });
       scheduleAI();

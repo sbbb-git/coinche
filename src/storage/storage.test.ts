@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { storage, loadResumableGame, DealRecord } from "./index";
 import { DEFAULT_SETTINGS } from "../engine/game";
+import { translate, currentLang } from "../i18n";
+
+// Nom de siège par défaut (dépend de la langue détectée : « Moi » / « Me »).
+const DEFAULT_NAME = () => translate(currentLang(), "review.defaultNames.you");
 
 // localStorage en mémoire pour l'environnement de test (node).
 function installLocalStorage() {
@@ -84,12 +88,12 @@ describe("persistance locale", () => {
     storage.saveProfile({ name: "X" });
     storage.setLessonDone("bases");
     storage.clearAll();
-    expect(storage.loadProfile().name).toBe("Vous");
+    expect(storage.loadProfile().name).toBe(DEFAULT_NAME());
     expect(storage.loadDoneLessons()).toEqual([]);
   });
 
   it("profil local : aller-retour + défaut", () => {
-    expect(storage.loadProfile().name).toBe("Vous"); // défaut
+    expect(storage.loadProfile().name).toBe(DEFAULT_NAME()); // défaut (langue courante)
     storage.saveProfile({ name: "Sacha" });
     expect(storage.loadProfile().name).toBe("Sacha");
   });

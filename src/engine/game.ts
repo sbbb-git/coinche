@@ -97,7 +97,7 @@ export const DEFAULT_SETTINGS: Settings = {
   preselectPlayable: true,
   showLiveScores: true,
   trumpHelper: false,
-  playerNames: ["Vous", "Ouest", "Nord", "Est"],
+  playerNames: ["Moi", "Ouest", "Nord", "Est"],
 };
 
 /** Durée des pauses selon la vitesse de jeu choisie. */

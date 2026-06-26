@@ -26,8 +26,8 @@ const AHREFS = '<script src="https://analytics.ahrefs.com/analytics.js" data-key
 const ADSENSE_CLIENT = /^ca-pub-\d+$/.test(process.env.ADSENSE_CLIENT || "") ? process.env.ADSENSE_CLIENT : "";
 
 const CC_TXT = {
-  fr: { text: "On utilise des cookies pour la mesure d'audience et la publicité.", more: "En savoir plus", yes: "Accepter", no: "Refuser" },
-  en: { text: "We use cookies for analytics and advertising.", more: "Learn more", yes: "Accept", no: "Refuse" },
+  fr: { text: "On utilise des cookies de mesure d'audience et de publicité pour améliorer le jeu et le garder gratuit.", more: "En savoir plus", yes: "Accepter", no: "Refuser", priv: "/privacy.html" },
+  en: { text: "We use analytics and advertising cookies to improve the game and keep it free.", more: "Learn more", yes: "Accept", no: "Decline", priv: "/en/privacy.html" },
 };
 
 /** Loader AdSense (head), chargé seulement si consentement déjà donné. */
@@ -40,7 +40,7 @@ function adsHead() {
 function adsBanner(lang) {
   if (!ADSENSE_CLIENT) return "";
   const x = CC_TXT[lang] || CC_TXT.fr;
-  return `\n    <div id="cc" class="cc" hidden role="dialog" aria-label="${esc(x.text)}"><p>${esc(x.text)} <a href="/privacy.html">${esc(x.more)}</a></p><div class="cc-b"><button id="cc-y">${esc(x.yes)}</button><button id="cc-n">${esc(x.no)}</button></div></div>\n    <script>(function(){try{var c=localStorage.getItem('cookie-consent');if(c)return;var el=document.getElementById('cc');el.hidden=false;function load(){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}';document.head.appendChild(s);}document.getElementById('cc-y').onclick=function(){localStorage.setItem('cookie-consent','granted');el.hidden=true;load();};document.getElementById('cc-n').onclick=function(){localStorage.setItem('cookie-consent','denied');el.hidden=true;};}catch(e){}})();</script>`;
+  return `\n    <div id="cc" class="cc" hidden role="dialog" aria-modal="true" tabindex="-1" aria-label="${esc(x.text)}"><p>${esc(x.text)} <a href="${esc(x.priv)}">${esc(x.more)}</a></p><div class="cc-b"><button id="cc-y">${esc(x.yes)}</button><button id="cc-n">${esc(x.no)}</button></div></div>\n    <script>(function(){try{var c=localStorage.getItem('cookie-consent');if(c)return;var el=document.getElementById('cc');el.hidden=false;document.getElementById('cc-y').focus();function load(){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}';document.head.appendChild(s);}function deny(){localStorage.setItem('cookie-consent','denied');el.hidden=true;}document.getElementById('cc-y').onclick=function(){localStorage.setItem('cookie-consent','granted');el.hidden=true;load();};document.getElementById('cc-n').onclick=deny;el.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();deny();}});}catch(e){}})();</script>`;
 }
 
 // Pages écrites à la main (cornerstone) — listées dans les hubs et le sitemap.
@@ -56,9 +56,31 @@ const CORNERSTONE = [
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+// Garde-fou anti-injection : le HTML des sections/lead/cta est inséré tel quel
+// dans la page. On interdit donc tout vecteur de script/XSS.
+function sanitizeHtml(s, where = "contenu") {
+  const str = String(s);
+  if (/<script/i.test(str)) throw new Error(`HTML interdit (<script) dans ${where}: ${str.slice(0, 80)}`);
+  if (/javascript:/i.test(str)) throw new Error(`HTML interdit (javascript:) dans ${where}: ${str.slice(0, 80)}`);
+  if (/on\w+\s*=/i.test(str)) throw new Error(`HTML interdit (attribut on...=) dans ${where}: ${str.slice(0, 80)}`);
+  return str;
+}
+
+// JSON-LD inséré dans un <script> : on neutralise les </script> éventuels.
+const jsonLd = (obj) => JSON.stringify(obj).replace(/<\/script>/gi, "<\\/script>");
+
+// Valide les champs requis d'un article pour une langue donnée.
+function validateContent(c, lang, id) {
+  if (!c || typeof c !== "object") throw new Error(`Article ${id} (${lang}): contenu manquant`);
+  for (const field of ["h1", "title", "description", "lead"]) {
+    if (!c[field] || typeof c[field] !== "string") throw new Error(`Article ${id} (${lang}): champ requis manquant ou invalide: ${field}`);
+  }
+  if (!Array.isArray(c.sections)) throw new Error(`Article ${id} (${lang}): "sections" doit être un tableau`);
+}
+
 const L = {
-  fr: { play: "Jouer", see: "À lire aussi", faq: "Questions fréquentes", guides: "Tous les guides", priv: "Confidentialité", hub: "/apprendre-la-coinche.html" },
-  en: { play: "Play", see: "See also", faq: "FAQ", guides: "All guides", priv: "Privacy", hub: "/en/learn-coinche.html" },
+  fr: { play: "Jouer", see: "À lire aussi", faq: "Questions fréquentes", guides: "Tous les guides", priv: "Confidentialité", privHref: "/privacy.html", hub: "/apprendre-la-coinche.html" },
+  en: { play: "Play", see: "See also", faq: "FAQ", guides: "All guides", priv: "Privacy", privHref: "/en/privacy.html", hub: "/en/learn-coinche.html" },
 };
 
 function pageUrl(lang, slug) {
@@ -72,11 +94,16 @@ function relHref(lang, slug) {
 }
 
 function renderArticle(art, lang, idToSlug) {
+  // Validation des deux langues avant tout rendu (fr ET en).
+  validateContent(art.fr, "fr", art.id);
+  validateContent(art.en, "en", art.id);
   const c = art[lang];
   const t = L[lang];
   const fr = art.fr, en = art.en;
   const url = pageUrl(lang, c.slug);
-  const sections = c.sections.map((s) => `\n      <h2>${esc(s.h2)}</h2>\n      ${s.html}`).join("\n");
+  const sections = c.sections
+    .map((s) => `\n      <h2>${esc(s.h2)}</h2>\n      ${sanitizeHtml(s.html, `${art.id}/${lang}/section`)}`)
+    .join("\n");
   const faq = (c.faq || []).length
     ? `\n      <h2>${t.faq}</h2>${c.faq.map((f) => `\n      <h3>${esc(f.q)}</h3>\n      <p>${esc(f.a)}</p>`).join("")}`
     : "";
@@ -90,13 +117,13 @@ function renderArticle(art, lang, idToSlug) {
     .join("");
   const relatedBlock = related ? `\n      <h2>${t.see}</h2>\n      <nav class="related">${related}\n      </nav>` : "";
   const faqLd = (c.faq || []).length
-    ? `\n    <script type="application/ld+json">${JSON.stringify({
+    ? `\n    <script type="application/ld+json">${jsonLd({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         mainEntity: c.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}</script>`
     : "";
-  const articleLd = `\n    <script type="application/ld+json">${JSON.stringify({
+  const articleLd = `\n    <script type="application/ld+json">${jsonLd({
     "@context": "https://schema.org",
     "@type": "Article",
     headline: c.h1,
@@ -113,7 +140,7 @@ function renderArticle(art, lang, idToSlug) {
 <html lang="${lang}">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>${esc(c.title)} — Coincheur</title>
     <meta name="description" content="${esc(c.description)}" />
     <link rel="canonical" href="${url}" />
@@ -134,13 +161,13 @@ function renderArticle(art, lang, idToSlug) {
     </header>
     <main class="wrap">
       <h1>${esc(c.h1)}</h1>
-      <p class="muted">${c.lead}</p>
+      <p class="muted">${sanitizeHtml(c.lead, `${art.id}/${lang}/lead`)}</p>
 ${sections}
-      <div class="box">${c.cta || (lang === "fr"
+      <div class="box">${c.cta ? sanitizeHtml(c.cta, `${art.id}/${lang}/cta`) : (lang === "fr"
         ? `Envie de t'entraîner&nbsp;? Joue gratuitement à la coinche contre des IA paramétrables sur <a href="/">Coincheur</a>.`
         : `Want to practise? Play coinche for free against tunable AIs on <a href="/?lang=en">Coincheur</a>.`)}</div>${relatedBlock}${faq}
       <footer>
-        © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${playHref}">${t.play}</a> · <a href="/privacy.html">${t.priv}</a>
+        © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${playHref}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
     </main>${adsBanner(lang)}
   </body>
@@ -158,10 +185,13 @@ function renderHub(lang, cats, idToSlug) {
     ? "Tous nos guides pour apprendre la coinche (contrée) : règles, annonces, comptage des points, stratégie, variantes et lexique. Du débutant au joueur confirmé."
     : "All our guides to learn coinche (French belote variant): rules, bidding, scoring, strategy, variants and glossary. From beginner to advanced.";
   const url = isFr ? `${SITE}/apprendre-la-coinche.html` : `${SITE}/en/learn-coinche.html`;
-  const corner = CORNERSTONE.map(
-    (c) => `\n        <a href="/${isFr ? c.slug : c.slug}">${esc(isFr ? c.fr : c.en)}</a>`
-  ).join("");
-  const cornerTitle = isFr ? "Les essentiels" : "The essentials";
+  // Les pages cornerstone n'existent qu'en FR : on n'affiche le bloc « essentiels »
+  // que sur le hub FR pour éviter des liens morts sur le hub EN.
+  const cornerBlock = isFr
+    ? `\n      <h2>Les essentiels</h2>\n      <nav class="related">${CORNERSTONE.map(
+        (c) => `\n        <a href="/${c.slug}">${esc(c.fr)}</a>`
+      ).join("")}\n      </nav>`
+    : "";
   const blocks = cats
     .map((cat) => {
       const links = cat.items
@@ -180,7 +210,7 @@ function renderHub(lang, cats, idToSlug) {
 <html lang="${lang}">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>${esc(title)} — Coincheur</title>
     <meta name="description" content="${esc(desc)}" />
     <link rel="canonical" href="${url}" />
@@ -193,7 +223,7 @@ function renderHub(lang, cats, idToSlug) {
     <meta property="og:url" content="${url}" />
     <meta property="og:image" content="${SITE}/icon-512.png" />
     <link rel="stylesheet" href="/article.css" />
-    ${AHREFS}
+    ${AHREFS}${adsHead()}
   </head>
   <body>
     <header class="top">
@@ -203,12 +233,10 @@ function renderHub(lang, cats, idToSlug) {
       <h1>${esc(title)}</h1>
       <p class="muted">${isFr
         ? "Le centre de ressources Coincheur. Choisis un thème et progresse à ton rythme — règles, annonces, comptage, stratégie, variantes, lexique."
-        : "The Coincheur resource center. Pick a topic and progress at your pace — rules, bidding, scoring, strategy, variants, glossary."}</p>
-      <h2>${cornerTitle}</h2>
-      <nav class="related">${corner}\n      </nav>
+        : "The Coincheur resource center. Pick a topic and progress at your pace — rules, bidding, scoring, strategy, variants, glossary."}</p>${cornerBlock}
 ${blocks}
       <footer>
-        © Coincheur · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="/privacy.html">${t.priv}</a>
+        © Coincheur · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
     </main>${adsBanner(lang)}
   </body>
@@ -217,7 +245,7 @@ ${blocks}
 }
 
 function renderSitemap(arts) {
-  const today = "2026-06-26";
+  const today = new Date().toISOString().slice(0, 10);
   const rows = [];
   rows.push(`  <url><loc>${SITE}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`);
   rows.push(`  <url><loc>${SITE}/apprendre-la-coinche.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`);

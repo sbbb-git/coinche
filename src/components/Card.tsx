@@ -79,9 +79,9 @@ export function PlayingCard({ card, size = "md", playable, highlight = true, dim
         onClick && !playable ? "cursor-not-allowed" : "",
       ].join(" ")}
     >
-      <span className="font-bold self-start">{rank}</span>
-      <span className={`absolute inset-0 grid place-items-center ${SYM_SIZE[size]}`}>{sym}</span>
-      <span className="font-bold self-end rotate-180">{rank}</span>
+      <span aria-hidden="true" className="font-bold self-start">{rank}</span>
+      <span aria-hidden="true" className={`absolute inset-0 grid place-items-center ${SYM_SIZE[size]}`}>{sym}</span>
+      <span aria-hidden="true" className="font-bold self-end rotate-180">{rank}</span>
     </button>
   );
 }
@@ -90,6 +90,7 @@ export function PlayingCard({ card, size = "md", playable, highlight = true, dim
 export function CardBack({ size = "sm" }: { size?: "sm" | "md" | "lg" }) {
   return (
     <div
+      aria-hidden="true"
       className={[
         SIZES[size],
         "bg-gradient-to-br from-emerald-800 to-emerald-950 border border-emerald-700 shadow",

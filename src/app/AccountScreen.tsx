@@ -3,7 +3,7 @@ import { ScreenShell } from "./ScreenShell";
 import { useNav } from "./nav";
 import { useGame } from "../state/store";
 import { storage } from "../storage";
-import { useT } from "../i18n";
+import { useT, currentLang, translate } from "../i18n";
 
 export function AccountScreen() {
   const game = useGame((s) => s.game);
@@ -15,7 +15,7 @@ export function AccountScreen() {
   // On ne persiste qu'au blur (sortie du champ) pour éviter de re-render toute la
   // partie à chaque frappe.
   const commitName = () => {
-    const clean = name.trim() || "Vous";
+    const clean = name.trim() || translate(currentLang(), "review.defaultNames.you");
     if (clean !== name) setName(clean);
     storage.saveProfile({ name: clean });
     const pn = game.settings.playerNames;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useGame } from "../state/store";
 import { useNav } from "../app/nav";
 import { useFocusTrap } from "../app/useFocusTrap";
@@ -61,7 +61,7 @@ export function DealResultModal() {
   const defTeam = (1 - takerTeam) as 0 | 1;
   const takerName = n[c.taker];
   const teamName = (t: 0 | 1) => `${n[t === 0 ? 0 : 1]} & ${n[t === 0 ? 2 : 3]}`;
-  const target = c.generale ? "Générale" : c.capot ? "Capot" : c.value;
+  const target = c.generale ? t("score.generale") : c.capot ? t("score.capot") : c.value;
   const mult = c.coinche > 1 ? (c.coinche === 4 ? " ×4" : " ×2") : "";
 
   return (
@@ -531,6 +531,7 @@ function Slider({
   onChange: (v: number) => void;
 }) {
   const t = useT();
+  const id = useId();
   const word =
     value <= 0.2
       ? t("settings.style.veryCautious")
@@ -544,16 +545,20 @@ function Slider({
   return (
     <div>
       <div className="mb-1 flex items-center justify-between">
-        <p className="text-xs uppercase tracking-wide text-white/60">{label}</p>
+        <label htmlFor={id} className="text-xs uppercase tracking-wide text-white/60">
+          {label}
+        </label>
         <span className="text-xs font-semibold text-yellow-300">{word}</span>
       </div>
       <div className="flex min-h-11 items-center">
         <input
+          id={id}
           type="range"
           min={0}
           max={1}
           step={0.1}
           value={value}
+          aria-label={label}
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full accent-yellow-400"
         />

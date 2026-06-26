@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useT } from "../i18n";
 
 // Raccourci « ajouter à l'écran d'accueil » proposé sur le web mobile (sauf
 // quand le site tourne déjà en mode installé). C'est une fonctionnalité 100% web
@@ -24,6 +25,7 @@ function isMobile(): boolean {
 }
 
 export function InstallBanner() {
+  const t = useT();
   const [dismissed, setDismissed] = useState(true); // caché par défaut jusqu'au check
   const [bip, setBip] = useState<BIPEvent | null>(null);
   const [showIOSHelp, setShowIOSHelp] = useState(false);
@@ -67,20 +69,20 @@ export function InstallBanner() {
           📱
         </span>
         <p className="min-w-0 flex-1 text-sm font-semibold leading-tight">
-          Ajoute Coincheur à ton écran d'accueil
+          {t("install.title")}
           <span className="block text-[11px] font-normal text-white/80">
-            Accès direct, plein écran et hors-ligne — sans rien installer.
+            {t("install.subtitle")}
           </span>
         </p>
         <button
           onClick={install}
           className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-white px-4 text-sm font-bold text-emerald-700 hover:bg-white/90"
         >
-          Ajouter
+          {t("install.add")}
         </button>
         <button
           onClick={close}
-          aria-label="Fermer"
+          aria-label={t("install.close")}
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-white/80 hover:bg-white/20"
         >
           ✕
@@ -88,7 +90,7 @@ export function InstallBanner() {
       </div>
       {showIOSHelp && (
         <p className="mx-auto mt-1 max-w-3xl text-[12px] text-white/90">
-          Sur iPhone : appuie sur <b>Partager</b> ⬆️ puis <b>« Sur l'écran d'accueil »</b>.
+          {t("install.iosHelp")}
         </p>
       )}
     </div>

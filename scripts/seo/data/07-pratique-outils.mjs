@@ -634,19 +634,19 @@ export default [
       sections: [
         {
           h2: "Fixer les règles avant de jouer",
-          html: "<p>La meilleure arbitrage, c'est la prévention. Avant la première donne, mettez-vous d'accord sur les <strong>conventions de table</strong> : barème exact, capot non annoncé, valeur de la générale, gestion des renonces. Un désaccord vient presque toujours d'une règle non fixée à l'avance.</p>",
+          html: "<p>Le meilleur arbitrage, c'est la prévention. Avant la première donne, mets-toi d'accord avec tes partenaires sur les <strong>conventions de table</strong> : barème exact, capot non annoncé, valeur de la générale, gestion des renonces. Un désaccord vient presque toujours d'une règle non fixée à l'avance.</p>",
         },
         {
           h2: "Les litiges les plus fréquents",
           html: "<ul><li><strong>Renonce</strong> (un joueur n'a pas fourni alors qu'il pouvait) : la convention courante pénalise l'équipe fautive, souvent en attribuant la donne (162) à l'adversaire. À fixer d'avance.</li><li><strong>Erreur de comptage</strong> : recomptez ensemble, les deux totaux doivent faire 162. Le compteur tranche, pas la mémoire.</li><li><strong>Contrat contesté</strong> : seule l'annonce effectivement prononcée compte. D'où l'intérêt de la noter sur la feuille de score.</li></ul>",
         },
         {
-          h2: "Quand l'outil tranche pour vous",
+          h2: "Quand l'outil tranche pour toi",
           html: "<p>Beaucoup de litiges disparaissent quand le jeu gère lui-même les règles. Sur <a href=\"/\">Coincheur</a>, impossible de mal compter ou de renoncer par erreur : les cartes jouables sont mises en avant et le décompte est automatique. Pratique pour rejouer une situation litigieuse et voir la règle appliquée.</p><p>Si un doute persiste sur un point précis (le sens d'une enchère, la valeur d'une carte dans un contrat), le plus simple est de le rejouer sur l'appli et de constater le résultat plutôt que de discuter à l'infini. Un exemple concret coupe court à un débat bien mieux qu'une règle citée de mémoire par chacun à sa façon.</p>",
         },
       ],
       faq: [
-        { q: "Comment trancher un désaccord pendant une partie de coinche ?", a: "Reposez-vous sur les conventions fixées avant la partie. Pour un comptage, recomptez ensemble jusqu'à retomber sur 162. Pour un contrat contesté, seule l'annonce réellement prononcée compte." },
+        { q: "Comment trancher un désaccord pendant une partie de coinche ?", a: "Appuie-toi sur les conventions fixées avant la partie. Pour un comptage, recomptez ensemble jusqu'à retomber sur 162. Pour un contrat contesté, seule l'annonce réellement prononcée compte." },
         { q: "Que faire en cas de renonce ?", a: "La convention la plus courante pénalise l'équipe fautive, souvent en attribuant les 162 points de la donne à l'adversaire. L'idéal est de fixer cette règle avant de commencer." },
       ],
       related: ["prat-feuille-score", "prat-calcul-contrat", "prat-memoriser-regles"],

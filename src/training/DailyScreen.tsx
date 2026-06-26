@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScreenShell } from "../app/ScreenShell";
 import { PlayingCard, suitColorClass, suitColorClassDark } from "../components/Card";
 import { CoachText } from "../components/CoachText";
@@ -23,7 +23,13 @@ import { useT, translate, currentLang } from "../i18n";
 
 function prettyDate(key: string): string {
   try {
-    return new Date(key).toLocaleDateString(currentLang() === "en" ? "en-US" : "fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    const locale =
+      typeof navigator !== "undefined" && navigator.language
+        ? navigator.language
+        : currentLang() === "en"
+          ? "en-GB"
+          : "fr-FR";
+    return new Date(key).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" });
   } catch {
     return key;
   }
@@ -38,12 +44,25 @@ function ModeSym({ mode, fourColors }: { mode: TrumpMode; fourColors: boolean })
 export function DailyScreen() {
   const t = useT();
   const key = isoDay();
-  const ex = useMemo<DailyChallenge | null>(() => {
-    try {
-      return genDailyChallenge(key);
-    } catch {
-      return null;
-    }
+  // genDailyChallenge() lance des simulations PIMC (plusieurs centaines de ms) :
+  // on le génère hors du rendu (setTimeout 0) pour laisser peindre l'écran et
+  // éviter de geler le thread principal sur mobile.
+  const [ex, setEx] = useState<DailyChallenge | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    setEx(null);
+    const id = setTimeout(() => {
+      try {
+        setEx(genDailyChallenge(key));
+      } catch {
+        setEx(null);
+      } finally {
+        setLoading(false);
+      }
+    }, 0);
+    return () => clearTimeout(id);
   }, [key]);
 
   const daily = useDaily((s) => s.state);
@@ -67,7 +86,9 @@ export function DailyScreen() {
         </p>
       </div>
 
-      {!ex ? (
+      {loading ? (
+        <p className="mt-6 text-center text-sm text-white/70" aria-live="polite">{t("review.analyzing")}</p>
+      ) : !ex ? (
         <p className="mt-6 text-center text-sm text-white/70">{t("daily.unavailable")}</p>
       ) : ex.kind === "bid" ? (
         <BidDaily ex={ex} keyDay={key} doneToday={doneToday} priorSuccess={daily.success} />

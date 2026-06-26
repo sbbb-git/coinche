@@ -218,6 +218,19 @@ export const common: Namespace = {
     "error.title": "Oups, un souci est survenu",
     "error.desc": "L'app a rencontré une erreur inattendue. Tes données sont sauvegardées.",
     "error.reload": "Recharger",
+
+    // Bandeau d'installation (PWA)
+    "install.title": "Ajoute Coincheur à ton écran d'accueil",
+    "install.subtitle": "Accès direct, plein écran et hors-ligne — sans rien installer.",
+    "install.add": "Ajouter",
+    "install.close": "Fermer",
+    "install.iosHelp": "Sur iPhone : appuie sur Partager ⬆️ puis « Sur l'écran d'accueil ».",
+
+    // Informations légales (écran)
+    "legal.title": "Informations légales",
+    "legal.tab.privacy": "Confidentialité",
+    "legal.tab.terms": "CGU",
+    "legal.tab.mentions": "Mentions",
   },
   en: {
     // Modals — deal result
@@ -394,7 +407,7 @@ export const common: Namespace = {
     "consent.text": "We use analytics and advertising cookies to improve the game and keep it free. You can accept or refuse.",
     "consent.learnMore": "Learn more",
     "consent.accept": "Accept",
-    "consent.refuse": "Refuse",
+    "consent.refuse": "Decline",
 
     // What's new
     "whatsnew.title": "What's new",
@@ -435,5 +448,18 @@ export const common: Namespace = {
     "error.title": "Oops, something went wrong",
     "error.desc": "The app hit an unexpected error. Your data is saved.",
     "error.reload": "Reload",
+
+    // Install banner (PWA)
+    "install.title": "Add Coincheur to your home screen",
+    "install.subtitle": "Instant, full-screen and offline access — nothing to install.",
+    "install.add": "Add",
+    "install.close": "Close",
+    "install.iosHelp": "On iPhone: tap Share ⬆️ then “Add to Home Screen”.",
+
+    // Legal information (screen)
+    "legal.title": "Legal information",
+    "legal.tab.privacy": "Privacy",
+    "legal.tab.terms": "Terms",
+    "legal.tab.mentions": "Notice",
   },
 };

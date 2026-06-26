@@ -2,7 +2,7 @@
 // review et les exercices). Distingue la phase d'enchères de la phase de jeu.
 // Réutilise le moteur d'évaluation de l'IA, en mode "expert".
 
-import { Card, TrumpMode, isTrump, strength, points, RANK_LABEL, SUIT_SYMBOL } from "./cards";
+import { Card, TrumpMode, isTrump, strength, points, RANK_LABEL, RANK_SPOKEN, SUIT_SYMBOL } from "./cards";
 import {
   GameState,
   PlayProfile,
@@ -69,9 +69,9 @@ export function coachPlay(state: GameState, lang: Lang = "fr"): PlayAdvice {
 
 // --- Récit chiffré du coup (façon « analyse » d'échecs) ---------------------
 
-/** Libellé court d'une carte : « A♣ », « V♠ »… */
-function cardLabel(c: Card): string {
-  return `${RANK_LABEL[c.rank]}${SUIT_SYMBOL[c.suit]}`;
+/** Libellé court d'une carte : « A♣ », « V♠ »… (abréviations FR, rangs parlés EN). */
+function cardLabel(c: Card, lang: Lang): string {
+  return `${lang === "en" ? RANK_SPOKEN["en"][c.rank] : RANK_LABEL[c.rank]}${SUIT_SYMBOL[c.suit]}`;
 }
 
 /** Arrondi à 5 % près : ~32 simulations ne justifient pas plus de précision. */
@@ -109,9 +109,9 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[], la
     lines.push(
       M(
         lang,
-        `**${cardLabel(best)}**, tu remportes ce pli **${pct(bestO.trickWinPct)}%** du temps${pts} · ` +
+        `**${cardLabel(best, lang)}**, tu remportes ce pli **${pct(bestO.trickWinPct)}%** du temps${pts} · ` +
           `ton camp gagne la donne **~${pct(bestO.dealWinPct)}%**.`,
-        `**${cardLabel(best)}**, you win this trick **${pct(bestO.trickWinPct)}%** of the time${pts} · ` +
+        `**${cardLabel(best, lang)}**, you win this trick **${pct(bestO.trickWinPct)}%** of the time${pts} · ` +
           `your team wins the deal **~${pct(bestO.dealWinPct)}%**.`,
       ),
     );
@@ -119,9 +119,9 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[], la
     lines.push(
       M(
         lang,
-        `**${cardLabel(best)}**, tu laisses filer ce pli (**${pct(bestO.trickWinPct)}%**) pour garder tes cartes · ` +
+        `**${cardLabel(best, lang)}**, tu laisses filer ce pli (**${pct(bestO.trickWinPct)}%**) pour garder tes cartes · ` +
           `ton camp gagne la donne **~${pct(bestO.dealWinPct)}%**.`,
-        `**${cardLabel(best)}**, you let this trick go (**${pct(bestO.trickWinPct)}%**) to keep your cards · ` +
+        `**${cardLabel(best, lang)}**, you let this trick go (**${pct(bestO.trickWinPct)}%**) to keep your cards · ` +
           `your team wins the deal **~${pct(bestO.dealWinPct)}%**.`,
       ),
     );
@@ -142,9 +142,9 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[], la
         lines.push(
           M(
             lang,
-            `vs **${cardLabel(alt.card)}** : prendrait ce pli (**${pct(alt.trickWinPct)}%**) mais ton camp finirait ${cost}, ` +
+            `vs **${cardLabel(alt.card, lang)}** : prendrait ce pli (**${pct(alt.trickWinPct)}%**) mais ton camp finirait ${cost}, ` +
               `garde-la, elle vaut plus tard.`,
-            `vs **${cardLabel(alt.card)}**: would take this trick (**${pct(alt.trickWinPct)}%**) but your team would end up ${cost}, ` +
+            `vs **${cardLabel(alt.card, lang)}**: would take this trick (**${pct(alt.trickWinPct)}%**) but your team would end up ${cost}, ` +
               `keep it, it is worth more later.`,
           ),
         );
@@ -152,9 +152,9 @@ function playNarrative(state: GameState, best: Card, outcomes: PlayOutcome[], la
         lines.push(
           M(
             lang,
-            `vs **${cardLabel(alt.card)}** : même pli, mais ton camp finirait ${cost}, ` +
+            `vs **${cardLabel(alt.card, lang)}** : même pli, mais ton camp finirait ${cost}, ` +
               `garde-la pour un pli que tu peux rafler.`,
-            `vs **${cardLabel(alt.card)}**: same trick, but your team would end up ${cost}, ` +
+            `vs **${cardLabel(alt.card, lang)}**: same trick, but your team would end up ${cost}, ` +
               `keep it for a trick you can actually win.`,
           ),
         );
