@@ -1,14 +1,7 @@
 import { ScreenShell } from "./ScreenShell";
 import { useNav } from "./nav";
 import { APP_VERSION } from "../version";
-import { CONTACT_EMAIL, SITE_URL, storeUrl } from "../config";
-import { notify } from "../notify";
-
-function rateApp() {
-  const url = storeUrl();
-  if (url) window.open(url, "_blank", "noopener");
-  else notify.show("Merci 💛", "Bientôt sur les stores, ta note comptera !");
-}
+import { CONTACT_EMAIL, SITE_URL } from "../config";
 
 async function shareApp() {
   const data = { title: "Coincheur", text: "Joue à la Coinche et progresse 🃏", url: SITE_URL };
@@ -53,10 +46,9 @@ export function AboutScreen() {
       </div>
 
       <p className="mt-5 mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/60">
-        Soutenir l'app
+        Soutenir le projet
       </p>
       <div className="space-y-2">
-        <Row onClick={rateApp}>⭐ Noter l'app</Row>
         <Row onClick={shareApp}>📤 Partager Coincheur</Row>
         {CONTACT_EMAIL && (
           <Row href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Avis Coincheur")}`}>

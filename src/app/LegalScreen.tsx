@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ScreenShell } from "./ScreenShell";
 
-// Pages légales, indispensables pour la publication sur l'App Store / Google Play
-// et pour les comptes. Textes FR génériques ; les champs [À COMPLÉTER] sont à
-// renseigner avant publication (raison sociale, contact, etc.).
+// Pages légales du site (confidentialité, CGU, mentions), requises pour un site
+// avec mesure d'audience et publicité. Textes FR génériques ; les champs
+// [À COMPLÉTER] sont à renseigner (raison sociale, contact, etc.).
 
 type Tab = "confidentialite" | "cgu" | "mentions";
 

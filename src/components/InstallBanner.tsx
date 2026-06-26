@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { APP_STORE_URL, PLAY_STORE_URL } from "../config";
 
-// Bannière « installer / télécharger l'app » affichée sur le web mobile (sauf
-// quand l'app tourne déjà en mode installé). Drive l'installation PWA, et
-// affichera les liens stores quand les apps natives seront publiées.
+// Raccourci « ajouter à l'écran d'accueil » proposé sur le web mobile (sauf
+// quand le site tourne déjà en mode installé). C'est une fonctionnalité 100% web
+// (PWA) : aucun store, juste un accès direct plein écran et hors-ligne.
 
 const DISMISS_KEY = "coincheur.install.dismissed.v1";
 
@@ -22,10 +21,6 @@ function isStandalone(): boolean {
 
 function isMobile(): boolean {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
-}
-
-function isIOS(): boolean {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 export function InstallBanner() {
@@ -54,18 +49,6 @@ export function InstallBanner() {
   };
 
   const install = async () => {
-    // Sécurité : on ne suit que des URLs stores officielles (anti open-redirect).
-    const safe = (u: string, prefix: string) => (u.startsWith(prefix) ? u : "");
-    const appUrl = safe(APP_STORE_URL, "https://apps.apple.com/");
-    const playUrl = safe(PLAY_STORE_URL, "https://play.google.com/");
-    if (appUrl && isIOS()) {
-      window.location.href = appUrl;
-      return;
-    }
-    if (playUrl && !isIOS()) {
-      window.location.href = playUrl;
-      return;
-    }
     if (bip) {
       await bip.prompt();
       await bip.userChoice;
@@ -84,16 +67,16 @@ export function InstallBanner() {
           📱
         </span>
         <p className="min-w-0 flex-1 text-sm font-semibold leading-tight">
-          Installe l'app Coincheur
+          Ajoute Coincheur à ton écran d'accueil
           <span className="block text-[11px] font-normal text-white/80">
-            Plein écran, hors-ligne, comme une vraie app.
+            Accès direct, plein écran et hors-ligne — sans rien installer.
           </span>
         </p>
         <button
           onClick={install}
           className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-white px-4 text-sm font-bold text-emerald-700 hover:bg-white/90"
         >
-          Installer
+          Ajouter
         </button>
         <button
           onClick={close}

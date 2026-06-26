@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { review } from "../review";
-import { CONTACT_EMAIL, storeUrl } from "../config";
+import { CONTACT_EMAIL, SITE_URL } from "../config";
 import { notify } from "../notify";
 import { useFocusTrap } from "../app/useFocusTrap";
 
@@ -24,10 +24,17 @@ export function RatePrompt() {
     setVisible(false);
   };
 
-  const rate = () => {
-    const url = storeUrl();
-    if (url) window.open(url, "_blank", "noopener");
-    else notify.show("Merci 💛", "Bientôt sur les stores, ta note comptera !");
+  const share = async () => {
+    const data = { title: "Coincheur", text: "Joue à la Coinche et progresse 🃏", url: SITE_URL };
+    try {
+      if (navigator.share) await navigator.share(data);
+      else {
+        await navigator.clipboard.writeText(`${data.text} ${SITE_URL}`);
+        notify.show("Lien copié 💛", "Partage-le à tes potes de coinche !");
+      }
+    } catch {
+      /* annulé */
+    }
     done();
   };
 
@@ -44,7 +51,7 @@ export function RatePrompt() {
         ref={ref}
         role="dialog"
         aria-modal="true"
-        aria-label="Évaluer l'app"
+        aria-label="Donner ton avis sur Coincheur"
         className="animate-pop mx-auto max-w-md rounded-2xl bg-emerald-950 p-4 shadow-2xl ring-1 ring-emerald-700"
       >
         {step === "ask" && (
@@ -75,14 +82,14 @@ export function RatePrompt() {
 
         {step === "love" && (
           <>
-            <p className="text-center font-bold">Génial ! Tu laisses une note ? ⭐</p>
-            <p className="mt-1 text-center text-xs text-white/60">Ça aide vraiment à faire connaître l'app.</p>
+            <p className="text-center font-bold">Génial ! Tu le partages ? 🃏</p>
+            <p className="mt-1 text-center text-xs text-white/60">Ça aide vraiment à faire connaître Coincheur.</p>
             <div className="mt-3 flex gap-2">
               <button
-                onClick={rate}
+                onClick={share}
                 className="min-h-11 flex-1 rounded-xl bg-yellow-400 font-bold text-emerald-950 hover:bg-yellow-300"
               >
-                ⭐ Noter
+                📤 Partager
               </button>
               <button onClick={close} className="min-h-11 flex-1 rounded-xl bg-white/10 font-semibold hover:bg-white/20">
                 Plus tard
