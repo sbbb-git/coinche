@@ -4,9 +4,9 @@ import type { Namespace } from "../index";
 export const core: Namespace = {
   fr: {
     // Accueil
-    "home.tagline": "Jouer & progresser à la Coinche",
+    "home.tagline": "Joue à la coinche et progresse pour de vrai.",
     "home.hi": "Salut {name},",
-    "home.offline": "100 % jouable hors-ligne",
+    "home.offline": "Gratuit, sans inscription, direct dans le navigateur.",
     "home.about": "À propos",
     "home.legal": "Confidentialité · CGU",
     "home.learn": "Apprendre",
@@ -30,9 +30,9 @@ export const core: Namespace = {
     "settings.language": "Langue",
   },
   en: {
-    "home.tagline": "Play & improve at Coinche",
+    "home.tagline": "Play coinche and truly improve.",
     "home.hi": "Hi {name},",
-    "home.offline": "100% playable offline",
+    "home.offline": "Free, no signup, right in your browser.",
     "home.about": "About",
     "home.legal": "Privacy · Terms",
     "home.learn": "Learn",

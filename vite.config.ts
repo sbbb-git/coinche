@@ -38,7 +38,7 @@ export default defineConfig({
         name: "Coincheur : Coinche & entraînement",
         short_name: "Coincheur",
         description:
-          "Jouez à la Coinche contre des IA paramétrables et entraînez-vous, hors-ligne.",
+          "Jeu de Coinche (belote contrée) contre des IA redoutables, avec coach intégré et exercices. Gratuit, sans inscription.",
         lang: "fr",
         dir: "ltr",
         categories: ["games", "entertainment", "education"],

@@ -9,9 +9,19 @@ type Step = "ask" | "love" | "meh";
 
 /** Demande de notation à deux temps (pattern classique « rating gate »).
  *  Apparaît une seule fois, après quelques parties, sur un moment calme (accueil). */
+// Le consentement a-t-il déjà été tranché ? (sinon le bandeau RGPD occupe le bas)
+function consentDecided(): boolean {
+  try {
+    return !!localStorage.getItem("cookie-consent");
+  } catch {
+    return true;
+  }
+}
+
 export function RatePrompt() {
   const t = useT();
-  const [visible, setVisible] = useState(() => review.shouldAsk());
+  // On n'apparaît pas tant que le bandeau de consentement est là (même zone, bas).
+  const [visible, setVisible] = useState(() => review.shouldAsk() && consentDecided());
   const [step, setStep] = useState<Step>("ask");
   const ref = useRef<HTMLDivElement>(null);
   useFocusTrap(ref, visible);

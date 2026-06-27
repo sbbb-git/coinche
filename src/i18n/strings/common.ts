@@ -129,8 +129,8 @@ export const common: Namespace = {
     "about.title": "À propos",
     "about.subtitle": "Coinche & entraînement · version {version}",
     "about.intro":
-      "Joue à la Coinche (Belote contrée) contre des IA paramétrables et progresse comme sur une plateforme d'échecs : coach en direct, exercices, analyse de tes parties et niveau estimé.",
-    "about.badge.offline": "📴 Jouable hors-ligne",
+      "La façon la plus efficace de devenir bon à la coinche : affronte des IA redoutables et paramétrables, reçois les conseils d'un coach en temps réel, rejoue et analyse tes parties, et regarde ton niveau grimper — comme sur une plateforme d'échecs.",
+    "about.badge.offline": "🆓 100 % gratuit",
     "about.badge.coach": "💡 Coach intégré",
     "about.badge.train": "🎯 Entraînement",
     "about.learn": "🎓 Apprendre à jouer",
@@ -147,11 +147,11 @@ export const common: Namespace = {
 
     // Onboarding (welcome)
     "welcome.skip": "Passer",
-    "welcome.tagline": "Jouer à la Coinche contre des IA et progresser.",
+    "welcome.tagline": "Affronte des IA redoutables, avec un coach qui t'explique tout.",
     "welcome.bullet.ai": "🎴 Parties contre des IA paramétrables",
     "welcome.bullet.exercises": "🎯 Exercices d'enchères et de jeu, avec correction",
     "welcome.bullet.analysis": "🔍 Analyse de tes parties façon coach",
-    "welcome.bullet.offline": "📵 100 % jouable hors-ligne",
+    "welcome.bullet.offline": "🆓 100 % gratuit, sans inscription",
     "welcome.nameQuestion": "Comment t'appelles-tu ?",
     "welcome.nameHint": "Ton nom à la table.",
     "welcome.namePlaceholder": "Ton prénom",
@@ -221,7 +221,7 @@ export const common: Namespace = {
 
     // Bandeau d'installation (PWA)
     "install.title": "Ajoute Coincheur à ton écran d'accueil",
-    "install.subtitle": "Accès direct, plein écran et hors-ligne — sans rien installer.",
+    "install.subtitle": "Accès direct en plein écran, en un seul tap.",
     "install.add": "Ajouter",
     "install.close": "Fermer",
     "install.iosHelp": "Sur iPhone : appuie sur Partager ⬆️ puis « Sur l'écran d'accueil ».",
@@ -359,8 +359,8 @@ export const common: Namespace = {
     "about.title": "About",
     "about.subtitle": "Coinche & training · version {version}",
     "about.intro":
-      "Play Coinche (contract Belote) against configurable AIs and improve like on a chess platform: live coach, exercises, analysis of your games and an estimated level.",
-    "about.badge.offline": "📴 Playable offline",
+      "The most effective way to get good at coinche: take on tough, configurable AIs, get a coach's advice in real time, replay and analyse your games, and watch your level climb — just like a chess platform.",
+    "about.badge.offline": "🆓 100% free",
     "about.badge.coach": "💡 Built-in coach",
     "about.badge.train": "🎯 Training",
     "about.learn": "🎓 Learn to play",
@@ -377,11 +377,11 @@ export const common: Namespace = {
 
     // Onboarding (welcome)
     "welcome.skip": "Skip",
-    "welcome.tagline": "Play Coinche against AIs and improve.",
+    "welcome.tagline": "Take on tough AIs, with a coach that explains every move.",
     "welcome.bullet.ai": "🎴 Games against configurable AIs",
     "welcome.bullet.exercises": "🎯 Bidding and play exercises, with corrections",
     "welcome.bullet.analysis": "🔍 Coach-style analysis of your games",
-    "welcome.bullet.offline": "📵 100% playable offline",
+    "welcome.bullet.offline": "🆓 100% free, no signup",
     "welcome.nameQuestion": "What's your name?",
     "welcome.nameHint": "Your name at the table.",
     "welcome.namePlaceholder": "Your first name",
@@ -451,7 +451,7 @@ export const common: Namespace = {
 
     // Install banner (PWA)
     "install.title": "Add Coincheur to your home screen",
-    "install.subtitle": "Instant, full-screen and offline access — nothing to install.",
+    "install.subtitle": "Instant full-screen access, in a single tap.",
     "install.add": "Add",
     "install.close": "Close",
     "install.iosHelp": "On iPhone: tap Share ⬆️ then “Add to Home Screen”.",

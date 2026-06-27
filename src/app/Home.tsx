@@ -2,7 +2,7 @@ import { useNav, View } from "./nav";
 import { storage } from "../storage";
 import { useDaily } from "../state/daily";
 import { AdSlot } from "../components/AdSlot";
-import { useT, useLang } from "../i18n";
+import { useT, useLang, translate, currentLang } from "../i18n";
 
 const TILES: { view: View; emoji: string; key: string }[] = [
   { view: "play", emoji: "🃏", key: "play" },
@@ -19,6 +19,8 @@ export function Home() {
   const lang = useLang((s) => s.lang);
   const learnHref = lang === "en" ? "/en/learn-coinche.html" : "/apprendre-la-coinche.html";
   const name = storage.loadProfile().name;
+  // « Salut X » seulement si l'utilisateur a saisi un vrai prénom (pas le défaut « Moi »).
+  const defaultName = translate(currentLang(), "review.defaultNames.you");
   return (
     <div className="safe-top safe-bottom mx-auto flex h-full w-full max-w-md flex-col px-5 py-4">
       <header className="mb-4 shrink-0 text-center">
@@ -26,7 +28,7 @@ export function Home() {
           Coin<span className="text-yellow-400">cheur</span>
         </h1>
         <p className="mt-1 text-sm text-white/70">
-          {name && name !== "Vous" ? `${t("home.hi", { name })} ` : ""}
+          {name && name !== defaultName ? `${t("home.hi", { name })} ` : ""}
           {t("home.tagline")}
         </p>
       </header>

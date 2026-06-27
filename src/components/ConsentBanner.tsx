@@ -11,6 +11,7 @@ const KEY = "cookie-consent";
 
 export function ConsentBanner() {
   const go = useNav((s) => s.go);
+  const view = useNav((s) => s.view);
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [choice, setChoice] = useState<string | null>(() => {
@@ -20,7 +21,9 @@ export function ConsentBanner() {
       return null;
     }
   });
-  const open = !choice;
+  // Pas de bandeau pendant l'onboarding ni en pleine partie : il chevaucherait
+  // les boutons du bas. On le présente sur l'accueil, une fois l'onboarding fini.
+  const open = !choice && view !== "welcome" && view !== "play";
   useFocusTrap(ref, open);
 
   // Focus initial + Échap = refuser (équivalent d'une fermeture).
