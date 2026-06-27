@@ -274,7 +274,7 @@ export default [
         },
         {
           h2: "Pourquoi en ligne plutôt qu'à quatre ?",
-          html: "<p>Jouer en ligne ne remplace pas une vraie tablée, mais c'est parfait pour <strong>s'entraîner</strong> : tu rejoues une situation autant de fois que tu veux, à ton rythme, sans attendre les autres. Et quand le wifi te lâche, ça continue de marcher (voir le jeu hors ligne).</p><p>C'est aussi idéal pour les horaires impossibles : une partie à minuit, dix minutes entre deux rendez-vous, ou simplement le temps d'un trajet. Tu n'as pas besoin de réunir trois autres joueurs ni de t'engager sur une heure entière. Tu lances, tu joues une donne ou dix, tu reprendras le reste plus tard.</p><p><a href=\"/\">Joue une partie maintenant</a>, c'est immédiat.</p>",
+          html: "<p>Jouer en ligne ne remplace pas une vraie tablée, mais c'est parfait pour <strong>s'entraîner</strong> : tu rejoues une situation autant de fois que tu veux, à ton rythme, sans attendre les autres.</p><p>C'est aussi idéal pour les horaires impossibles : une partie à minuit, dix minutes entre deux rendez-vous, ou simplement le temps d'un trajet. Tu n'as pas besoin de réunir trois autres joueurs ni de t'engager sur une heure entière. Tu lances, tu joues une donne ou dix, tu reprendras le reste plus tard.</p><p><a href=\"/\">Joue une partie maintenant</a>, c'est immédiat.</p>",
         },
       ],
       faq: [
@@ -322,15 +322,15 @@ export default [
       title: "Jouer à la coinche hors ligne (sans connexion)",
       h1: "Jouer à la coinche sans connexion",
       description:
-        "Jouer à la coinche hors ligne : dans le train, en avion ou sans wifi, Coincheur reste jouable une fois installé en PWA. Comment ça marche.",
-      lead: "Pas de réseau ? Pas grave. Une fois Coincheur installé sur ton appareil, tu peux jouer à la coinche <strong>complètement hors ligne</strong>.",
+        "Jouer à la coinche hors ligne : Coincheur est un jeu web gratuit qui, une fois ajouté à l'écran d'accueil (PWA), reste utilisable sans connexion. Comment ça marche.",
+      lead: "Coincheur est un jeu web qui s'ouvre dans le navigateur, gratuit et sans installation. Pour jouer sans connexion, tu l'ajoutes à ton écran d'accueil (PWA) : il reste alors utilisable hors connexion.",
       sections: [
         {
-          h2: "Pourquoi le hors ligne est possible",
-          html: "<p>Coincheur est une <strong>PWA</strong> (application web progressive). Concrètement, le jeu et les IA tournent sur ton appareil, pas sur un serveur distant. Une fois la page chargée et installée, tout le nécessaire est en cache : tu n'as plus besoin de connexion pour jouer une partie complète.</p>",
+          h2: "Pourquoi ça marche sans connexion",
+          html: "<p>Coincheur est d'abord un jeu web : tu l'ouvres dans ton navigateur, sans rien installer. C'est aussi une <strong>PWA</strong> (application web progressive), ce qui change tout pour le jeu sans réseau : le jeu et les IA tournent sur ton appareil, pas sur un serveur distant. Une fois la page chargée et l'appli ajoutée à l'écran d'accueil, le nécessaire est en cache et tu peux jouer une partie même sans connexion.</p>",
         },
         {
-          h2: "Comment l'installer pour le hors ligne",
+          h2: "Comment l'ajouter pour jouer sans connexion",
           html: "<ul><li><strong>Sur iPhone</strong> : ouvre Coincheur dans Safari, touche le bouton Partager, puis « Sur l'écran d'accueil ».</li><li><strong>Sur Android</strong> : ouvre le menu du navigateur et choisis « Installer l'application » ou « Ajouter à l'écran d'accueil ».</li><li><strong>Sur ordinateur</strong> : une icône d'installation apparaît dans la barre d'adresse de Chrome ou Edge.</li></ul><p>Aucun store n'est nécessaire : tout passe par le navigateur.</p>",
         },
         {
@@ -444,12 +444,12 @@ export default [
       title: "Comment choisir une bonne application de coinche",
       h1: "Comment choisir une bonne application de coinche",
       description:
-        "Les critères pour choisir une bonne application de coinche : qualité de l'IA, règles correctes, jeu hors ligne, mobile, et outils pour progresser.",
+        "Les critères pour choisir une bonne application de coinche : qualité de l'IA, règles correctes, sans installation, mobile, et outils pour progresser.",
       lead: "Toutes les applis de coinche ne se valent pas. Voici les <strong>critères qui comptent</strong> pour ne pas perdre ton temps avec une IA qui joue mal.",
       sections: [
         {
           h2: "Les critères qui font la différence",
-          html: "<ul><li><strong>Qualité de l'IA</strong> : enchérit-elle logiquement, défend-elle bien ? C'est le critère numéro un.</li><li><strong>Règles correctes</strong> : barème exact (162, belote 20, capot 250), gestion de la coinche et de la surcoinche.</li><li><strong>Hors ligne</strong> : peux-tu jouer sans réseau ?</li><li><strong>Mobile et desktop</strong> : interface lisible sur petit écran comme sur grand.</li><li><strong>Outils de progression</strong> : coach, exercices, statistiques.</li></ul>",
+          html: "<ul><li><strong>Qualité de l'IA</strong> : enchérit-elle logiquement, défend-elle bien ? C'est le critère numéro un.</li><li><strong>Règles correctes</strong> : barème exact (162, belote 20, capot 250), gestion de la coinche et de la surcoinche.</li><li><strong>Sans installation</strong> : s'ouvre-t-elle dans le navigateur, et peux-tu l'ajouter à l'écran d'accueil (PWA) pour jouer ensuite sans connexion ?</li><li><strong>Mobile et desktop</strong> : interface lisible sur petit écran comme sur grand.</li><li><strong>Outils de progression</strong> : coach, exercices, statistiques.</li></ul>",
         },
         {
           h2: "Site web ou installation ?",
@@ -457,7 +457,7 @@ export default [
         },
         {
           h2: "Où se situe Coincheur",
-          html: "<p>Coincheur coche ces cases : IA paramétrables, règles fidèles, jeu hors ligne en PWA, interface pensée mobile et desktop, plus un coach et des exercices pour progresser, le tout gratuit. <a href=\"/\">Teste-le</a> et compare par toi-même.</p>",
+          html: "<p>Coincheur coche ces cases : IA paramétrables, règles fidèles, jeu dans le navigateur (et utilisable sans connexion une fois ajouté à l'écran d'accueil en PWA), interface pensée mobile et desktop, plus un coach et des exercices pour progresser, le tout gratuit. <a href=\"/\">Teste-le</a> et compare par toi-même.</p>",
         },
       ],
       faq: [
