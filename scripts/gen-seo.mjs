@@ -12,7 +12,8 @@
 
 import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
+import { execSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -75,6 +76,26 @@ function pillarsNav(lang, currentId) {
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+const BUILD_DATE = new Date().toISOString().slice(0, 10);
+const _gitCache = new Map();
+/** Date du dernier commit qui a touché un fichier (lastmod réel). Repli : date du build.
+ *  Nécessite l'historique git (fetch-depth: 0 en CI) ; sinon repli propre. */
+function gitDate(absPath) {
+  if (_gitCache.has(absPath)) return _gitCache.get(absPath);
+  let d = BUILD_DATE;
+  try {
+    const rel = relative(ROOT, absPath);
+    const out = execSync(`git log -1 --format=%cs -- "${rel}"`, { cwd: ROOT, stdio: ["ignore", "pipe", "ignore"] })
+      .toString()
+      .trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(out)) d = out;
+  } catch {
+    /* git indisponible : on garde la date du build */
+  }
+  _gitCache.set(absPath, d);
+  return d;
+}
+
 // Garde-fou anti-injection : le HTML des sections/lead/cta est inséré tel quel
 // dans la page. On interdit donc tout vecteur de script/XSS.
 function sanitizeHtml(s, where = "contenu") {
@@ -98,8 +119,8 @@ function validateContent(c, lang, id) {
 }
 
 const L = {
-  fr: { play: "Jouer", see: "À lire aussi", faq: "Questions fréquentes", guides: "Tous les guides", priv: "Confidentialité", privHref: "/privacy.html", hub: "/apprendre-la-coinche.html" },
-  en: { play: "Play", see: "See also", faq: "FAQ", guides: "All guides", priv: "Privacy", privHref: "/en/privacy.html", hub: "/en/learn-coinche.html" },
+  fr: { play: "Jouer", see: "À lire aussi", faq: "Questions fréquentes", guides: "Tous les guides", priv: "Confidentialité", privHref: "/privacy.html", hub: "/apprendre-la-coinche.html", plan: "Plan du site", planHref: "/plan-du-site.html" },
+  en: { play: "Play", see: "See also", faq: "FAQ", guides: "All guides", priv: "Privacy", privHref: "/en/privacy.html", hub: "/en/learn-coinche.html", plan: "Site map", planHref: "/en/sitemap.html" },
 };
 
 function pageUrl(lang, slug) {
@@ -152,6 +173,19 @@ function renderArticle(art, lang, idToSlug) {
     author: { "@type": "Organization", name: "Coincheur" },
     publisher: { "@type": "Organization", name: "Coincheur" },
   })}</script>`;
+  const homeHref = lang === "fr" ? "/" : "/?lang=en";
+  const crumbHub = lang === "fr" ? `${SITE}/apprendre-la-coinche.html` : `${SITE}/en/learn-coinche.html`;
+  const crumbHome = lang === "fr" ? "Accueil" : "Home";
+  const breadcrumbLd = `\n    <script type="application/ld+json">${jsonLd({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: crumbHome, item: `${SITE}/` },
+      { "@type": "ListItem", position: 2, name: "Guides", item: crumbHub },
+      { "@type": "ListItem", position: 3, name: c.h1, item: url },
+    ],
+  })}</script>`;
+  const crumbs = `\n      <nav class="crumbs" aria-label="${lang === "fr" ? "Fil d'Ariane" : "Breadcrumb"}"><a href="${homeHref}">${crumbHome}</a> › <a href="${t.hub}">Guides</a> › <span>${esc(c.h1)}</span></nav>`;
   const enHref = `${SITE}/en/${en.slug}.html`;
   const frHref = `${SITE}/${fr.slug}.html`;
   const playHref = lang === "fr" ? "/" : "/?lang=en";
@@ -172,13 +206,13 @@ function renderArticle(art, lang, idToSlug) {
     <meta property="og:url" content="${url}" />
     <meta property="og:image" content="${SITE}/icon-512.png" />
     <link rel="stylesheet" href="/article.css" />
-    ${AHREFS}${adsHead()}${articleLd}${faqLd}
+    ${AHREFS}${adsHead()}${articleLd}${faqLd}${breadcrumbLd}
   </head>
   <body>
     <header class="top">
       <div class="wrap"><a class="brand" href="${lang === "fr" ? "/" : "/?lang=en"}">Coin<span>cheur</span></a><a class="cta" href="${playHref}">${t.play}</a></div>
     </header>
-    <main class="wrap">
+    <main class="wrap">${crumbs}
       <h1>${esc(c.h1)}</h1>
       <p class="muted">${sanitizeHtml(c.lead, `${art.id}/${lang}/lead`)}</p>
 ${sections}
@@ -186,7 +220,7 @@ ${sections}
         ? `Envie de t'entraîner&nbsp;? Joue gratuitement à la coinche contre des IA paramétrables sur <a href="/">Coincheur</a>.`
         : `Want to practise? Play coinche for free against tunable AIs on <a href="/?lang=en">Coincheur</a>.`)}</div>${relatedBlock}${faq}${pillarsNav(lang, art.id)}
       <footer>
-        © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${playHref}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
+        © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${t.planHref}">${t.plan}</a> · <a href="${playHref}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
     </main>${adsBanner(lang)}
   </body>
@@ -255,7 +289,7 @@ function renderHub(lang, cats, idToSlug) {
         : "The Coincheur resource center. Pick a topic and progress at your pace — rules, bidding, scoring, strategy, variants, glossary."}</p>${cornerBlock}
 ${blocks}
       <footer>
-        © Coincheur · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
+        © Coincheur · <a href="${t.planHref}">${t.plan}</a> · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
     </main>${adsBanner(lang)}
   </body>
@@ -264,21 +298,87 @@ ${blocks}
 }
 
 function renderSitemap(arts) {
-  const today = new Date().toISOString().slice(0, 10);
   const rows = [];
-  rows.push(`  <url><loc>${SITE}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`);
-  rows.push(`  <url><loc>${SITE}/apprendre-la-coinche.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
-  rows.push(`  <url><loc>${SITE}/en/learn-coinche.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
+  const url = (loc, prio, lastmod, freq = "monthly") =>
+    `  <url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}<changefreq>${freq}</changefreq><priority>${prio}</priority></url>`;
+  rows.push(url(`${SITE}/`, "1.0", BUILD_DATE, "weekly"));
+  rows.push(url(`${SITE}/apprendre-la-coinche.html`, "0.9", BUILD_DATE, "weekly"));
+  rows.push(url(`${SITE}/en/learn-coinche.html`, "0.9", BUILD_DATE, "weekly"));
+  rows.push(url(`${SITE}/plan-du-site.html`, "0.4", BUILD_DATE, "weekly"));
+  rows.push(url(`${SITE}/en/sitemap.html`, "0.4", BUILD_DATE, "weekly"));
   for (const c of CORNERSTONE)
-    rows.push(`  <url><loc>${SITE}/${c.slug}</loc><changefreq>monthly</changefreq><priority>${c.prio}</priority></url>`);
+    rows.push(url(`${SITE}/${c.slug}`, c.prio, gitDate(join(PUBLIC, c.slug))));
   for (const a of arts) {
     const p = a.priority || 0.6;
-    rows.push(`  <url><loc>${pageUrl("fr", a.fr.slug)}</loc><lastmod>${today}</lastmod><changefreq>monthly</changefreq><priority>${p}</priority></url>`);
-    rows.push(`  <url><loc>${pageUrl("en", a.en.slug)}</loc><lastmod>${today}</lastmod><changefreq>monthly</changefreq><priority>${p}</priority></url>`);
+    const lm = a.__src ? gitDate(a.__src) : BUILD_DATE; // date du dernier commit du contenu
+    rows.push(url(pageUrl("fr", a.fr.slug), p, lm));
+    rows.push(url(pageUrl("en", a.en.slug), p, lm));
   }
-  rows.push(`  <url><loc>${SITE}/privacy.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>`);
-  rows.push(`  <url><loc>${SITE}/terms.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>`);
+  rows.push(url(`${SITE}/privacy.html`, "0.3", gitDate(join(PUBLIC, "privacy.html")), "yearly"));
+  rows.push(url(`${SITE}/terms.html`, "0.3", gitDate(join(PUBLIC, "terms.html")), "yearly"));
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rows.join("\n")}\n</urlset>\n`;
+}
+
+/** Plan du site HTML (humain) : cornerstone + piliers + toutes les catégories. */
+function renderPlan(lang, cats, idToSlug) {
+  const t = L[lang];
+  const isFr = lang === "fr";
+  const title = isFr ? "Plan du site : toutes les pages" : "Site map: all pages";
+  const desc = isFr
+    ? "Toutes les pages de Coincheur : règles, guides, stratégie, lexique et variantes de la coinche."
+    : "Every Coincheur page: rules, guides, strategy, glossary and coinche variants.";
+  const url = isFr ? `${SITE}/plan-du-site.html` : `${SITE}/en/sitemap.html`;
+  const section = (heading, links) =>
+    links ? `\n      <h2>${esc(heading)}</h2>\n      <nav class="related">${links}\n      </nav>` : "";
+  const corner = isFr
+    ? section(
+        "Les essentiels",
+        CORNERSTONE.map((c) => `\n        <a href="/${c.slug}">${esc(c.fr)}</a>`).join(""),
+      )
+    : "";
+  const blocks = cats
+    .map((cat) =>
+      section(
+        isFr ? cat.fr : cat.en,
+        cat.items
+          .map((id) => {
+            const s = idToSlug[id];
+            return s ? `\n        <a href="${relHref(lang, s[lang])}">${esc(s[`${lang}Title`])}</a>` : "";
+          })
+          .filter(Boolean)
+          .join(""),
+      ),
+    )
+    .filter(Boolean)
+    .join("\n");
+  return `<!doctype html>
+<html lang="${lang}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>${esc(title)} — Coincheur</title>
+    <meta name="description" content="${esc(desc)}" />
+    <link rel="canonical" href="${url}" />
+    <link rel="alternate" hreflang="fr" href="${SITE}/plan-du-site.html" />
+    <link rel="alternate" hreflang="en" href="${SITE}/en/sitemap.html" />
+    <link rel="stylesheet" href="/article.css" />
+    ${AHREFS}${adsHead()}
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap"><a class="brand" href="${isFr ? "/" : "/?lang=en"}">Coin<span>cheur</span></a><a class="cta" href="${isFr ? "/" : "/?lang=en"}">${t.play}</a></div>
+    </header>
+    <main class="wrap">
+      <h1>${esc(title)}</h1>
+      <p class="muted">${esc(desc)}</p>${corner}
+${blocks}
+      <footer>
+        © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
+      </footer>
+    </main>${adsBanner(lang)}
+  </body>
+</html>
+`;
 }
 
 async function main() {
@@ -295,6 +395,7 @@ async function main() {
   for (const f of files) {
     const mod = await import(join(dataDir, f) + `?t=0`);
     const list = mod.default || mod.articles || [];
+    list.forEach((a) => (a.__src = join(dataDir, f))); // pour le lastmod réel (git)
     if (mod.category) cats.push({ ...mod.category, items: list.map((a) => a.id) });
     arts.push(...list);
   }
@@ -326,9 +427,11 @@ async function main() {
   }
   await writeFile(join(PUBLIC, "apprendre-la-coinche.html"), renderHub("fr", cats, idToSlug));
   await writeFile(join(EN_DIR, "learn-coinche.html"), renderHub("en", cats, idToSlug));
+  await writeFile(join(PUBLIC, "plan-du-site.html"), renderPlan("fr", cats, idToSlug));
+  await writeFile(join(EN_DIR, "sitemap.html"), renderPlan("en", cats, idToSlug));
   await writeFile(join(PUBLIC, "sitemap.xml"), renderSitemap(arts));
 
-  console.log(`SEO: ${arts.length} articles → ${n} pages (FR+EN) + 2 hubs + sitemap (${arts.length * 2 + CORNERSTONE.length + 4} URLs).`);
+  console.log(`SEO: ${arts.length} articles → ${n} pages (FR+EN) + 2 hubs + plan + sitemap (${arts.length * 2 + CORNERSTONE.length + 7} URLs).`);
   void readFile; // (réservé)
 }
 

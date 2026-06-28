@@ -32,3 +32,9 @@ footer a { color: #cfe; }
 .cc .cc-b button { min-height: 44px; flex: 1; border: 0; border-radius: 10px; font-weight: 700; cursor: pointer; }
 .cc .cc-b #cc-y { background: #ffd84d; color: #063; }
 .cc .cc-b #cc-n { background: rgba(255,255,255,.15); color: #fff; }
+
+/* Fil d'Ariane (breadcrumb) */
+.crumbs { font-size: .82rem; color: #b6d3c4; margin: 0 0 .3em; }
+.crumbs a { color: #cfe; text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
+.crumbs span { color: #eaf3ee; }
