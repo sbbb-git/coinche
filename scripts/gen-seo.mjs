@@ -53,6 +53,25 @@ const CORNERSTONE = [
   { slug: "coinche-vs-contree.html", fr: "Coinche, contrée, belote : différences", en: "Coinche vs belote", prio: 0.7 },
 ];
 
+// Pages piliers : liées DEPUIS chaque article (maillage cluster -> pilier).
+const PILLARS = [
+  { id: "pil-strategie", fr: ["strategie-coinche", "Stratégie"], en: ["coinche-strategy", "Strategy"] },
+  { id: "pil-progresser", fr: ["devenir-bon-coinche", "Devenir bon"], en: ["get-good-at-coinche", "Get good"] },
+  { id: "pil-astuces", fr: ["astuces-conseils-coinche", "Astuces & conseils"], en: ["coinche-tips-and-tricks", "Tips & tricks"] },
+  { id: "pil-bien-jouer", fr: ["comment-bien-jouer-coinche", "Bien jouer"], en: ["how-to-play-coinche-well", "Play well"] },
+  { id: "pil-gagner", fr: ["comment-gagner-coinche", "Comment gagner"], en: ["how-to-win-coinche", "How to win"] },
+  { id: "bc-pilier", fr: ["belote-contree", "Belote contrée"], en: ["contract-belote", "Contract belote"] },
+];
+
+/** Nav vers les piliers (on retire le pilier courant pour éviter l'auto-lien). */
+function pillarsNav(lang, currentId) {
+  const links = PILLARS.filter((p) => p.id !== currentId)
+    .map((p) => `\n        <a href="${relHref(lang, p[lang][0])}">${esc(p[lang][1])}</a>`)
+    .join("");
+  const title = lang === "fr" ? "Guides essentiels" : "Essential guides";
+  return `\n      <h2>${title}</h2>\n      <nav class="related">${links}\n      </nav>`;
+}
+
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -165,7 +184,7 @@ function renderArticle(art, lang, idToSlug) {
 ${sections}
       <div class="box">${c.cta ? sanitizeHtml(c.cta, `${art.id}/${lang}/cta`) : (lang === "fr"
         ? `Envie de t'entraîner&nbsp;? Joue gratuitement à la coinche contre des IA paramétrables sur <a href="/">Coincheur</a>.`
-        : `Want to practise? Play coinche for free against tunable AIs on <a href="/?lang=en">Coincheur</a>.`)}</div>${relatedBlock}${faq}
+        : `Want to practise? Play coinche for free against tunable AIs on <a href="/?lang=en">Coincheur</a>.`)}</div>${relatedBlock}${faq}${pillarsNav(lang, art.id)}
       <footer>
         © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${playHref}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
