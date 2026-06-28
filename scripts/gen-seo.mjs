@@ -204,7 +204,11 @@ function renderArticle(art, lang, idToSlug) {
     <meta property="og:title" content="${esc(c.title)}" />
     <meta property="og:description" content="${esc(c.description)}" />
     <meta property="og:url" content="${url}" />
-    <meta property="og:image" content="${SITE}/icon-512.png" />
+    <meta property="og:image" content="${SITE}/og-default.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="${SITE}/og-default.png" />
     <link rel="stylesheet" href="/article.css" />
     ${AHREFS}${adsHead()}${articleLd}${faqLd}${breadcrumbLd}
   </head>
@@ -274,7 +278,11 @@ function renderHub(lang, cats, idToSlug) {
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${url}" />
-    <meta property="og:image" content="${SITE}/icon-512.png" />
+    <meta property="og:image" content="${SITE}/og-default.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="${SITE}/og-default.png" />
     <link rel="stylesheet" href="/article.css" />
     ${AHREFS}${adsHead()}
   </head>

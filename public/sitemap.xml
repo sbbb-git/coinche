@@ -5,12 +5,12 @@
   <url><loc>https://coincheur.fr/en/learn-coinche.html</loc><lastmod>2026-06-28</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://coincheur.fr/plan-du-site.html</loc><lastmod>2026-06-28</lastmod><changefreq>weekly</changefreq><priority>0.4</priority></url>
   <url><loc>https://coincheur.fr/en/sitemap.html</loc><lastmod>2026-06-28</lastmod><changefreq>weekly</changefreq><priority>0.4</priority></url>
-  <url><loc>https://coincheur.fr/regles-coinche.html</loc><lastmod>2026-06-25</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://coincheur.fr/valeur-cartes-coinche.html</loc><lastmod>2026-06-25</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://coincheur.fr/compter-points-coinche.html</loc><lastmod>2026-06-25</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://coincheur.fr/annonces-coinche.html</loc><lastmod>2026-06-25</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://coincheur.fr/belote-capot-coinche.html</loc><lastmod>2026-06-25</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://coincheur.fr/coinche-vs-contree.html</loc><lastmod>2026-06-25</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://coincheur.fr/regles-coinche.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://coincheur.fr/valeur-cartes-coinche.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://coincheur.fr/compter-points-coinche.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://coincheur.fr/annonces-coinche.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://coincheur.fr/belote-capot-coinche.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://coincheur.fr/coinche-vs-contree.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://coincheur.fr/capot-coinche-definition.html</loc><lastmod>2026-06-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://coincheur.fr/en/capot-coinche-meaning.html</loc><lastmod>2026-06-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://coincheur.fr/generale-coinche-definition.html</loc><lastmod>2026-06-26</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
@@ -255,6 +255,16 @@
   <url><loc>https://coincheur.fr/en/points-to-win-belote.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
   <url><loc>https://coincheur.fr/belote-a-4-joueurs.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
   <url><loc>https://coincheur.fr/en/belote-4-players.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
+  <url><loc>https://coincheur.fr/regles-coinche-a-imprimer.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://coincheur.fr/en/printable-coinche-rules.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://coincheur.fr/aide-memoire-coinche-imprimer.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://coincheur.fr/en/coinche-cheat-sheet-printable.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://coincheur.fr/regle-coinche-simple.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://coincheur.fr/en/simple-coinche-rules.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://coincheur.fr/coinche-noms-regionaux.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
+  <url><loc>https://coincheur.fr/en/coinche-regional-names.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
+  <url><loc>https://coincheur.fr/coinche-provencale.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
+  <url><loc>https://coincheur.fr/en/provencal-coinche.html</loc><lastmod>2026-06-28</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
   <url><loc>https://coincheur.fr/privacy.html</loc><lastmod>2026-06-26</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://coincheur.fr/terms.html</loc><lastmod>2026-06-26</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>

@@ -38,3 +38,14 @@ footer a { color: #cfe; }
 .crumbs a { color: #cfe; text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
 .crumbs span { color: #eaf3ee; }
+
+/* Impression : on masque l'habillage, on garde le contenu (pages "à imprimer") */
+@media print {
+  .top, footer, .cc, nav.related, .crumbs, ins.adsbygoogle { display: none !important; }
+  body { background: #fff; color: #111; }
+  a { color: #111; text-decoration: none; }
+  h1, h2, h3 { color: #111; }
+  .box { border: 1px solid #ccc; background: #f7f7f7; }
+  th { background: #eee; }
+  .wrap { max-width: 100%; padding: 0; }
+}
