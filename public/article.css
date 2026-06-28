@@ -49,3 +49,11 @@ footer a { color: #cfe; }
   th { background: #eee; }
   .wrap { max-width: 100%; padding: 0; }
 }
+
+/* Aperçus du jeu (captures) + bouton PDF */
+.shot { display:block; margin:0 auto 10px; max-width:230px; width:100%; height:auto; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+.shots { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin:16px 0 4px; }
+.shots img { max-width:200px; width:42%; height:auto; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+.pdf-btn { display:inline-block; background:#fff; color:#063; font-weight:800; padding:11px 18px; border-radius:12px; text-decoration:none; border:1px solid rgba(0,0,0,.1); }
+.pdf-btn:hover { background:#f0f0f0; }
+@media print { .shot, .shots, .pdf-btn { display:none !important; } }

@@ -220,7 +220,7 @@ function renderArticle(art, lang, idToSlug) {
       <h1>${esc(c.h1)}</h1>
       <p class="muted">${sanitizeHtml(c.lead, `${art.id}/${lang}/lead`)}</p>
 ${sections}
-      <div class="box">${c.cta ? sanitizeHtml(c.cta, `${art.id}/${lang}/cta`) : (lang === "fr"
+      <div class="box"><a href="${playHref}" aria-label="${lang === "fr" ? "Jouer à la coinche sur Coincheur" : "Play coinche on Coincheur"}"><img class="shot" src="/shot-play.png" alt="${lang === "fr" ? "Aperçu d'une partie de coinche sur Coincheur, avec le coach" : "Coinche game preview on Coincheur, with the coach"}" width="800" height="1700" loading="lazy" /></a>${c.cta ? sanitizeHtml(c.cta, `${art.id}/${lang}/cta`) : (lang === "fr"
         ? `Envie de t'entraîner&nbsp;? Joue gratuitement à la coinche contre des IA paramétrables sur <a href="/">Coincheur</a>.`
         : `Want to practise? Play coinche for free against tunable AIs on <a href="/?lang=en">Coincheur</a>.`)}</div>${relatedBlock}${faq}${pillarsNav(lang, art.id)}
       <footer>
@@ -294,7 +294,12 @@ function renderHub(lang, cats, idToSlug) {
       <h1>${esc(title)}</h1>
       <p class="muted">${isFr
         ? "Le centre de ressources Coincheur. Choisis un thème et progresse à ton rythme — règles, annonces, comptage, stratégie, variantes, lexique."
-        : "The Coincheur resource center. Pick a topic and progress at your pace — rules, bidding, scoring, strategy, variants, glossary."}</p>${cornerBlock}
+        : "The Coincheur resource center. Pick a topic and progress at your pace — rules, bidding, scoring, strategy, variants, glossary."}</p>
+      <div class="shots">
+        <a href="${isFr ? "/" : "/?lang=en"}"><img src="/shot-home.png" alt="${isFr ? "Accueil de Coincheur" : "Coincheur home screen"}" width="800" height="1700" loading="lazy" /></a>
+        <a href="${isFr ? "/" : "/?lang=en"}"><img src="/shot-play.png" alt="${isFr ? "Partie de coinche avec coach" : "Coinche game with coach"}" width="800" height="1700" loading="lazy" /></a>
+      </div>
+      <p style="text-align:center"><a class="pdf-btn" href="/regles-coinche.pdf" download>${isFr ? "📄 Télécharger les règles (PDF)" : "📄 Download the rules (PDF)"}</a></p>${cornerBlock}
 ${blocks}
       <footer>
         © Coincheur · <a href="${t.planHref}">${t.plan}</a> · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
