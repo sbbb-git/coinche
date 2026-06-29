@@ -57,3 +57,8 @@ footer a { color: #cfe; }
 .pdf-btn { display:inline-block; background:#fff; color:#063; font-weight:800; padding:11px 18px; border-radius:12px; text-decoration:none; border:1px solid rgba(0,0,0,.1); }
 .pdf-btn:hover { background:#f0f0f0; }
 @media print { .shot, .shots, .pdf-btn { display:none !important; } }
+
+/* Avis joueurs (affichés seulement s'il y en a de vrais) */
+.avis { display:flex; flex-direction:column; gap:12px; margin:10px 0; }
+.avis blockquote { margin:0; background:rgba(255,255,255,.06); border-left:3px solid #ffd84d; border-radius:0 12px 12px 0; padding:12px 16px; font-style:italic; }
+.avis cite { display:block; margin-top:6px; font-style:normal; color:#b6d3c4; font-size:.9rem; }

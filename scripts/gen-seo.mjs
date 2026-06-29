@@ -14,6 +14,7 @@ import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { execSync } from "node:child_process";
+import { testimonials } from "./seo/testimonials.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -249,6 +250,13 @@ function renderHub(lang, cats, idToSlug) {
         (c) => `\n        <a href="/${c.slug}">${esc(c.fr)}</a>`
       ).join("")}\n      </nav>`
     : "";
+  // Avis joueurs : affichés UNIQUEMENT s'il y a de vrais témoignages (cf. testimonials.mjs).
+  const av = (testimonials && testimonials[lang]) || [];
+  const avisBlock = av.length
+    ? `\n      <h2>${isFr ? "Ils jouent sur Coincheur" : "What players say"}</h2>\n      <div class="avis">${av
+        .map((a) => `\n        <blockquote>“${esc(a.quote)}”<cite>${esc(a.author)}</cite></blockquote>`)
+        .join("")}\n      </div>`
+    : "";
   const blocks = cats
     .map((cat) => {
       const links = cat.items
@@ -299,7 +307,26 @@ function renderHub(lang, cats, idToSlug) {
         <a href="${isFr ? "/" : "/?lang=en"}"><img src="/shot-home.png" alt="${isFr ? "Accueil de Coincheur" : "Coincheur home screen"}" width="800" height="1700" loading="lazy" /></a>
         <a href="${isFr ? "/" : "/?lang=en"}"><img src="/shot-play.png" alt="${isFr ? "Partie de coinche avec coach" : "Coinche game with coach"}" width="800" height="1700" loading="lazy" /></a>
       </div>
-      <p style="text-align:center"><a class="pdf-btn" href="/regles-coinche.pdf" download>${isFr ? "📄 Télécharger les règles (PDF)" : "📄 Download the rules (PDF)"}</a></p>${cornerBlock}
+      <p style="text-align:center"><a class="pdf-btn" href="/regles-coinche.pdf" download>${isFr ? "📄 Télécharger les règles (PDF)" : "📄 Download the rules (PDF)"}</a></p>
+      <h2>${isFr ? "Pourquoi Coincheur ?" : "Why Coincheur?"}</h2>
+      <ul>${(isFr
+        ? [
+            "🆓 <strong>Gratuit</strong>, sans inscription, directement dans le navigateur.",
+            "🤖 Des <strong>IA de plusieurs niveaux</strong>, jusqu'à un moteur Monte-Carlo redoutable.",
+            "💡 Un <strong>coach</strong> qui explique chaque coup, comme sur une plateforme d'échecs.",
+            "🎯 <strong>Exercices</strong>, défi du jour et analyse de tes parties pour progresser.",
+            "🇫🇷 / 🇬🇧 Disponible en français et en anglais.",
+          ]
+        : [
+            "🆓 <strong>Free</strong>, no signup, right in your browser.",
+            "🤖 <strong>Multiple AI levels</strong>, up to a formidable Monte-Carlo engine.",
+            "💡 A <strong>coach</strong> that explains every move, like a chess platform.",
+            "🎯 <strong>Exercises</strong>, a daily challenge and game analysis to improve.",
+            "🇬🇧 / 🇫🇷 Available in English and French.",
+          ]
+      ).map((li) => `\n        <li>${li}</li>`).join("")}
+      </ul>
+      <p style="text-align:center"><a class="cta" href="${isFr ? "/" : "/?lang=en"}">${isFr ? "🃏 Jouer maintenant" : "🃏 Play now"}</a></p>${avisBlock}${cornerBlock}
 ${blocks}
       <footer>
         © Coincheur · <a href="${t.planHref}">${t.plan}</a> · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
