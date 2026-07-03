@@ -52,9 +52,40 @@
     </script>
     <!-- Ahrefs Web Analytics (cookieless) -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="mt0GFY89V8kLys/52fBIIw" async></script>
+    <style>
+      /* Habillage minimal avant chargement du JS (évite l'écran blanc et donne
+         un contenu explorable par les robots). Remplacé par l'app au montage. */
+      html, body { margin: 0; background: #0b3d28; }
+      #seo-hero { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: #eaf3ee; max-width: 680px; margin: 0 auto; padding: 56px 24px; text-align: center; line-height: 1.6; }
+      #seo-hero h1 { color: #fff; font-size: 2rem; margin: 0 0 .4em; }
+      #seo-hero h1 span { color: #ffd84d; }
+      #seo-hero a { color: #ffd84d; }
+      #seo-hero nav a { display: inline-block; margin: 6px 10px; font-weight: 600; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Contenu statique explorable (SEO) : l'app React le remplace au montage. -->
+      <div id="seo-hero">
+        <h1>Coin<span>cheur</span> — Coinche &amp; belote contrée en ligne</h1>
+        <p>
+          Joue gratuitement à la <strong>coinche</strong> (belote contrée) contre des IA
+          paramétrables, avec un <strong>coach</strong> qui t'explique chaque coup et des
+          <strong>exercices</strong> pour vraiment progresser. Sans inscription, directement
+          dans ton navigateur, en français et en anglais.
+        </p>
+        <nav aria-label="Ressources">
+          <a href="/apprendre-la-coinche.html">Apprendre la coinche</a>
+          <a href="/regles-coinche.html">Règles</a>
+          <a href="/strategie-coinche.html">Stratégie</a>
+          <a href="/belote-contree.html">Belote contrée</a>
+          <a href="/valeur-cartes-coinche.html">Valeur des cartes</a>
+          <a href="/compter-points-coinche.html">Compter les points</a>
+        </nav>
+        <p><a href="/en/learn-coinche.html">English version</a></p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
