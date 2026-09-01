@@ -380,7 +380,7 @@ export default [
         },
         {
           h2: "Which to choose?",
-          html: "<p>Classic belote takes five minutes to learn: ideal to start. Coinche adds the tactical layer of bidding and doubling, richer and more strategic, the “expert” version of 4-player belote. Since the card game is the same, switching is easy. For the contract version, see <a href=\"/en/contract-belote.html\">contract belote</a> and <a href=\"/en/coinche-vs-contree.html\">coinche vs contrée</a>.</p>",
+          html: "<p>Classic belote takes five minutes to learn: ideal to start. Coinche adds the tactical layer of bidding and doubling, richer and more strategic, the “expert” version of 4-player belote. Since the card game is the same, switching is easy. For the contract version, see <a href=\"/en/contract-belote.html\">contract belote</a> and <a href=\"/en/belote-vs-contree-differences.html\">coinche vs contrée</a>.</p>",
         },
       ],
       faq: [
