@@ -140,9 +140,9 @@ export default [
     fr: {
       slug: "coinche-vs-manille",
       linkLabel: "Coinche vs manille",
-      title: "Coinche vs manille : deux jeux de plis en équipe",
+      title: "Coinche ou manille : les différences en 1 tableau",
       description:
-        "Coinche ou manille ? Ordre des cartes, valeur du 10, enchères : ce qui rapproche et ce qui distingue ces deux jeux de plis à quatre.",
+        "Coinche ou manille : ordre des cartes, valeur du 10, enchères. Le tableau comparatif clair pour ne plus jamais confondre ces deux jeux de plis à quatre.",
       h1: "Coinche vs manille",
       lead: "La manille et la coinche sont toutes deux des <strong>jeux de plis à 4 en 2 équipes</strong>, mais leur hiérarchie de cartes et leur rapport aux enchères diffèrent nettement.",
       sections: [

@@ -355,10 +355,10 @@ export default [
     fr: {
       slug: "memo-antiseche-coinche-debutant",
       linkLabel: "Mémo / antisèche",
-      title: "Mémo coinche : l'antisèche du débutant (cartes et points)",
+      title: "Antisèche coinche à imprimer : valeurs, points et barème",
       h1: "Le mémo / antisèche de la coinche pour débutant",
       description:
-        "L'antisèche coinche à garder sous la main : valeur des cartes à l'atout et à la couleur, points par donne, belote, capot. Tout sur une page.",
+        "L'antisèche coinche à garder sous les yeux ou à imprimer : valeur des cartes à l'atout et à la couleur, points par donne, belote, capot. Tout sur une page.",
       lead: "Garde cette <strong>antisèche</strong> sous les yeux pour tes premières parties : l'ordre des cartes et le décompte d'un coup d'œil, sans rien avoir à mémoriser dans l'urgence.",
       sections: [
         {

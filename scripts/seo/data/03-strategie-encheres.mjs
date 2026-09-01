@@ -281,10 +281,10 @@ export default [
     en: {
       slug: "when-to-double-coinche",
       linkLabel: "When to double",
-      title: "When to coinche (double) the opponents in coinche?",
+      title: "When to double (coinche) your opponents: clear signs",
       h1: "When to double the opponents?",
       description:
-        "Coinching doubles the opponents' contract points. When the risk is worth it, how to judge a likely failure, and when to refrain.",
+        "Doubling multiplies the points at stake. The clear signs that a contract is going to fail, how to judge the risk, and when it is smarter to hold back.",
       lead: "To <strong>coinche</strong> is to bet the opponents won't make their contract. The points are then <strong>doubled</strong> for whoever ends up winning them.",
       sections: [
         {

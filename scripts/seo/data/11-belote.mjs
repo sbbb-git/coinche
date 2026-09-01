@@ -45,10 +45,10 @@ export default [
     en: {
       slug: "belote-card-values",
       linkLabel: "Belote card values",
-      title: "Belote card values (and coinche)",
+      title: "Belote card values: the complete points table",
       h1: "Card values in belote",
       description:
-        "Belote card values: full table for trump (Jack 20, 9 worth 14, Ace 11) and non-trump. The exact same values as coinche.",
+        "Belote card values in one complete table: trump (Jack 20, 9 = 14, Ace 11) and plain suits (Ace 11, 10 = 10). Exactly the same values as coinche.",
       lead: "In belote, every card has a <strong>point value</strong> that changes depending on whether it is <strong>trump</strong> or not. Good news: these values are <strong>identical to coinche</strong>.",
       sections: [
         {
@@ -209,10 +209,10 @@ export default [
     fr: {
       slug: "ordre-des-cartes-belote",
       linkLabel: "Ordre des cartes (belote)",
-      title: "Ordre des cartes à la belote : de la plus forte à la plus faible",
+      title: "Ordre des cartes à la belote : le tableau complet",
       h1: "L'ordre des cartes à la belote",
       description:
-        "Ordre des cartes à la belote : à l'atout Valet > 9 > As > 10 > Roi > Dame > 8 > 7, hors atout As > 10 > Roi > Dame > Valet > 9 > 8 > 7. Identique à la coinche.",
+        "Ordre des cartes à la belote, à l'atout et hors atout : le tableau complet et facile à retenir. Valable exactement de la même façon à la coinche.",
       lead: "À la belote, l'ordre de force des cartes <strong>change selon l'atout</strong>. Deux classements à connaître, exactement les mêmes qu'à la coinche.",
       sections: [
         {
@@ -238,10 +238,10 @@ export default [
     en: {
       slug: "belote-card-order",
       linkLabel: "Belote card order",
-      title: "Belote card order: strongest to weakest",
+      title: "Belote card order: the full ranking chart",
       h1: "Card order in belote",
       description:
-        "Belote card order: in trump Jack > 9 > Ace > 10 > King > Queen > 8 > 7, outside trump Ace > 10 > King > Queen > Jack > 9 > 8 > 7. Same as coinche.",
+        "Belote card order in trump and plain suits, in one clear chart: Jack > 9 > Ace > 10 > King > Queen. Exactly the same ranking as in coinche.",
       lead: "In belote, the card strength order <strong>changes with trump</strong>. Two rankings to know, exactly the same as coinche.",
       sections: [
         {

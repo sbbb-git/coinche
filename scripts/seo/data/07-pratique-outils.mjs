@@ -197,10 +197,10 @@ export default [
     fr: {
       slug: "compter-points-coinche-application",
       linkLabel: "Compteur sur appli",
-      title: "Compter les points de coinche avec une application",
+      title: "Compteur de points de coinche : l'outil gratuit en ligne",
       h1: "Compter les points de coinche avec une appli",
       description:
-        "Utiliser une application pour compter les points de coinche : fini les erreurs d'addition. Comment ça marche et ce que fait Coincheur dans le navigateur.",
+        "Fini les erreurs d'addition : compte les points de tes parties de coinche avec un compteur gratuit, directement dans ton navigateur, sans inscription.",
       lead: "Plus besoin de stylo : une application compte les points à ta place, gère la belote, le 10 de der et les coinches, et tient le total de la partie.",
       sections: [
         {

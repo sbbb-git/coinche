@@ -241,10 +241,10 @@ export default [
     en: {
       slug: "french-card-games",
       linkLabel: "French card games",
-      title: "French card games: the panorama (belote, coinche, tarot)",
+      title: "French card games: belote, coinche and tarot explained",
       h1: "French card games: the panorama",
       description:
-        "A panorama of French card games: belote, coinche, tarot, manille. Their differences, what they share, and which one to start with.",
+        "Belote, coinche, tarot, manille: what makes each French card game different, what they share, and which one is easiest to start with.",
       lead: "France has a rich card-game tradition. Here is an <strong>honest panorama</strong> of the great classics and where they sit.",
       sections: [
         {
