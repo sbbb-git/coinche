@@ -554,7 +554,7 @@ export default [
     fr: {
       slug: "panorama-jeux-de-plis-francais",
       linkLabel: "Panorama des jeux de plis",
-      title: "Panorama des jeux de plis français : belote, coinche, tarot, manille",
+      title: "Jeux de plis français : belote, coinche, tarot, manille",
       description:
         "Tour d'horizon des grands jeux de plis français : belote, coinche, tarot, manille, et où la coinche se situe parmi eux. Un repère pour s'y retrouver.",
       h1: "Panorama des jeux de plis français",

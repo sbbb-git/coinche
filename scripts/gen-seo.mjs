@@ -74,6 +74,13 @@ function pillarsNav(lang, currentId) {
   return `\n      <h2>${title}</h2>\n      <nav class="related">${links}\n      </nav>`;
 }
 
+/** Titre de page : on n'ajoute « — Coincheur » que si ça ne fait pas dépasser
+ *  ~65 caractères (au-delà, Google tronque et on perd des mots utiles). */
+function pageTitle(t) {
+  const brand = " — Coincheur";
+  return String(t).length + brand.length <= 65 ? String(t) + brand : String(t);
+}
+
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -195,7 +202,7 @@ function renderArticle(art, lang, idToSlug) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>${esc(c.title)} — Coincheur</title>
+    <title>${esc(pageTitle(c.title))}</title>
     <meta name="description" content="${esc(c.description)}" />
     <link rel="canonical" href="${url}" />
     <link rel="alternate" hreflang="fr" href="${frHref}" />
@@ -276,7 +283,7 @@ function renderHub(lang, cats, idToSlug) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>${esc(title)} — Coincheur</title>
+    <title>${esc(pageTitle(title))}</title>
     <meta name="description" content="${esc(desc)}" />
     <link rel="canonical" href="${url}" />
     <link rel="alternate" hreflang="fr" href="${SITE}/apprendre-la-coinche.html" />
@@ -396,7 +403,7 @@ function renderPlan(lang, cats, idToSlug) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>${esc(title)} — Coincheur</title>
+    <title>${esc(pageTitle(title))}</title>
     <meta name="description" content="${esc(desc)}" />
     <link rel="canonical" href="${url}" />
     <link rel="alternate" hreflang="fr" href="${SITE}/plan-du-site.html" />

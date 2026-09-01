@@ -146,7 +146,7 @@ export default [
     fr: {
       slug: "regles-belote",
       linkLabel: "Règles de la belote",
-      title: "Règles de la belote : l'essentiel (et la différence avec la coinche)",
+      title: "Règles de la belote : l'essentiel et le lien avec la coinche",
       h1: "Les règles de la belote : l'essentiel",
       description:
         "Règles de la belote classique : distribution, atout retourné, prendre ou passer, comment jouer les plis. Plus la différence clé avec la coinche.",
