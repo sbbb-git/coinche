@@ -114,3 +114,31 @@ Mobile 201 imp (pos 21,3) · Ordinateur 156 imp (pos 61,0) · Tablette 3.
 - Les pages « barèmes » captent-elles les requêtes tout atout / sans atout ?
 - Le CTR de la marque « coincheur » est-il > 0 ?
 - La position moyenne globale continue-t-elle de descendre sous 19 ?
+
+---
+
+# 📈 Mesure d'audience (GA4)
+
+**Identifiant : `G-89PX80N9H7`.** Posé à deux endroits :
+
+| Où | Comment |
+|---|---|
+| L'application (jeu, `/`) | `src/analytics.ts`, ID lu dans `src/config.ts` |
+| Les **286 pages statiques** (guides SEO, FR + EN) | `public/consent.js`, injecté par `scripts/gen-seo.mjs` |
+
+Avant, seul le jeu était mesuré : **tout le trafic SEO vers les guides était
+invisible dans GA4**. C'est corrigé, les deux partagent le même flux.
+
+**RGPD** : aucun appel à Google tant que le visiteur n'a pas cliqué « Accepter ».
+Le choix est stocké sous `cookie-consent` (`granted` / `denied`), clé **commune**
+au jeu et aux guides : accepter sur un article vaut aussi pour le jeu.
+
+L'ID peut être changé sans toucher au code : variable de dépôt `GA_ID`
+(Settings → Secrets and variables → Actions → Variables).
+
+## À regarder dans GA4 dans ~2 semaines
+- **Pages vues par guide** : quelles pages SEO amènent réellement du monde.
+- **Taux de clic guide → jeu** (événement de navigation vers `/`) : c'est la vraie
+  mesure de rentabilité du contenu.
+- **Taux d'acceptation du bandeau** : s'il est très bas, les chiffres GA4 sont
+  sous-estimés (Ahrefs Analytics, sans cookie, sert de contre-mesure).

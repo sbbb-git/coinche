@@ -1,7 +1,7 @@
 // Chargement de Google Analytics (GA4), privacy-first : on n'injecte le script
 // QU'APRÈS consentement explicite (RGPD / lignes directrices CNIL). Tant que
 // l'utilisateur n'a pas accepté, aucun appel n'est fait à Google.
-const GA_ID = "G-89PX80N9H7";
+import { GA_ID } from "./config";
 const CONSENT_KEY = "cookie-consent";
 let loaded = false;
 

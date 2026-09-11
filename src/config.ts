@@ -3,6 +3,11 @@
 export const SITE_URL = "https://coincheur.fr";
 export const CONTACT_EMAIL = "contact@coincheur.fr"; // boîte à créer (forwarding) chez le registrar
 
+// --- Mesure d'audience (Google Analytics 4) --------------------------------
+// Même identifiant que celui posé sur les ~286 pages statiques (guides SEO) par
+// scripts/gen-seo.mjs. GA n'est chargé qu'APRÈS consentement (ConsentBanner).
+export const GA_ID = "G-89PX80N9H7";
+
 // --- Publicité (Google AdSense, web) ---------------------------------------
 // INTERRUPTEUR MAÎTRE : pubs désactivées pour l'instant (pas encore de compte
 // AdSense). Toute l'infra reste en place ; pour RALLUMER : passer ADS_ENABLED à

@@ -40,6 +40,7 @@ jobs:
         # (Settings -> Secrets and variables -> Actions -> Variables) = "ca-pub-XXXX".
         # Tant qu'elle est vide, aucune pub n'est injectée.
         env:
+          GA_ID: ${{ vars.GA_ID }}
           ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
           VITE_ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
           VITE_ADSENSE_SLOT_HOME: ${{ vars.ADSENSE_SLOT_HOME }}

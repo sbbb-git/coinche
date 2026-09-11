@@ -27,22 +27,14 @@ const AHREFS = '<script src="https://analytics.ahrefs.com/analytics.js" data-key
 // fourni au build (ADSENSE_CLIENT) ET après consentement. Sinon : pages inchangées.
 const ADSENSE_CLIENT = /^ca-pub-\d+$/.test(process.env.ADSENSE_CLIENT || "") ? process.env.ADSENSE_CLIENT : "";
 
-const CC_TXT = {
-  fr: { text: "On utilise des cookies de mesure d'audience et de publicité pour améliorer le jeu et le garder gratuit.", more: "En savoir plus", yes: "Accepter", no: "Refuser", priv: "/privacy.html" },
-  en: { text: "We use analytics and advertising cookies to improve the game and keep it free.", more: "Learn more", yes: "Accept", no: "Decline", priv: "/en/privacy.html" },
-};
+// Mesure d'audience (GA4). Le script /consent.js n'appelle Google qu'APRÈS
+// consentement explicite (bandeau), et partage la clé « cookie-consent » avec
+// l'application React : accepter sur un guide vaut aussi pour le jeu.
+const GA_ID = /^G-[A-Z0-9]+$/.test(process.env.GA_ID || "") ? process.env.GA_ID : "G-89PX80N9H7";
 
-/** Loader AdSense (head), chargé seulement si consentement déjà donné. */
-function adsHead() {
-  if (!ADSENSE_CLIENT) return "";
-  return `\n    <script>(function(){try{if(localStorage.getItem('cookie-consent')==='granted'){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}';document.head.appendChild(s);}}catch(e){}})();</script>`;
-}
-
-/** Bandeau de consentement minimal (body), partage la clé `cookie-consent`. */
-function adsBanner(lang) {
-  if (!ADSENSE_CLIENT) return "";
-  const x = CC_TXT[lang] || CC_TXT.fr;
-  return `\n    <div id="cc" class="cc" hidden role="dialog" aria-modal="true" tabindex="-1" aria-label="${esc(x.text)}"><p>${esc(x.text)} <a href="${esc(x.priv)}">${esc(x.more)}</a></p><div class="cc-b"><button id="cc-y">${esc(x.yes)}</button><button id="cc-n">${esc(x.no)}</button></div></div>\n    <script>(function(){try{var c=localStorage.getItem('cookie-consent');if(c)return;var el=document.getElementById('cc');el.hidden=false;document.getElementById('cc-y').focus();function load(){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}';document.head.appendChild(s);}function deny(){localStorage.setItem('cookie-consent','denied');el.hidden=true;}document.getElementById('cc-y').onclick=function(){localStorage.setItem('cookie-consent','granted');el.hidden=true;load();};document.getElementById('cc-n').onclick=deny;el.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();deny();}});}catch(e){}})();</script>`;
+/** Balise unique à poser dans le <head> de chaque page statique. */
+function consentTag() {
+  return `\n    <script defer src="/consent.js" data-ga="${GA_ID}" data-ads="${ADSENSE_CLIENT}"></script>`;
 }
 
 // Pages écrites à la main (cornerstone) — listées dans les hubs et le sitemap.
@@ -218,7 +210,7 @@ function renderArticle(art, lang, idToSlug) {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="${SITE}/og-default.png" />
     <link rel="stylesheet" href="/article.css" />
-    ${AHREFS}${adsHead()}${articleLd}${faqLd}${breadcrumbLd}
+    ${AHREFS}${consentTag()}${articleLd}${faqLd}${breadcrumbLd}
   </head>
   <body>
     <header class="top">
@@ -234,7 +226,7 @@ ${sections}
       <footer>
         © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${t.planHref}">${t.plan}</a> · <a href="${playHref}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
-    </main>${adsBanner(lang)}
+    </main>
   </body>
 </html>
 `;
@@ -299,7 +291,7 @@ function renderHub(lang, cats, idToSlug) {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="${SITE}/og-default.png" />
     <link rel="stylesheet" href="/article.css" />
-    ${AHREFS}${adsHead()}
+    ${AHREFS}${consentTag()}
   </head>
   <body>
     <header class="top">
@@ -338,7 +330,7 @@ ${blocks}
       <footer>
         © Coincheur · <a href="${t.planHref}">${t.plan}</a> · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
-    </main>${adsBanner(lang)}
+    </main>
   </body>
 </html>
 `;
@@ -409,7 +401,7 @@ function renderPlan(lang, cats, idToSlug) {
     <link rel="alternate" hreflang="fr" href="${SITE}/plan-du-site.html" />
     <link rel="alternate" hreflang="en" href="${SITE}/en/sitemap.html" />
     <link rel="stylesheet" href="/article.css" />
-    ${AHREFS}${adsHead()}
+    ${AHREFS}${consentTag()}
   </head>
   <body>
     <header class="top">
@@ -422,10 +414,36 @@ ${blocks}
       <footer>
         © Coincheur · <a href="${t.hub}">${t.guides}</a> · <a href="${isFr ? "/" : "/?lang=en"}">${t.play}</a> · <a href="${t.privHref}">${t.priv}</a>
       </footer>
-    </main>${adsBanner(lang)}
+    </main>
   </body>
 </html>
 `;
+}
+
+/** Filet de sécurité : garantit que TOUTE page statique de public/ porte la
+ *  mesure d'audience (consent.js) et Ahrefs, y compris les pages écrites à la
+ *  main (cornerstone, confidentialité). Idempotent : n'ajoute que ce qui manque. */
+async function ensureTagsEverywhere() {
+  const stack = [PUBLIC];
+  let patched = 0;
+  while (stack.length) {
+    const dir = stack.pop();
+    for (const ent of await readdir(dir, { withFileTypes: true })) {
+      const abs = join(dir, ent.name);
+      if (ent.isDirectory()) { stack.push(abs); continue; }
+      if (!ent.name.endsWith(".html")) continue;
+      const html = await readFile(abs, "utf8");
+      const i = html.indexOf("</head>");
+      if (i < 0) continue;
+      let add = "";
+      if (!html.includes("/consent.js")) add += consentTag();
+      if (!html.includes("analytics.ahrefs.com")) add += "\n    " + AHREFS;
+      if (!add) continue;
+      await writeFile(abs, html.slice(0, i) + add.trimStart() + "\n  " + html.slice(i));
+      patched++;
+    }
+  }
+  if (patched) console.log(`SEO: balises de mesure ajoutées sur ${patched} page(s) écrite(s) à la main.`);
 }
 
 async function main() {
@@ -477,6 +495,7 @@ async function main() {
   await writeFile(join(PUBLIC, "plan-du-site.html"), renderPlan("fr", cats, idToSlug));
   await writeFile(join(EN_DIR, "sitemap.html"), renderPlan("en", cats, idToSlug));
   await writeFile(join(PUBLIC, "sitemap.xml"), renderSitemap(arts));
+  await ensureTagsEverywhere();
 
   console.log(`SEO: ${arts.length} articles → ${n} pages (FR+EN) + 2 hubs + plan + sitemap (${arts.length * 2 + CORNERSTONE.length + 7} URLs).`);
   void readFile; // (réservé)
